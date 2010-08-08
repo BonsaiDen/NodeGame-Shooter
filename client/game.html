@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+    <head>
+        <title>NodeGame: Shooter</title>
+        
+        <style>
+        body {
+            margin: 0px;
+            padding: 0px;
+            overflow: hidden;
+            background-color: #202020;
+            font: 10.34px helvetica, arial, freesans, clean, sans-serif;
+            font-weight: bold;
+            color: #ffffff;
+            text-align: center;
+        }
+        
+        canvas {
+            margin: 8px auto;
+            display: block;
+            border: 3px #f0f0f0 solid;
+            background-color: #000000;
+        }
+        
+        #box {
+            width: 150px;
+            margin: 0px auto 8px;
+            display: none;
+        }
+        
+        input {
+            border: 2px #f0f0f0 solid;
+            background-color: #000000;
+            margin-top: 2px;
+            font: 10.34px helvetica, arial, freesans, clean, sans-serif;
+            font-weight: bold;
+            color: #ffffff;
+            height: 14px;
+            padding: 2px;
+        }
+       
+        #error {
+            font-size: 30px;
+            width: 300px;
+            display: none;
+            text-align: center;
+            margin: 8px auto;
+        } 
+        
+        #fail {
+            font-size: 20px;
+            width: 300px;
+            display: none;
+            margin: 8px auto;
+        }   
+        
+        #size {
+            font-size: 10px;
+            width: 100px;
+            text-align: center;
+            margin: 8px auto;
+        }
+        
+        a {
+            color: #ffffff;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }  
+        
+        #copyright {
+            width: 150px;
+            text-align: center;
+            margin: 8px auto;
+        }
+        </style>
+        
+        <script type="text/javascript" src="client.js"></script>
+        <script type="text/javascript" src="config.js"></script>
+        <script type="text/javascript" src="game.js"></script>
+    </head>
+    
+    <body>
+        <canvas id="bg"></canvas>
+        <div id="error">SERVER OFFLINE</div>
+        <div id="fail">
+            Sorry, but your current Browser does not support WebSockets.<br/>
+            <br/>
+            WebSockets are supported in Chrome 5+, Firefox 4 Beta+ and Safari 4.
+        </div>
+        <div id="size"><a href="#" onclick="CLIENT.$g.onResize()">CHANGE SIZE</a></div>
+        <div id="box"><input id="login" type="text" value="" maxlength="12"/></div>
+        <div id="copyright">Copyright (c) 2010 Ivo Wetzel.</div>
+    </body>
+</html>
+
