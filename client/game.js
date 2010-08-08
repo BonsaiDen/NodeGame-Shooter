@@ -44,6 +44,7 @@ Game.prototype.onConnect = function(success) {
     this.scale = 1;
     this.particles = [];
     this.small = false;
+    this.extreeeeeeme = false;
     
     // Stuff
     this.playerNames = {};
@@ -59,6 +60,7 @@ Game.prototype.onConnect = function(success) {
     this.roundID = 0;
     this.roundStats = {};
     this.roundGO = null;
+    this.playing = false;
     
     // Power UPs
     this.powerUpColors = {
@@ -87,6 +89,7 @@ Game.prototype.onLogin = function(e) {
             document.getElementById('box').style.display = 'none';
             e.preventDefault();
             this.send({'join': playerName});
+            this.playing = true;
         }
         return false;
     }
@@ -124,6 +127,10 @@ Game.prototype.onResize = function(data) {
     this.small = !this.small;
     this.scale = this.small ? 0.5 : 1;
     this.initCanvas();
+};
+
+Game.prototype.onExtreme = function(data) {
+    this.extreeeeeeme = !this.extreeeeeeme;
 };
 
 Game.prototype.onControl = function(data) {
@@ -212,8 +219,7 @@ Game.prototype.checkPlayers = function(data) {
         count++;
     }
     
-    var playing = !!data.players[this.$.id];
-    if (!playing && this.roundGO) {
+    if (!this.playing && this.roundGO) {
         var box = document.getElementById('box');
         if (count < data.max) {
             box.style.display = 'block';
@@ -282,6 +288,7 @@ Game.prototype.renderParticles = function() {
 
 Game.prototype.effectArea = function(x, y, size, d, col) {
     d = d * 1000;
+    d = this.extreeeeeeme ? d * 2 : d;
     this.particles.push({
         'x': x, 'y': y,
         'size': size,
@@ -292,6 +299,7 @@ Game.prototype.effectArea = function(x, y, size, d, col) {
 };
 
 Game.prototype.effectParticle = function(x, y, r, speed, d, col) {
+    d = this.extreeeeeeme ? d * 2 : d;
     this.particles.push({
         'x': x, 'y': y,
         'r': this.wrapAngle(r), 'speed': speed,
@@ -299,9 +307,19 @@ Game.prototype.effectParticle = function(x, y, r, speed, d, col) {
         'd': d * 1000,
         'col': col
     });
+    if (this.extreeeeeeme) {
+        this.particles.push({
+            'x': x + Math.random(), 'y': y + Math.random(),
+            'r': this.wrapAngle(r), 'speed': speed,
+            'time': this.getTime() + d * 1000,
+            'd': d * 1000,
+            'col': col
+        });  
+    }
 };
 
 Game.prototype.effectExplosion = function(x, y, count, d, speed, col) {
+    count = this.extreeeeeeme ? count * 2 : count;
     var r = (Math.PI * 2 * Math.random());
     var rs = Math.PI * 2 / count;
     for(var i = 0; i < count; i++) {
@@ -401,10 +419,6 @@ ActorPlayer.update = function(data) {
     this.boost = data.b;
     
     // Shield
-    if (data.s != this.shield) {
-        var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
-        this.$g.effectRing(this.x, this.y, 20, 24, 0.1, 0.75, col);
-    }
     this.shield = data.s;
 };
 
@@ -414,8 +428,12 @@ ActorPlayer.interleave = function() {
 
 ActorPlayer.destroy = function() {
     var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
-    this.$g.effectExplosion(this.x, this.y, 20, 1.5, 1.5,col);
-    this.$g.effectArea(this.x, this.y, 20, 0.5, 0.5, col);
+    this.$g.effectExplosion(this.x, this.y, 20, 1.5, 1.5, col);
+    this.$g.effectArea(this.x, this.y, 20, 0.5, col);
+    
+    if (this.shield) {
+        this.$g.effectRing(this.x, this.y, 20, 36, 0.5, 3.5, col);
+    }
 };
 
 ActorPlayer.render = function() {
@@ -442,7 +460,7 @@ ActorPlayer.render = function() {
     this.$g.bg.stroke();
     
     if (this.shield) {
-        this.$g.line(2);
+        this.$g.line(3);
         this.$g.bg.beginPath();
         this.$g.stroke(this.$g.colorCodesFaded[this.$g.playerColors[this.id]]);
         this.$g.bg.arc(0, 0, 20, 0, Math.PI * 2, true);
@@ -474,9 +492,13 @@ ActorPlayer.render = function() {
         this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - Math.PI * 2.47 * d - 0.4 + Math.random() * 0.80), 2, 0.13, col);
     }
     
+    if (this.shield) {
+        this.$g.effectRing(this.x, this.y, 20, 24,
+                           this.$g.extreeeeeeme ? 0.025 : 0.05, 0.25, col);
+    }
+    
     // Name
     this.$g.fill(this.$g.colorCodesFaded[this.$g.playerColors[this.id]]);
-   // this.$g.fill(this.id == this.$.id ? '#ffffff' : '#808080');
     this.$g.text(this.x, this.y - 22, this.$g.playerNames[this.id] + '(' + this.$g.playerScores[this.id] + ')', 'center', 'middle');
 };
 
