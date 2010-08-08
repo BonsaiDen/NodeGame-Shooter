@@ -421,6 +421,7 @@ Client.prototype.init = function() {
         this.$.setFieldItem('scores', this.id, this.score, true);
         this.$g.addPlayerStats(this.id);
         
+        this.moveTime = this.getTime();
         this.keys = [0, 0, 0, 0];
         this.shotTime = this.getTime() + 1000;
         this.bomb = null;
@@ -470,7 +471,7 @@ Client.prototype.onMessage = function(msg) {
 };
 
 Client.prototype.onUpdate = function() {
-    if (this.$g.roundFinished) {
+    if (this.$g.roundFinished || !this.playerName) {
         return;
     }
     
@@ -484,10 +485,13 @@ Client.prototype.onUpdate = function() {
     }
     
     // Turn
+    var moved = false;
     if (this.keys[1]) {
+        moved = true;
         this.player.mr = -0.1;
     
     } else if (this.keys[3]) {
+        moved = true;
         this.player.mr = 0.1;
     
     } else {
@@ -497,6 +501,7 @@ Client.prototype.onUpdate = function() {
     // Bomb
     if (this.keys[2] && !this.bombDown) {
         if (this.player.bomb) {
+            moved = true;
             if (this.bombLaunched) {
                 this.bomb.destroy();
             
@@ -513,10 +518,22 @@ Client.prototype.onUpdate = function() {
     
     // Acceleration
     if (this.keys[0]) {
+        moved = true;
         this.player.mx += Math.sin(this.player.r) * 0.19;
         this.player.my += Math.cos(this.player.r) * 0.19;
     }
     this.player.thrust = this.keys[0];
+    
+    // Idle
+    if (moved) {
+        this.moveTime = this.getTime();
+    }
+    if (this.getTime() - this.moveTime > 30000) {
+        console.log('++ #' + this.id + ' ' + this.playerName + ' kicked for idleing');
+        this.player.bomb = false;
+        this.close();
+        return;
+    }
     
     // Shoot
     if (this.keys[4] && this.getTime() - this.shotTime > (this.player.laser ? 400 : 600)) {

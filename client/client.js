@@ -78,9 +78,8 @@ Client.prototype.connect = function(host, port) {
         this.$g.onWebSocketError();
         return;
     }
-
-    var that = this;
     
+    var that = this;
     this.conn = new WebSocket('ws://' + host + ':' + port);
     this.conn.onopen = function() {
         that.connected = true;
@@ -88,7 +87,12 @@ Client.prototype.connect = function(host, port) {
     };
     
     this.conn.onmessage = function(msg) {
-        msg = JSON.parse(msg.data);
+        try {
+            msg = JSON.parse(msg.data);
+        
+        } catch(e) {
+            return;
+        }
         
         // Game
         var type = msg.t;
@@ -107,8 +111,8 @@ Client.prototype.connect = function(host, port) {
             that.$g.onUpdate(data.d);
         
         } else if (type == 'e') {
-            that.$g.onQuit();
-        
+            
+            
         // Actors
         } else if (type == 'i') {
             for(var i = 0, l = data.a.length; i < l; i++) {
@@ -134,9 +138,10 @@ Client.prototype.connect = function(host, port) {
             that.actors[data.i].destroy();
             delete that.actors[data.i];
         }
-    }; 
+    };
     
     this.conn.onerror = this.conn.onclose = function(e) {
+        console.log('foo');
         if (that.connected) {
             that.quit();
             that.$g.onQuit(true);

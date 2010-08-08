@@ -159,7 +159,7 @@ Game.prototype.onRender = function() {
 };
 
 Game.prototype.onQuit = function(clean) {
-    
+    document.location.href = document.location.href.split('#')[0].split('?')[0];
 };
 
 
@@ -433,7 +433,7 @@ ActorPlayer.destroy = function() {
     this.$g.effectArea(this.x, this.y, 20, 0.5, col);
     
     if (this.shield) {
-        this.$g.effectRing(this.x, this.y, 20, 42, 0.7, 4.0, col);
+        this.$g.effectRing(this.x, this.y, 20, 42, 0.6, 4.0, col);
     }
 };
 
