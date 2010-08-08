@@ -170,10 +170,12 @@ Server.prototype.forceFields = function(mode) {
 
 // Clients
 Server.prototype.clientAdd = function(conn) {
-    var c = this.clients[conn.id] = new Client(this, conn);
-    this.clientCount++;
-    c._init();
-    c.onInit();
+    if (!this.clients[conn.id]) {
+        var c = this.clients[conn.id] = new Client(this, conn);
+        this.clientCount++;
+        c._init();
+        c.onInit();   
+    }
 };
 
 Server.prototype.clientState = function(id, msg) {
@@ -181,8 +183,8 @@ Server.prototype.clientState = function(id, msg) {
 };
 
 Server.prototype.clientRemove = function(id) {
-    this.clientCount--;
     if (this.clients[id]) {
+        this.clientCount--;
         this.clients[id].onRemove();
         delete this.clients[id];
     }
