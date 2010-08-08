@@ -93,7 +93,7 @@ Game.prototype.onLogin = function(e) {
         }
         return false;
     }
-}
+};
 
 Game.prototype.onInit = function(data) {
     this.width = data.size[0];
@@ -131,6 +131,7 @@ Game.prototype.onResize = function(data) {
 
 Game.prototype.onExtreme = function(data) {
     this.extreeeeeeme = !this.extreeeeeeme;
+    document.getElementById('extreme').innerHTML = (this.extreeeeeeme ? 'DEACTIVATE' : 'ACTIVATE') + ' EXTREEEEME';
 };
 
 Game.prototype.onControl = function(data) {
@@ -432,7 +433,7 @@ ActorPlayer.destroy = function() {
     this.$g.effectArea(this.x, this.y, 20, 0.5, col);
     
     if (this.shield) {
-        this.$g.effectRing(this.x, this.y, 20, 36, 0.5, 3.5, col);
+        this.$g.effectRing(this.x, this.y, 20, 42, 0.7, 4.0, col);
     }
 };
 
