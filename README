@@ -3,6 +3,10 @@ About
   NodeGame: Shooter is a simple multiplayer game demo using node.js,
   node-websocket-server and HTML5 WebSockets as well as Canvas.
 
+  Depending on the time of the day(read: wether my PC is running or not)
+  there might be a 5 player server available at 
+  <http://dl.dropbox.com/u/2332843/game.html>.
+
 
 License
 -------
