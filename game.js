@@ -57,13 +57,13 @@ Game.prototype.onInit = function() {
     
     // PowerUPS
     this.powerUps = {};
-    this.initPowerUp('shield', 2, 23, 10);
-    this.initPowerUp('laser',  1, 32, 15);
-    this.initPowerUp('life',   2, 8, 8);
-    this.initPowerUp('boost',  2, 20, 15);
+    this.initPowerUp('shield',  2, 23, 10);
+    this.initPowerUp('laser',   1, 32, 15);
+    this.initPowerUp('life',    2,  8,  8);
+    this.initPowerUp('boost',   2, 20, 15);
     this.initPowerUp('defense', 1, 35, 30);
     this.initPowerUp('bomb',    1, 70, 35);
-    this.initPowerUp('camu',    1, 50, 20);
+    this.initPowerUp('camu',    1, 47, 20);
     
     // Start Game
     this.startRound();
@@ -118,10 +118,21 @@ Game.prototype.endRound = function() {
             var stats = this.roundStats[c];
             sorted.push([this.$.clients[c].score,
                          stats.kills, this.$.clients[c].playerName,
-                         stats.selfDestructs, this.$.clients[c].playerColor]);
+                         stats.selfDestructs, this.$.clients[c].playerColor]);       
         }
     }
-    sorted.sort();
+    
+    function sortScore(a, b) {
+        var d = b[0] - a[0];
+        if (d == 0) {
+            d = b[1] - a[1];
+            if (d == 0) {
+                d = a[2] - b[2];
+            }
+        }
+        return d;
+    }
+    sorted.sort(sortScore);
     
     this.$.setField('rt', this.roundWait, true);
     this.$.setField('rg', 0, true);
@@ -261,7 +272,7 @@ Game.prototype.onUpdate = function() {
                     pd.destroy();
                     p.hp -= 15;
                     if (p.hp <= 0) {
-                        pd.player.client.addScore(p.camu == 2 ? 15 : 10);
+                        pd.player.client.addScore(10);
                         this.getPlayerStats(pd.player.client.id).kills += 1;
                         p.client.kill();
                         break;
@@ -316,7 +327,7 @@ Game.prototype.onUpdate = function() {
                             b.destroy();
                             p.hp -= 5;
                             if (p.hp <= 0) {
-                                b.player.client.addScore(p.camu == 2 ? 15 : 10);
+                                b.player.client.addScore(10);
                                 this.getPlayerStats(b.player.client.id).kills += 1;
                                 p.client.kill();
                                 break;

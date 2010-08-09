@@ -226,11 +226,11 @@ Game.prototype.renderParticles = function() {
             this.fill(p.col || '#ffffff');
             var scale = this.timeScale(p.time, p.d);
             if (!p.size) {
-                this.bg.globalAlpha = 0 - scale;
+                this.bg.globalAlpha = (0 - scale) * p.a;
                 this.bg.fillRect(p.x - 2, p.y - 2, 4, 4);
                 
             } else {
-                this.bg.globalAlpha = (0 - scale) * 0.5;
+                this.bg.globalAlpha = ((0 - scale) * 0.5);
                 this.bg.beginPath();
                 this.bg.arc(p.x, p.y, p.size, 0, Math.PI * 2, true);
                 this.bg.closePath();
@@ -317,14 +317,15 @@ Game.prototype.effectArea = function(x, y, size, d, col) {
     });
 };
 
-Game.prototype.effectParticle = function(x, y, r, speed, d, col) {
+Game.prototype.effectParticle = function(x, y, r, speed, d, col, a) {
     d = this.extreeeeeeme ? d * 2 : d;
     this.particles.push({
         'x': x, 'y': y,
         'r': this.wrapAngle(r), 'speed': speed,
         'time': this.getTime() + d * 1000,
         'd': d * 1000,
-        'col': col
+        'col': col,
+        'a': a
     });
     if (this.extreeeeeeme) {
         this.particles.push({
@@ -332,7 +333,8 @@ Game.prototype.effectParticle = function(x, y, r, speed, d, col) {
             'r': this.wrapAngle(r), 'speed': speed,
             'time': this.getTime() + d * 1000,
             'd': d * 1000,
-            'col': col
+            'col': col,
+            'a': a
         });  
     }
 };
@@ -344,19 +346,19 @@ Game.prototype.effectExplosion = function(x, y, count, d, speed, col) {
     for(var i = 0; i < count; i++) {
         this.effectParticle(x, y, (r + rs * i) - Math.PI,
                             0.35 + Math.random() * speed,
-                            (1 * d) + Math.random() * (0.5 * d), col);
+                            (1 * d) + Math.random() * (0.5 * d), col, 1);
     }
 };
 
-Game.prototype.effectRing = function(x, y, size, count, d, speed, col) {
+Game.prototype.effectRing = function(x, y, size, count, d, speed, col, a) {
     for(var i = 0; i < count; i++) {
         var r = (Math.PI * 2 / count * i) - Math.PI;
         
         var e = Math.random() / 2 + 0.5;
         var ox = x + Math.sin(r) * size;
         var oy = y + Math.cos(r) * size;
-        this.effectParticle(ox, oy, r + e / 2, speed * 0.5 * e, d, col);
-        this.effectParticle(ox, oy, r - e, speed * e, d * 2, col);
+        this.effectParticle(ox, oy, r + e / 2, speed * 0.5 * e, d, col, a);
+        this.effectParticle(ox, oy, r - e, speed * e, d * 2, col, a);
     }
 };
 
@@ -444,11 +446,11 @@ ActorPlayer.update = function(data) {
     // Shield
     if (this.shield && !data[5]) {
         var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
-        this.$g.effectRing(this.x, this.y, 20, 30, 0.5, 3.0, col);
+        this.$g.effectRing(this.x, this.y, 20, 30, 0.5, 3.0, col, 1);
     
     } else if (!this.shield && data.s) {
         var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
-        this.$g.effectRing(this.x, this.y, 30, 30, 0.20, -3.0, col);
+        this.$g.effectRing(this.x, this.y, 30, 30, 0.20, -3.0, col, 1);
     }
     this.shield = data[5];
 };
@@ -463,7 +465,7 @@ ActorPlayer.destroy = function() {
     this.$g.effectArea(this.x, this.y, 20, 0.5, col);
     
     if (this.shield) {
-        this.$g.effectRing(this.x, this.y, 20, 42, 0.6, 4.0, col);
+        this.$g.effectRing(this.x, this.y, 20, 42, 0.6, 4.0, col, 1);
     }
 };
 
@@ -478,13 +480,15 @@ ActorPlayer.render = function() {
     }
     
     // Draw Ship base
+    var alpha = 1.0;
     if (this.fade != -1) {
         if (this.id == this.$.id) {
-            this.$g.bg.globalAlpha = 0.20 + (this.fade / 100 * 0.8);
+            alpha = 0.20 + (this.fade / 100 * 0.8);
         
         } else {
-            this.$g.bg.globalAlpha = this.fade / 100;
+            alpha = this.fade / 100;
         }
+        this.$g.bg.globalAlpha = alpha;
     }
     
     
@@ -518,11 +522,11 @@ ActorPlayer.render = function() {
             var ox = this.x + Math.sin(r) * 12;
             var oy = this.y + Math.cos(r) * 12;
             this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - 0.8 + Math.random() * 1.60),
-                                   2, 0.2 + (this.boost ? 0.1 : 0), col);
+                                   2, 0.2 + (this.boost ? 0.1 : 0), col, alpha);
             
             if (this.boost) {
                 this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - 0.8 + Math.random() * 1.60),
-                                       2, 0.2 + (this.boost ? 0.1 : 0), col);
+                                       2, 0.2 + (this.boost ? 0.1 : 0), col, alpha);
             }
         }
         
@@ -531,12 +535,12 @@ ActorPlayer.render = function() {
             var r = this.$g.wrapAngle(this.r - Math.PI);
             var ox = this.x + Math.sin(this.$g.wrapAngle(r - Math.PI * 2.22 * d)) * 14;
             var oy = this.y + Math.cos(this.$g.wrapAngle(r - Math.PI * 2.22 * d)) * 14;
-            this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - Math.PI * 2.47 * d - 0.4 + Math.random() * 0.80), 2, 0.13, col);
+            this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - Math.PI * 2.47 * d - 0.4 + Math.random() * 0.80), 2, 0.13, col, alpha);
         }
         
         if (this.shield) {
             this.$g.effectRing(this.x, this.y, 20, 24,
-                               this.$g.extreeeeeeme ? 0.025 : 0.05, 0.25, col);
+                               this.$g.extreeeeeeme ? 0.025 : 0.05, 0.25, col, alpha);
         }
     
     } else {
@@ -584,9 +588,9 @@ ActorBomb.create = function(data) {
 ActorBomb.destroy = function() {
     var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
     this.$g.effectArea(this.x, this.y, this.radius, 1.0, col);
-    this.$g.effectRing(this.x, this.y, this.radius / 2 * 0.975, 100, 1, 1.25, col);
+    this.$g.effectRing(this.x, this.y, this.radius / 2 * 0.975, 100, 1, 1.25, col, 1);
     this.$g.effectArea(this.x, this.y, this.radius / 2, 1.5, col);
-    this.$g.effectRing(this.x, this.y, this.radius * 0.975, 150, 1, 1.25, col);
+    this.$g.effectRing(this.x, this.y, this.radius * 0.975, 150, 1, 1.25, col, 1);
 };
 
 ActorBomb.render = function() {
@@ -609,10 +613,10 @@ ActorBomb.render = function() {
     var ox = this.x - Math.sin(r) * 2;
     var oy = this.y - Math.cos(r) * 2;
     this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - 0.8 + Math.random() * 1.60),
-                           1, 0.5, col);
+                           1, 0.5, col, 1);
     
     this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - 1.6 + Math.random() * 3.20),
-                           0.5, 0.8, col);          
+                           0.5, 0.8, col, 1);          
 };
 
 // PowerUP ---------------------------------------------------------------------
