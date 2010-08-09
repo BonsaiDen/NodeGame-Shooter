@@ -61,7 +61,7 @@ Game.prototype.onInit = function() {
     this.initPowerUp('laser',  1, 32, 15);
     this.initPowerUp('life',   2, 8, 8);
     this.initPowerUp('boost',  2, 20, 15);
-    this.initPowerUp('defense', 1, 37, 20);
+    this.initPowerUp('defense', 1, 35, 30);
     this.initPowerUp('bomb',    1, 70, 35);
     this.initPowerUp('camu',    1, 50, 20);
     
@@ -205,8 +205,11 @@ Game.prototype.collidePowerUps = function(o, p) {
     
     // Player Defense
     } else if (o.type == 'defense') {
-        if (p.defs < 3) {
+        if (p.defs < 1) {
             this.createActor('player_def', {'player': p});
+        
+        } else {
+            p.defender.level += 1;
         }
     
     // Life
@@ -258,7 +261,7 @@ Game.prototype.onUpdate = function() {
                     pd.destroy();
                     p.hp -= 15;
                     if (p.hp <= 0) {
-                        pd.player.client.addScore(10);
+                        pd.player.client.addScore(p.camu == 2 ? 20 : 10);
                         this.getPlayerStats(pd.player.client.id).kills += 1;
                         p.client.kill();
                         break;
@@ -313,7 +316,7 @@ Game.prototype.onUpdate = function() {
                             b.destroy();
                             p.hp -= 5;
                             if (p.hp <= 0) {
-                                b.player.client.addScore(10);
+                                b.player.client.addScore(p.camu == 2 ? 20 : 10);
                                 this.getPlayerStats(b.player.client.id).kills += 1;
                                 p.client.kill();
                                 break;
@@ -456,7 +459,7 @@ Client.prototype.init = function() {
 
 Client.prototype.kill = function() {
     this.bomb = null;
-    this.addScore(-5);
+    this.addScore(this.player.camu == 2 ? -10 : -5);
     this.reset = this.getTime();
     this.player.destroy();
     if (this.player.bomb && !this.bombLaunched) {
@@ -616,6 +619,7 @@ ActorPlayer.create = function(data) {
     this.bomb = false;
     
     this.defs = 0;
+    this.defender = null;
     
     this.camu = 0;
     this.camuFade = -1;
@@ -706,6 +710,7 @@ ActorPlayer.update = function() {
 };
 
 ActorPlayer.destroy = function() {
+    this.defender = null;
     this.hp = 0;
     var players_defs = this.$.getActors('player_def');
     for(var i = 0, l = players_defs.length; i < l; i++) {
@@ -925,7 +930,9 @@ ActorPowerUp.msg = function(full) {
 var ActorPlayerDef = SERVER.createActorType('player_def');
 ActorPlayerDef.create = function(data) {
     this.player = data.player;
+    this.player.defender = this;
     this.player.defs++;
+    this.level = 1;
     this.r = (Math.random() * (Math.PI * 2)) - Math.PI;
     this.shotTime = this.getTime();
 };
@@ -939,7 +946,7 @@ ActorPlayerDef.update = function() {
     this.mx = this.player.mx + Math.sin(r2) * 0.27;
     this.my = this.player.my + Math.cos(r2) * 0.27;
     
-    if (this.getTime() - this.shotTime > 1200) {
+    if (this.getTime() - this.shotTime > (this.level == 1 ? 1200 : 250)) {
         this.$.createActor('bullet', {'player': this.player, 'r': this.r, 'd': 35});
         this.shotTime = this.getTime();
     }
@@ -948,6 +955,7 @@ ActorPlayerDef.update = function() {
 };
 
 ActorPlayerDef.destroy = function() {
+    this.player.defender = null;
     this.player.defs--;
 };
 
