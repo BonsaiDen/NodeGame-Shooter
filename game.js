@@ -57,11 +57,11 @@ Game.prototype.onInit = function() {
     
     // PowerUPS
     this.powerUps = {};
-    this.initPowerUp('shield', 2, 25, 10);
-    this.initPowerUp('laser',  1, 35, 15);
-    this.initPowerUp('life',   2, 10, 10);
+    this.initPowerUp('shield', 2, 23, 10);
+    this.initPowerUp('laser',  1, 32, 15);
+    this.initPowerUp('life',   2, 8, 8);
     this.initPowerUp('boost',  2, 20, 15);
-    this.initPowerUp('defense', 1, 40, 20);
+    this.initPowerUp('defense', 1, 37, 20);
     this.initPowerUp('bomb',    1, 70, 35);
     
     // Start Game
@@ -323,10 +323,11 @@ Game.prototype.onUpdate = function() {
         }
     }
     
-    // Player Def powerup collision
-    for(var e = 0, dl = players_defs.length; e < dl; e++) {
-        var pd = players_defs[e];
+    // Player Def 
+    for(var i = 0, dl = players_defs.length; i < dl; i++) {
+        var pd = players_defs[i];
         if (pd.alive && pd.player.hp > 0) {
+            // powerup collision
             for(var f = 0, lf = powerups.length; f < lf; f++) {
                 var o = powerups[f];
                 if (o.alive && this.circleCollision(pd, o, 3, 10)) {
@@ -334,11 +335,23 @@ Game.prototype.onUpdate = function() {
                 }
             }
             
-            // Player / Bomb
+            // Player Bomb
             for(var e = 0, dl = bombs.length; e < dl; e++) {
                 var bo = bombs[e];
                 if (bo.alive && this.circleCollision(pd, bo, 3, 5)) {
                     bo.destroy();
+                    pd.destroy();
+                    break;
+                }
+            }
+            
+            // Other defs
+            for(var e = i + 1, dl = players_defs.length; e < dl; e++) {
+                var pdd = players_defs[e];
+                if (pdd.alive && this.circleCollision(pdd, pd, 3, 3)) {
+                    pdd.destroy();
+                    pd.destroy();
+                    break;
                 }
             }
         }
