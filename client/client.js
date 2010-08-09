@@ -113,7 +113,7 @@ Client.prototype.connect = function(host, port) {
             that.$g.onInit(data.d);
         
         } else if (type == 'f') {
-            that.$g.onUpdate(data.d);
+            that.$g.onUpdate(data);
         
         } else if (type == 'e') {
             
@@ -137,11 +137,11 @@ Client.prototype.connect = function(host, port) {
             that.actors[data.i] = new Actor(that, data);
         
         } else if (type == 'n') {
-            that.actors[data.i].event(msg.t, msg.d || {});
+            that.actors[data[0]].event(data[1], data.length > 2 ? data[2] : {});
         
         } else if (type == 'd') {
-            that.actors[data.i].destroy(data.x, data.y);
-            delete that.actors[data.i];
+            that.actors[data[0]].destroy(data[1], data[2]);
+            delete that.actors[data[0]];
         }
     };
     

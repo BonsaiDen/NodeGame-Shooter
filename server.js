@@ -162,13 +162,13 @@ Server.prototype.pushFields = function(mode) {
         this.fieldsChanged = true;
     
     } else if (this.fieldsChanged) {
-        this.emit('f', {'d': this.fields});
+        this.emit('f', this.fields);
         this.fieldsChanged = false;
     }
 };
 
 Server.prototype.forceFields = function(mode) {
-    this.emit('f', {'d': this.fields});
+    this.emit('f', this.fields);
     this.fieldsChanged = false;
 };
 
@@ -444,11 +444,7 @@ Actor.prototype.destroy = function() {
     if (this.alive) {
         this.alive = false;
         this.$.actorTypes[this.clas].destroy.call(this);
-        this.$.emit('d', {
-            'i': this.id,
-            'x': Math.round(this.x),
-            'y': Math.round(this.y)
-        });
+        this.$.emit('d', [this.id, Math.round(this.x), Math.round(this.y)]);
     }
 };
 
@@ -464,9 +460,9 @@ Actor.prototype.toMessage = function(full) {
 };
 
 Actor.prototype.event = function(type, data) {
-    var msg = {'i': this.id, 't': type};
+    var msg = [this.id, type];
     if (data != null) {
-        msg.d = data;
+        msg.push(data);
     }
     this.$.emit('n', msg);
 };
