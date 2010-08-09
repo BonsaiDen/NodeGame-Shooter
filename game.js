@@ -415,6 +415,9 @@ Game.prototype.onUpdate = function() {
             }
             
             // Other defs
+            if (!pd.alive) {
+                continue;
+            }
             for(var e = i + 1, dl = players_defs.length; e < dl; e++) {
                 var pdd = players_defs[e];
                 if (pdd.alive && this.circleCollision(pdd, pd, 3, 3)) {
@@ -519,15 +522,18 @@ Client.prototype.init = function() {
 };
 
 Client.prototype.kill = function() {
-    this.bomb = null;
-    this.addScore(this.player.camu == 2 ? -10 : -5);
-    this.reset = this.getTime();
-    this.player.destroy();
-    if (this.player.bomb && !this.bombLaunched) {
-        var bomb = this.createActor('bomb', {'r': null, 'player': this.player, 'd': 0});
-        bomb.destroy();
+    if (this.player && !this.$g.roundFinished) {
+        this.bomb = null;
+        this.addScore(this.player.camu == 2 ? -10 : -5);
+        this.reset = this.getTime();
+        this.player.destroy();
+        if (this.player.bomb && !this.bombLaunched) {
+            var bomb = this.createActor('bomb', {'r': null, 'player': this.player, 'd': 0});
+            bomb.destroy();
+        }
+        this.player = null;  
+        this.bombLaunched = false;
     }
-    this.bombLaunched = false;
 };
 
 Client.prototype.addScore = function(add) {
