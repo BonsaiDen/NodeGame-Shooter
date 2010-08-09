@@ -22,6 +22,7 @@
 
 var CLIENT = new Client(30);
 
+
 // Game ------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Game.prototype.onConnect = function(success) {
@@ -92,14 +93,15 @@ Game.prototype.onConnect = function(success) {
 
 
 Game.prototype.onInit = function(data) {
-    this.width = data.size[0];
-    this.height = data.size[1];
-    this.playerNames = data.players;
-    this.playerScores = data.scores;
-    this.playerColors = data.colors;
-    this.initCanvas();
+    this.width = data.s[0];
+    this.height = data.s[1];
+    this.playerNames = data.p;
+    this.playerScores = data.c;
+    this.playerColors = data.o;
     this.checkRound(data);
     this.checkPlayers(data);
+    
+    this.initCanvas();
     
     // Login box
     document.getElementById('box').style.display = 'block';
@@ -107,9 +109,9 @@ Game.prototype.onInit = function(data) {
 };
 
 Game.prototype.onUpdate = function(data) {
-    this.playerNames = data.players;
-    this.playerScores = data.scores;
-    this.playerColors = data.colors;
+    this.playerNames = data.p;
+    this.playerScores = data.c;
+    this.playerColors = data.o;
     this.checkRound(data);
     this.checkPlayers(data);
 };
@@ -123,6 +125,18 @@ Game.prototype.onControl = function(data) {
     };
 };
 
+Game.prototype.onWebSocketError = function() {
+    document.getElementById('bg').style.display = 'none';
+    document.getElementById('fail').style.display = 'block';
+};
+
+
+Game.prototype.onQuit = function(clean) {
+    document.location.href = document.location.href.split('#')[0].split('?')[0];
+};
+
+
+// Renderimg -------------------------------------------------------------------
 Game.prototype.onRender = function() {
     
     // Clear
@@ -138,46 +152,6 @@ Game.prototype.onRender = function() {
     this.renderRound();
 };
 
-Game.prototype.onWebSocketError = function() {
-    document.getElementById('bg').style.display = 'none';
-    document.getElementById('fail').style.display = 'block';
-};
-
-
-Game.prototype.onQuit = function(clean) {
-    document.location.href = document.location.href.split('#')[0].split('?')[0];
-};
-
-
-// Interface -------------------------------------------------------------------
-Game.prototype.onResize = function(data) {
-    this.small = !this.small;
-    this.scale = this.small ? 0.5 : 1;
-    this.initCanvas();
-};
-
-Game.prototype.onExtreme = function(data) {
-    this.extreeeeeeme = !this.extreeeeeeme;
-    document.getElementById('extreme').innerHTML = (this.extreeeeeeme ? 'DEACTIVATE' : 'ACTIVATE') + ' EXTREEEEME';
-};
-
-Game.prototype.onLogin = function(e) {
-    e = e || window.event;
-    if (e.keyCode == 13) {
-        var playerName = document.getElementById('login').value;
-        playerName = playerName.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '_');
-        if (playerName.length >= 2 && playerName.length <= 12) {
-            document.getElementById('box').style.display = 'none';
-            e.preventDefault();
-            this.send({'join': playerName});
-            this.playing = true;
-        }
-        return false;
-    }
-};
-
-
-// Rounds & Players ------------------------------------------------------------
 Game.prototype.renderRound = function() {
     this.fill('#ffffff');
     
@@ -218,35 +192,6 @@ Game.prototype.renderRound = function() {
     }
 };
 
-Game.prototype.checkRound = function(data) {
-    if (this.roundGO != !!data.roundGO) {
-        this.roundStart = this.getTime();
-        this.roundID = data.roundID;
-        this.roundTime = data.roundTime;
-        this.roundStats = data.roundStats;
-    }
-    this.roundGO = !!data.roundGO;
-};
-
-Game.prototype.checkPlayers = function(data) {
-    var count = 0;
-    for(var i in data.players) {
-        count++;
-    }
-    
-    if (!this.playing && this.roundGO) {
-        var box = document.getElementById('box');
-        if (count < data.max) {
-            box.style.display = 'block';
-        
-        } else {
-            box.style.display = 'none';
-        }
-    }
-};
-
-
-// Effects ---------------------------------------------------------------------
 Game.prototype.renderParticles = function() {
     this.line(2);
     
@@ -301,6 +246,65 @@ Game.prototype.renderParticles = function() {
 };
 
 
+
+// Interface -------------------------------------------------------------------
+Game.prototype.onResize = function(data) {
+    this.small = !this.small;
+    this.scale = this.small ? 0.5 : 1;
+    this.initCanvas();
+};
+
+Game.prototype.onExtreme = function(data) {
+    this.extreeeeeeme = !this.extreeeeeeme;
+    document.getElementById('extreme').innerHTML = (this.extreeeeeeme ? 'DEACTIVATE' : 'ACTIVATE') + ' EXTREEEEME';
+};
+
+Game.prototype.onLogin = function(e) {
+    e = e || window.event;
+    if (e.keyCode == 13) {
+        var playerName = document.getElementById('login').value;
+        playerName = playerName.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '_');
+        if (playerName.length >= 2 && playerName.length <= 12) {
+            document.getElementById('box').style.display = 'none';
+            e.preventDefault();
+            this.send({'join': playerName});
+            this.playing = true;
+        }
+        return false;
+    }
+};
+
+
+// Rounds & Players ------------------------------------------------------------
+Game.prototype.checkRound = function(data) {
+    if (this.roundGO != !!data.rg) {
+        this.roundStart = this.getTime();
+        this.roundID = data.ri;
+        this.roundTime = data.rt;
+        this.roundStats = data.rs;
+    }
+    this.roundGO = !!data.rg;
+};
+
+Game.prototype.checkPlayers = function(data) {
+    var count = 0;
+    for(var i in data.players) {
+        count++;
+    }
+    
+    if (!this.playing && this.roundGO) {
+        var box = document.getElementById('box');
+        if (count < data.max) {
+            box.style.display = 'block';
+        
+        } else {
+            box.style.display = 'none';
+        }
+    }
+};
+
+
+// Effects ---------------------------------------------------------------------
 Game.prototype.effectArea = function(x, y, size, d, col) {
     d = d * 1000;
     d = this.extreeeeeeme ? d * 2 : d;

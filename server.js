@@ -94,11 +94,11 @@ Server.prototype.run = function() {
         console.log('>> Running ' + m + ':' + (s < 10 ? '0' : '') + s + ' / '
                     + that.clientCount
                     + ' Client(s) / ' + that.actorCount + ' Actor(s) / '
-                    + (Math.round(that.bytesSendSecond / 2 * 100 / 1024) / 100) +' kb/s');
+                    + (Math.round(that.bytesSendSecond / 10 * 100 / 1024) / 100) +' kb/s');
         
         that.bytesSendSecond = 0;
         
-    }, 2000);
+    }, 10000);
     
     // Exit
     process.addListener('SIGINT', function () {
@@ -292,14 +292,12 @@ Server.prototype.emit = function(type, msg) {
     this.bytesSend += e.length * this.clientCount;
     this.bytesSendSecond += e.length * this.clientCount;
     this.$.broadcast(e);
-
 };
 
 Server.prototype.toJSON = function(data) {
     var msg = JSON.stringify(data);
     msg = msg.substring(1).substring(0, msg.length - 2);
     msg = msg.replace(/\"([a-z0-9]+)\"\:/gi, '$1:');
-//    msg = msg.replace(/([a-z0-9]+)\:/gi, '"$1":');
     return msg;
 };
 

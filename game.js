@@ -34,10 +34,10 @@ Game.prototype.onInit = function() {
     this.width = 480;
     this.height = 480;
 
-    this.$.setField('size', [this.width, this.height], true);
-    this.$.setField('players', {}, true);
-    this.$.setField('scores', {}, true);
-    this.$.setField('colors', {}, true);
+    this.$.setField('s', [this.width, this.height], true); // size
+    this.$.setField('p', {}, true); // players
+    this.$.setField('c', {}, true); // scores
+    this.$.setField('o', {}, true); // colors
     
     // Rounds
     this.roundTime = 180000;
@@ -79,10 +79,10 @@ Game.prototype.startRound = function() {
     this.roundStart = this.getTime();
     this.roundTimeLeft = this.roundTime;
     
-    this.$.setField('roundID', this.roundID, true);
-    this.$.setField('roundTime', this.roundTime, true);
-    this.$.setField('roundGO', 1, true);
-    this.$.setField('roundStats', [], true);
+    this.$.setField('ri', this.roundID, true); // roundID
+    this.$.setField('rt', this.roundTime, true); //roundTime
+    this.$.setField('rg', 1, true); // roundGO
+    this.$.setField('rs', [], true); //roundStats
     
     // Reset powerup timers
     for(var p in this.powerUps) {
@@ -123,9 +123,9 @@ Game.prototype.endRound = function() {
     }
     sorted.sort();
     
-    this.$.setField('roundTime', this.roundWait, true);
-    this.$.setField('roundGO', 0, true);
-    this.$.setField('roundStats', sorted, true);
+    this.$.setField('rt', this.roundWait, true);
+    this.$.setField('rg', 0, true);
+    this.$.setField('rs', sorted, true);
     this.roundStats = {};
     
     var that = this;
@@ -228,7 +228,7 @@ Game.prototype.collidePowerUps = function(o, p) {
 Game.prototype.onUpdate = function() {
 
     // RoundTimer
-    this.$.setField('roundTime', this.roundTimeLeft + (this.roundStart - this.getTime()), false);
+    this.$.setField('rt', this.roundTimeLeft + (this.roundStart - this.getTime()), false);
     if (this.roundFinished) {
         return;
     }
@@ -374,7 +374,7 @@ Game.prototype.onUpdate = function() {
         var c = this.$.clients[i];
         if (c.score < 0) {
             c.score = 0;
-            this.$.setFieldItem('scores', c.id, c.score, true);
+            this.$.setFieldItem('c', c.id, c.score, true); // scores
         }
     }
 };
@@ -438,12 +438,12 @@ Client.prototype.init = function() {
         console.log('++ #' + this.id + ' ' + this.playerName
                     + ' has joined, color ' + this.playerColor);
         
-        this.$.setFieldItem('colors', this.id, this.playerColor, true)
-        this.$.setFieldItem('players', this.id, this.playerName, true)
+        this.$.setFieldItem('o', this.id, this.playerColor, true); // colors
+        this.$.setFieldItem('p', this.id, this.playerName, true); // players
         this.reset = -1;
         
         this.score = 0;
-        this.$.setFieldItem('scores', this.id, this.score, true);
+        this.$.setFieldItem('c', this.id, this.score, true); // scores
         this.$g.addPlayerStats(this.id);
         
         this.moveTime = this.getTime();
@@ -471,7 +471,7 @@ Client.prototype.kill = function() {
 
 Client.prototype.addScore = function(add) {
     this.score += add;
-    this.$.setFieldItem('scores', this.id, this.score, true);
+    this.$.setFieldItem('c', this.id, this.score, true); // scores
 };
 
 Client.prototype.onMessage = function(msg) {
@@ -581,8 +581,8 @@ Client.prototype.leave = function() {
         this.$g.playerCount -= 1;
         console.log('-- #' + this.id + ' ' + this.playerName + ' has left');
         this.playerName = '';
-        this.$.delFieldItem('players', this.id);
-        this.$.delFieldItem('scores', this.id);
+        this.$.delFieldItem('p', this.id); // players
+        this.$.delFieldItem('c', this.id); // scores
         this.$g.removePlayerStats(this.id);
         if (this.player) {
             this.player.destroy();
