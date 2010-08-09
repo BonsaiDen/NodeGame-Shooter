@@ -33,7 +33,7 @@ var SERVER = new gs.Server(28785);
 Game.prototype.onInit = function() {
     this.width = 480;
     this.height = 480;
-
+    
     this.$.setField('s', [this.width, this.height], true); // size
     this.$.setField('p', {}, true); // players
     this.$.setField('c', {}, true); // scores
@@ -984,6 +984,8 @@ ActorPlayerDef.create = function(data) {
     this.r = (Math.random() * (Math.PI * 2)) - Math.PI;
     this.shotTime = this.getTime();
     
+    this.mxOld = this.mx;
+    this.myOld = this.my;
     this.sync = 10;
 };
 
@@ -992,6 +994,9 @@ ActorPlayerDef.update = function() {
     this.y = this.player.y + Math.cos(this.r) * 35;
     this.$g.wrapPosition(this);
     
+    this.mx = this.player.mx;
+    this.my = this.player.my;
+    
     if (this.getTime() - this.shotTime > (this.level == 1 ? 1200 : 250)) {
         this.$.createActor('bullet', {'player': this.player, 'r': this.r, 'd': 35});
         this.shotTime = this.getTime();
@@ -999,7 +1004,9 @@ ActorPlayerDef.update = function() {
     this.r = this.$g.wrapAngle(this.r + 0.20);
     
     this.sync++;
-    if (this.sync > 8) {
+    if (this.sync > 8 || this.mx != this.mxOld || this.my != this.myOld) {
+        this.mxOld = this.mx;
+        this.myOld = this.my;
         this.updated = true;
         this.sync = 0;
     }
@@ -1011,7 +1018,9 @@ ActorPlayerDef.destroy = function() {
 };
 
 ActorPlayerDef.msg = function(full) {
-    return full ? [this.player.client.id, this.player.id, this.r] : [this.r];
+    return full ? [this.player.client.id, this.r,
+                   Math.round(this.player.x * 100) / 100, Math.round(this.player.y * 100) / 100]
+                   : [this.r, Math.round(this.player.x * 100) / 100, Math.round(this.player.y * 100) / 100];
 };
 
 // Start Server

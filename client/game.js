@@ -633,7 +633,7 @@ ActorPowerUp.destroy = function() {
 
 ActorPowerUp.render = function() {
     this.$g.line(1);
-    
+    this.$g.fill(this.$g.powerUpColors[this.type]);
     this.$g.stroke(this.$g.powerUpColors[this.type]);
     this.$g.bg.save();
     this.$g.bg.translate(this.x, this.y);
@@ -646,12 +646,12 @@ ActorPowerUp.render = function() {
     
     // Draw
     if (this.type != 'camu') {
-        this.$g.fill(this.$g.powerUpColors[this.type]);
+        
         this.$g.bg.beginPath();
         this.$g.bg.arc(0, 0, 5.5, 0, Math.PI * 2, true);
         this.$g.bg.closePath();
         this.$g.bg.fill();
-    
+        
     } else {
         this.$g.line(2);
     }
@@ -670,15 +670,21 @@ ActorPlayerDef.create = function(data) {
     this.dx = this.x;
     this.dy = this.y;
     this.id = data[0];
-    this.pid = data[1];
-    this.r = data[2];
+    this.r = data[1];
+    this.x = data[2];
+    this.y = data[3];
+    
     var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
     this.$g.effectExplosion(this.x, this.y, 4, 0.25, 1, col);
 };
 
 ActorPlayerDef.destroy = function() {
+    this.r = this.$g.wrapAngle(this.r + 0.20 / this.$.intervalSteps);
+    this.dx = this.x + Math.sin(this.r) * 35;
+    this.dy = this.y + Math.cos(this.r) * 35;
+    
     var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
-    this.$g.effectExplosion(this.x, this.y, 6, 0.5, 1, col);
+    this.$g.effectExplosion(this.dx, this.dy, 6, 0.5, 1, col);
 };
 
 ActorPlayerDef.render = function() {
@@ -693,17 +699,15 @@ ActorPlayerDef.render = function() {
 
 ActorPlayerDef.update = function(data) {
     this.r = data[0];
+    this.x = data[1];
+    this.y = data[2];
 };
 
 ActorPlayerDef.interleave = function() {
-    var p = this.$.actors[this.pid];
-    if (p) {
-        this.r = this.$g.wrapAngle(this.r + 0.20 / this.$.intervalSteps);
-        this.dx = p.x + Math.sin(this.r) * 35;
-        this.dy = p.y + Math.cos(this.r) * 35;
-    }
+    this.r = this.$g.wrapAngle(this.r + 0.20 / this.$.intervalSteps);
+    this.dx = this.x + Math.sin(this.r) * 35;
+    this.dy = this.y + Math.cos(this.r) * 35;
 };
-
 
 window.onload = function() {
     CLIENT.connect(HOST, PORT);
