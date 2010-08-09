@@ -33,6 +33,7 @@ Game.prototype.onConnect = function(success) {
         return;
     }
     this.canvas.style.display = 'block';
+    document.getElementById('size').style.display = 'block';
     
     document.getElementById('login').onkeypress = function(e) {
         that.onLogin(e);
@@ -58,8 +59,8 @@ Game.prototype.onConnect = function(success) {
     this.playerScores = {};
     this.playerColors = {};
     
-    this.colorCodes      = ['#f00000', '#0080ff', '#f0f000', '#00f000', '#9000ff'];
-    this.colorCodesFaded = ['#700000', '#004080', '#707000', '#007000', '#500080'];
+    this.colorCodes      = ['#f00000', '#0080ff', '#f0f000', '#00f000', '#9000ff', '#f0f0f0'];
+    this.colorCodesFaded = ['#700000', '#004080', '#707000', '#007000', '#500080', '#707070'];
     
     // Rounds
     this.roundTime = 0;
@@ -88,19 +89,6 @@ Game.prototype.onConnect = function(success) {
     };
 };
 
-Game.prototype.onLogin = function(e) {
-    e = e || window.event;
-    if (e.keyCode == 13) {
-        var playerName = document.getElementById('login').value;
-        if (playerName.length >= 2 && playerName.length <= 12) {
-            document.getElementById('box').style.display = 'none';
-            e.preventDefault();
-            this.send({'join': playerName});
-            this.playing = true;
-        }
-        return false;
-    }
-};
 
 Game.prototype.onInit = function(data) {
     this.width = data.size[0];
@@ -117,28 +105,12 @@ Game.prototype.onInit = function(data) {
     document.getElementById('login').focus();
 };
 
-Game.prototype.onWebSocketError = function() {
-    document.getElementById('bg').style.display = 'none';
-    document.getElementById('fail').style.display = 'block';
-};
-
 Game.prototype.onUpdate = function(data) {
     this.playerNames = data.players;
     this.playerScores = data.scores;
     this.playerColors = data.colors;
     this.checkRound(data);
     this.checkPlayers(data);
-};
-
-Game.prototype.onResize = function(data) {
-    this.small = !this.small;
-    this.scale = this.small ? 0.5 : 1;
-    this.initCanvas();
-};
-
-Game.prototype.onExtreme = function(data) {
-    this.extreeeeeeme = !this.extreeeeeeme;
-    document.getElementById('extreme').innerHTML = (this.extreeeeeeme ? 'DEACTIVATE' : 'ACTIVATE') + ' EXTREEEEME';
 };
 
 Game.prototype.onControl = function(data) {
@@ -165,8 +137,41 @@ Game.prototype.onRender = function() {
     this.renderRound();
 };
 
+Game.prototype.onWebSocketError = function() {
+    document.getElementById('bg').style.display = 'none';
+    document.getElementById('fail').style.display = 'block';
+};
+
+
 Game.prototype.onQuit = function(clean) {
     document.location.href = document.location.href.split('#')[0].split('?')[0];
+};
+
+
+// Interface -------------------------------------------------------------------
+Game.prototype.onResize = function(data) {
+    this.small = !this.small;
+    this.scale = this.small ? 0.5 : 1;
+    this.initCanvas();
+};
+
+Game.prototype.onExtreme = function(data) {
+    this.extreeeeeeme = !this.extreeeeeeme;
+    document.getElementById('extreme').innerHTML = (this.extreeeeeeme ? 'DEACTIVATE' : 'ACTIVATE') + ' EXTREEEEME';
+};
+
+Game.prototype.onLogin = function(e) {
+    e = e || window.event;
+    if (e.keyCode == 13) {
+        var playerName = document.getElementById('login').value;
+        if (playerName.length >= 2 && playerName.length <= 12) {
+            document.getElementById('box').style.display = 'none';
+            e.preventDefault();
+            this.send({'join': playerName});
+            this.playing = true;
+        }
+        return false;
+    }
 };
 
 
@@ -182,7 +187,8 @@ Game.prototype.renderRound = function() {
     }
     
     if (!this.roundGO) {
-        this.text(this.width - 4, 1, 'Next in ' + m + ':' + s + ' | Round #' + this.roundID + ' finished', 'right', 'top');
+        this.text(this.width - 4, 1, 'Next in ' + m + ':' + s + ' | Round #'
+                  + this.roundID + ' finished', 'right', 'top');
         
         // Scores
         this.font((this.scale == 1 ? 15 : 17.5));
@@ -194,14 +200,13 @@ Game.prototype.renderRound = function() {
         this.text(xpos + 260, ypos, 'SelfDest', 'right', 'top');
         
         ypos += 22;
-        for(var i in this.roundStats) {
+        for(var i = this.roundStats.length - 1; i >= 0; i--) {
             var p = this.roundStats[i];
-            
-            this.fill(this.colorCodes[p.color]);
-            this.text(xpos, ypos, p.player, 'right', 'top');
-            this.text(xpos + 75, ypos, p.score, 'right', 'top');
-            this.text(xpos + 145, ypos, p.kills, 'right', 'top');
-            this.text(xpos + 260, ypos, p.selfDestructs, 'right', 'top');
+            this.fill(this.colorCodes[p[4]]);
+            this.text(xpos, ypos, p[2], 'right', 'top');
+            this.text(xpos + 75, ypos, p[0], 'right', 'top');
+            this.text(xpos + 145, ypos, p[1], 'right', 'top');
+            this.text(xpos + 260, ypos, p[3], 'right', 'top');
             ypos += 18;
         }
         this.font((this.scale == 1 ? 12 : 17));
@@ -411,7 +416,7 @@ Game.prototype.wrapAngle = function(r) {
 var ActorPlayer = CLIENT.createActorType('player');
 ActorPlayer.create = function(data) {
     this.r = data.r;
-    this.mr = data.mr;
+    this.mr = data.m;
     this.id = data.p;
     this.defense = data.d;
     this.boost = data.b;
@@ -421,7 +426,7 @@ ActorPlayer.create = function(data) {
 
 ActorPlayer.update = function(data) {
     this.r = data.r;
-    this.mr = data.mr;
+    this.mr = data.m;
     this.defense = data.d;
     this.thrust = data.t;
     this.boost = data.b;

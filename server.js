@@ -82,6 +82,8 @@ Server.prototype.run = function() {
     this.time = new Date().getTime();
     this.interval = 0;
     this.$g = new Game(this);
+    this.bytesSend = 0;
+    this.bytesSendSecond = 0;
     
     // Status
     setInterval(function() {
@@ -91,9 +93,12 @@ Server.prototype.run = function() {
         
         console.log('>> Running ' + m + ':' + (s < 10 ? '0' : '') + s + ' / '
                     + that.clientCount
-                    + ' Client(s) / ' + that.actorCount + ' Actor(s)');
+                    + ' Client(s) / ' + that.actorCount + ' Actor(s) / '
+                    + (Math.round(that.bytesSendSecond / 2 * 100 / 1024) / 100) +' kb/s');
         
-    }, 10000);
+        that.bytesSendSecond = 0;
+        
+    }, 2000);
     
     // Exit
     process.addListener('SIGINT', function () {
@@ -222,7 +227,12 @@ Server.prototype.getActors = function(clas) {
 };
 
 Server.prototype.actorsUpdate = function() {
-    var updates = [];
+    var allUpdates = [];
+    var clientUpdates = {};
+    for(var i in this.clients) {
+        clientUpdates[i] = [];
+    }
+    
     var acc = 0;
     for(var t in this.actors) {
         var alive_actors = [];
@@ -232,9 +242,14 @@ Server.prototype.actorsUpdate = function() {
                 a.update();
             }
             if (a.alive) {
-                if (a.updated) {
+                if (a.updated === true) {
                     a.updated = false;
-                    updates.push(a.toMessage(false));
+                    allUpdates.push(a.toMessage(false));
+                
+                } else if(typeof a.updated === 'object') {
+                    for(var e = 0; e < a.updates.length; e++) {
+                        clientUpdates[a.updates[e]].push(a.toMessage(false));
+                    }
                 }
                 alive_actors.push(a);
             }
@@ -243,7 +258,17 @@ Server.prototype.actorsUpdate = function() {
         acc += this.actors[t].length;
     }
     this.actorCount = acc;
-    this.emit('u', {'a': updates});
+    
+    if (allUpdates.length > 0) {
+        this.emit('u', {'a': allUpdates});
+    }
+    
+    for(var i in this.clients) {
+        if (clientUpdates[i].length > 0) {
+            this.send(this.clients[i].conn, 'u', {'a': clientUpdates[i]});
+        }
+    }
+    
 };
 
 Server.prototype.actorsDestroy = function() {
@@ -256,11 +281,17 @@ Server.prototype.actorsDestroy = function() {
 
 // Messaging
 Server.prototype.send = function(conn, type, msg) {
-    conn.write(JSON.stringify({'t': type, 'd': msg}));
+    var e = JSON.stringify({'t': type, 'd': msg});
+    this.bytesSend += e.length;
+    this.bytesSendSecond += e.length;
+    conn.write(e);
 };
 
 Server.prototype.emit = function(type, msg) {
-    this.$.broadcast(JSON.stringify({'t': type, 'd': msg}));
+    var e = JSON.stringify({'t': type, 'd': msg});
+    this.bytesSend += e.length * this.clientCount;
+    this.bytesSendSecond += e.length * this.clientCount;
+    this.$.broadcast(e);
 };
 
 
@@ -413,10 +444,10 @@ Actor.prototype.destroy = function() {
 Actor.prototype.toMessage = function(full) {
     var msg = full ? {'c': this.clas} : {};
     msg.i = this.id;
-    msg.x = Math.round(this.x * 1000) / 1000;
-    msg.y = Math.round(this.y * 1000) / 1000;
-    msg.mx = Math.round(this.mx * 1000) / 1000;
-    msg.my = Math.round(this.my * 1000) / 1000;
+    msg.x = Math.round(this.x * 100) / 100;
+    msg.y = Math.round(this.y * 100) / 100;
+    msg.m = Math.round(this.mx * 100) / 100;
+    msg.l = Math.round(this.my * 100) / 100;
     msg.d = this.$.actorTypes[this.clas].msg.call(this, full);
     return msg;
 };

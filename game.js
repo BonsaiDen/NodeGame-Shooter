@@ -49,9 +49,9 @@ Game.prototype.onInit = function() {
     this.roundFinished = false;
     this.roundStats = {};
     
-    this.maxPlayers = 5;
+    this.maxPlayers = 6;
     this.playerCount = 0;
-    this.playerColors = [-1, -1, -1, -1, -1];
+    this.playerColors = [-1, -1, -1, -1, -1, -1, -1];
     
     this.$.setField('max', this.maxPlayers, true);
     
@@ -111,19 +111,20 @@ Game.prototype.endRound = function() {
     this.$.actorsDestroy();
     
     // Stats
-    var stats = {};
+    var sorted = [];
     for(var c in this.$.clients) {
         if (this.$.clients[c].playerName != '') {
-            stats[c] = this.roundStats[c];
-            stats[c].score = this.$.clients[c].score;
-            stats[c].color = this.$.clients[c].playerColor;
-            stats[c].player = this.$.clients[c].playerName;
+            var stats = this.roundStats[c];
+            sorted.push([this.$.clients[c].score + Math.floor(Math.random() * 10),
+                         stats.kills, this.$.clients[c].playerName,
+                         stats.selfDestructs, this.$.clients[c].playerColor]);
         }
     }
+    sorted.sort();
     
     this.$.setField('roundTime', this.roundWait, true);
     this.$.setField('roundGO', 0, true);
-    this.$.setField('roundStats', stats, true);
+    this.$.setField('roundStats', sorted, true);
     this.roundStats = {};
     
     var that = this;
@@ -665,8 +666,8 @@ ActorPlayer.destroy = function() {
 
 ActorPlayer.msg = function(full) {
     var msg = {
-        'r': Math.round(this.r * 100) / 100,
-        'mr': this.mr,
+        'r': Math.round(this.r * 10) / 10,
+        'm': this.mr,
         'd': (this.defense % 200) != 0,
         't': this.thrust ? 1 : 0,
         'b': this.boost ? 1 : 0,

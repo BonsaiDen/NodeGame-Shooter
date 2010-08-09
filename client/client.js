@@ -141,7 +141,6 @@ Client.prototype.connect = function(host, port) {
     };
     
     this.conn.onerror = this.conn.onclose = function(e) {
-        console.log('foo');
         if (that.connected) {
             that.quit();
             that.$g.onQuit(true);
@@ -229,8 +228,8 @@ function Actor(game, data) {
     
     this.x = data.x;
     this.y = data.y;
-    this.mx = data.mx;
-    this.my = data.my;
+    this.mx = data.m;
+    this.my = data.l;
     
     this.$.actorTypes[this.clas].create.call(this, data.d);
 }
@@ -238,8 +237,8 @@ function Actor(game, data) {
 Actor.prototype.update = function(data) {
     this.x = data.x;
     this.y = data.y;
-    this.mx = data.mx;
-    this.my = data.my;
+    this.mx = data.m;
+    this.my = data.l;
     
     this.$.actorTypes[this.clas].update.call(this, data.d);
 };
