@@ -261,7 +261,7 @@ Game.prototype.onUpdate = function() {
                     pd.destroy();
                     p.hp -= 15;
                     if (p.hp <= 0) {
-                        pd.player.client.addScore(p.camu == 2 ? 20 : 10);
+                        pd.player.client.addScore(p.camu == 2 ? 15 : 10);
                         this.getPlayerStats(pd.player.client.id).kills += 1;
                         p.client.kill();
                         break;
@@ -316,7 +316,7 @@ Game.prototype.onUpdate = function() {
                             b.destroy();
                             p.hp -= 5;
                             if (p.hp <= 0) {
-                                b.player.client.addScore(p.camu == 2 ? 20 : 10);
+                                b.player.client.addScore(p.camu == 2 ? 15 : 10);
                                 this.getPlayerStats(b.player.client.id).kills += 1;
                                 p.client.kill();
                                 break;
