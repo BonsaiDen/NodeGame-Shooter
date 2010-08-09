@@ -399,16 +399,20 @@ Game.prototype.randomPosition = function(obj) {
 Game.prototype.wrapPosition = function(obj) {
     if (obj.x < -16) {
         obj.x = this.width + 16;
+        obj.updated = true;
     
     } else if (obj.x > this.width + 16) {
         obj.x = -16;
+        obj.updated = true;
     }
     
     if (obj.y < -16) {
         obj.y = this.height + 16;
+        obj.updated = true;
     
     } else if (obj.y > this.height + 16) {
         obj.y = -16;
+        obj.updated = true;
     }
 };
 
@@ -552,6 +556,13 @@ Client.prototype.onUpdate = function() {
     }
     this.player.thrust = this.keys[0];
     
+    // Shoot
+    if (this.keys[4] && this.getTime() - this.shotTime > (this.player.laser ? 400 : 600)) {
+        moved = true;
+        this.createActor('bullet', {'player': this.player, 'r': null, 'd': 12});
+        this.shotTime = this.getTime();
+    }
+    
     // Idle
     if (moved) {
         this.moveTime = this.getTime();
@@ -561,12 +572,6 @@ Client.prototype.onUpdate = function() {
         this.player.bomb = false;
         this.close();
         return;
-    }
-    
-    // Shoot
-    if (this.keys[4] && this.getTime() - this.shotTime > (this.player.laser ? 400 : 600)) {
-        this.createActor('bullet', {'player': this.player, 'r': null, 'd': 12});
-        this.shotTime = this.getTime();
     }
 };
 
@@ -605,6 +610,16 @@ ActorPlayer.create = function(data) {
     this.defense = 1400;
     this.defenseTime = this.getTime();
     this.defMode = true;
+    
+    
+    // Syncing
+    this.sync = 10;
+    this.mxOld = this.mx;
+    this.myOld = this.my;
+    this.mrOld = this.mr;
+    this.thrustOld = false;
+    this.shieldOld = false;
+    this.boostOld = false;
     
     // PowerUPS
     this.boost = false;
@@ -690,7 +705,7 @@ ActorPlayer.update = function() {
             this.updated = true;
             
         } else {
-            this.updated = [this.client.id];
+            ActorPlayer.syncData.call(this);
         }
     
     // fade in
@@ -705,9 +720,31 @@ ActorPlayer.update = function() {
         this.updated = true;
         
     } else {
-        this.updated = true;
+        ActorPlayer.syncData.call(this);
     }
 };
+
+ActorPlayer.syncData = function() {
+    this.sync++;
+    if (this.boost != this.boostOld || this.shield != this.shieldOld
+        || this.thrust != this.thrustOld || this.mr != 0 || this.mr != this.mrOld
+        || this.mx != this.mxOld || this.my != this.myOld || this.sync > 8) {
+        
+        this.sync = 0;
+        if (this.camu == 2) {
+            this.updated = [this.client.id];
+        
+        } else {
+            this.updated = true;
+        }
+        this.mxOld = this.mx;
+        this.myOld = this.my;
+        this.mrOld = this.mr;
+        this.shieldOld = this.shield;
+        this.thrustOld = this.thrust;
+        this.boostOld = this.boost;
+    }
+}
 
 ActorPlayer.destroy = function() {
     this.defender = null;
@@ -746,6 +783,7 @@ var ActorBullet = SERVER.createActorType('bullet');
 ActorBullet.create = function(data) {
     this.time = this.getTime();
     this.player = data.player;
+    this.sync = 10;
     
     var r = data.r != null ? data.r : this.$g.wrapAngle(this.player.r + this.player.mr);
     this.x = this.player.x + Math.sin(r) * 12;
@@ -783,7 +821,11 @@ ActorBullet.update = function() {
         this.destroy();
     
     } else {
-        this.updated = true;
+        this.sync++;
+        if (this.sync > 10) {
+            this.updated = true;
+            this.sync = 0;
+        }
     }
 };
 
@@ -798,6 +840,7 @@ ActorBomb.create = function(data) {
     this.time = this.getTime();
     this.player = data.player;
     this.range = 140;
+    this.sync = 10;
     
     var r = data.r != null ? data.r : this.$g.wrapAngle(this.player.r + this.player.mr);
     this.x = this.player.x + Math.sin(r) * 12;
@@ -835,7 +878,11 @@ ActorBomb.update = function() {
         this.destroy();
     
     } else {
-        this.updated = true;
+        this.sync++;
+        if (this.sync > 8) {
+            this.updated = true;
+            this.sync = 0;
+        }
     }
 };
 
@@ -936,6 +983,8 @@ ActorPlayerDef.create = function(data) {
     this.level = 1;
     this.r = (Math.random() * (Math.PI * 2)) - Math.PI;
     this.shotTime = this.getTime();
+    
+    this.sync = 10;
 };
 
 ActorPlayerDef.update = function() {
@@ -943,16 +992,17 @@ ActorPlayerDef.update = function() {
     this.y = this.player.y + Math.cos(this.r) * 35;
     this.$g.wrapPosition(this);
     
-    var r2 = this.$g.wrapAngle(this.r + Math.PI / 1.9);
-    this.mx = this.player.mx + Math.sin(r2) * 0.27;
-    this.my = this.player.my + Math.cos(r2) * 0.27;
-    
     if (this.getTime() - this.shotTime > (this.level == 1 ? 1200 : 250)) {
         this.$.createActor('bullet', {'player': this.player, 'r': this.r, 'd': 35});
         this.shotTime = this.getTime();
     }
     this.r = this.$g.wrapAngle(this.r + 0.20);
-    this.updated = true;
+    
+    this.sync++;
+    if (this.sync > 8) {
+        this.updated = true;
+        this.sync = 0;
+    }
 };
 
 ActorPlayerDef.destroy = function() {
@@ -961,7 +1011,7 @@ ActorPlayerDef.destroy = function() {
 };
 
 ActorPlayerDef.msg = function(full) {
-    return full ? [this.player.client.id] :[];
+    return full ? [this.player.client.id, this.player.id, this.r] : [this.r];
 };
 
 // Start Server

@@ -665,7 +665,11 @@ ActorPowerUp.render = function() {
 // Player Defender -------------------------------------------------------------
 var ActorPlayerDef = CLIENT.createActorType('player_def');
 ActorPlayerDef.create = function(data) {
+    this.dx = this.x;
+    this.dy = this.y;
     this.id = data[0];
+    this.pid = data[1];
+    this.r = data[2];
     var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
     this.$g.effectExplosion(this.x, this.y, 4, 0.25, 1, col);
 };
@@ -679,10 +683,23 @@ ActorPlayerDef.render = function() {
     this.$g.line(3);
     this.$g.stroke(this.$g.colorCodes[this.$g.playerColors[this.id]]);
     this.$g.bg.beginPath();
-    this.$g.bg.arc(this.x, this.y, 1.5, 0, Math.PI * 2, true);
-    this.$g.bg.arc(this.x, this.y, 3.5, 0, Math.PI * 2, true);
+    this.$g.bg.arc(this.dx, this.dy, 1.5, 0, Math.PI * 2, true);
+    this.$g.bg.arc(this.dx, this.dy, 3.5, 0, Math.PI * 2, true);
     this.$g.bg.closePath();
     this.$g.bg.stroke();
+};
+
+ActorPlayerDef.update = function(data) {
+    this.r = data[0];
+};
+
+ActorPlayerDef.interleave = function() {
+    var p = this.$.actors[this.pid];
+    if (p) {
+        this.r = this.$g.wrapAngle(this.r + 0.20 / this.$.intervalSteps);
+        this.dx = p.x + Math.sin(this.r) * 35;
+        this.dy = p.y + Math.cos(this.r) * 35;
+    }
 };
 
 

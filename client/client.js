@@ -107,8 +107,8 @@ Client.prototype.connect = function(host, port) {
             that.lastFrame = that.lastRender = that.getTime();
             
             that.intervalTime = data.n;
-            that.intervalSteps = Math.floor(that.intervalTime / 10) - 1;
-            that.interval = setInterval(function() {that.render()}, 10);
+            that.intervalSteps = that.intervalTime / 10;
+            that.interval = setInterval(function() {that.update()}, 9);
             
             that.$g.onInit(data.d);
         
@@ -169,8 +169,8 @@ Client.prototype.quit = function() {
 
 Client.prototype.update = function() {
     var currentFrame = this.getTime();
-    while(this.lastFrame <= currentFrame) {
-        this.renderFrame(currentFrame);
+    while(this.lastFrame < currentFrame) {
+        this.render();
         this.lastFrame += 10;
     }
 };

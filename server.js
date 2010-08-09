@@ -455,8 +455,8 @@ Actor.prototype.toMessage = function(full) {
             this.id,
             Math.round(this.x * 100) / 100,
             Math.round(this.y * 100) / 100,
-            Math.round(this.mx * 100) / 100,
-            Math.round(this.my * 100) / 100
+            Math.round(this.mx * 1000) / 1000,
+            Math.round(this.my * 1000) / 1000
         ],
         this.$.actorTypes[this.clas].msg.call(this, full)
     ];;
