@@ -37,14 +37,20 @@ Game.prototype.onConnect = function(success) {
         that.onLogin(e);
     };
     
+    window.onbeforeunload = function() {
+        localStorage.setItem('small', that.small);
+        localStorage.setItem('extreme', that.extreeeeeeme);
+    };
+    
     // Canvas
     this.fillColor = '';
     this.strokeColor = '';
     this.lineWidth = 0;
-    this.scale = 1;
     this.particles = [];
-    this.small = false;
-    this.extreeeeeeme = false;
+    this.small = localStorage.getItem('small') == 'true' || false;
+    this.scale = this.small ? 0.5 : 1;
+    this.extreeeeeeme = !(localStorage.getItem('extreme') == 'true' || false);
+    this.onExtreme();
     
     // Stuff
     this.playerNames = {};
@@ -137,7 +143,7 @@ Game.prototype.onExtreme = function(data) {
 Game.prototype.onControl = function(data) {
     return {'keys': [this.keys[87] || this.keys[38],
                      this.keys[68] || this.keys[39],
-                     this.keys[77],
+                     this.keys[13] || this.keys[77],
                      this.keys[65] || this.keys[37],
                      this.keys[32]]
     };
@@ -420,6 +426,14 @@ ActorPlayer.update = function(data) {
     this.boost = data.b;
     
     // Shield
+    if (this.shield && !data.s) {
+        var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
+        this.$g.effectRing(this.x, this.y, 20, 30, 0.5, 3.0, col);
+    
+    } else if (!this.shield && data.s) {
+        var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
+        this.$g.effectRing(this.x, this.y, 30, 30, 0.20, -3.0, col);
+    }
     this.shield = data.s;
 };
 
