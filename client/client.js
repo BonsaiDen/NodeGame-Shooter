@@ -122,19 +122,19 @@ Client.prototype.connect = function(host, port) {
         } else if (type == 'i') {
             for(var i = 0, l = data.a.length; i < l; i++) {
                 var a = data.a[i];
-                that.actors[a.i] = new Actor(that, a);
+                that.actors[a[0][1]] = new Actor(that, a);
             }
         
         } else if (type == 'u') {
             for(var i = 0, l = data.a.length; i < l; i++) {
                 var a = data.a[i];
-                if (that.actors[a.i]) {
-                    that.actors[a.i].update(a);
+                if (that.actors[a[0][1]]) {
+                    that.actors[a[0][1]].update(a);
                 }
             }
         
         } else if (type == 'c') {
-            that.actors[data.i] = new Actor(that, data);
+            that.actors[data[0][1]] = new Actor(that, data);
         
         } else if (type == 'n') {
             that.actors[data[0]].event(data[1], data.length > 2 ? data[2] : {});
@@ -228,24 +228,27 @@ Client.prototype.getTime = function() {
 function Actor(game, data) {
     this.$ = game;
     this.$g = game.$g;
-    this.id = data.i;
-    this.clas = data.c;
     
-    this.x = data.x;
-    this.y = data.y;
-    this.mx = data.m;
-    this.my = data.l;
+    var d = data[0]
+    this.clas = d[0];
+    this.id = d[1];
     
-    this.$.actorTypes[this.clas].create.call(this, data.d);
+    this.x = d[2];
+    this.y = d[3];
+    this.mx = d[4];
+    this.my = d[5];
+    
+    this.$.actorTypes[this.clas].create.call(this, data[1]);
 }
 
 Actor.prototype.update = function(data) {
-    this.x = data.x;
-    this.y = data.y;
-    this.mx = data.m;
-    this.my = data.l;
+    var d = data[0];
+    this.x = d[2];
+    this.y = d[3];
+    this.mx = d[4];
+    this.my = d[5];
     
-    this.$.actorTypes[this.clas].update.call(this, data.d);
+    this.$.actorTypes[this.clas].update.call(this, data[1]);
 };
 
 Actor.prototype.event = function(type, data) {

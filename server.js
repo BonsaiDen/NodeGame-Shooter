@@ -449,14 +449,17 @@ Actor.prototype.destroy = function() {
 };
 
 Actor.prototype.toMessage = function(full) {
-    var msg = full ? {'c': this.clas} : {};
-    msg.i = this.id;
-    msg.x = Math.round(this.x * 100) / 100;
-    msg.y = Math.round(this.y * 100) / 100;
-    msg.m = Math.round(this.mx * 100) / 100;
-    msg.l = Math.round(this.my * 100) / 100;
-    msg.d = this.$.actorTypes[this.clas].msg.call(this, full);
-    return msg;
+    return  [
+        [
+            full ? this.clas : 0,
+            this.id,
+            Math.round(this.x * 100) / 100,
+            Math.round(this.y * 100) / 100,
+            Math.round(this.mx * 100) / 100,
+            Math.round(this.my * 100) / 100
+        ],
+        this.$.actorTypes[this.clas].msg.call(this, full)
+    ];;
 };
 
 Actor.prototype.event = function(type, data) {

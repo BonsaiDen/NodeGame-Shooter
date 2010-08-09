@@ -724,18 +724,18 @@ ActorPlayer.destroy = function() {
 };
 
 ActorPlayer.msg = function(full) {
-    var msg = {
-        'r': Math.round(this.r * 10) / 10,
-        'm': this.mr,
-        'd': (this.defense % 200) != 0 ? 1 : 0,
-        't': this.thrust ? 1 : 0,
-        'b': this.boost ? 1 : 0,
-        's': this.shield ? 1 : 0,
-        'f': this.camuFade
-    };
+    var msg = [
+        Math.round(this.r * 10) / 10,
+        this.mr,
+        (this.defense % 200) != 0 ? 1 : 0,
+        this.thrust ? 1 : 0,
+        this.boost ? 1 : 0,
+        this.shield ? 1 : 0,
+        this.camuFade
+    ];
     
     if (full) {
-        msg.p = this.client.id;
+        msg.push(this.client.id);
     }
     return msg;
 };
@@ -788,7 +788,7 @@ ActorBullet.update = function() {
 };
 
 ActorBullet.msg = function(full) {
-    return full ? {'i': this.player.client.id}: {};
+    return full ? [this.player.client.id]: [];
 };
 
 
@@ -903,7 +903,7 @@ ActorBomb.destroy = function() {
 };
 
 ActorBomb.msg = function(full) {
-    return full ? {'r': this.range, 'i': this.player.client.id}: {};
+    return full ? [this.player.client.id, this.range] : [];
 };
 
 
@@ -923,7 +923,7 @@ ActorPowerUp.update = function() {
 };
 
 ActorPowerUp.msg = function(full) {
-    return full ? {'t': this.type} : {};
+    return full ? [this.type] : [];
 };
 
 
@@ -961,7 +961,7 @@ ActorPlayerDef.destroy = function() {
 };
 
 ActorPlayerDef.msg = function(full) {
-    return full ? {'p': this.player.client.id} : {};
+    return full ? [this.player.client.id] :[];
 };
 
 // Start Server

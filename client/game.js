@@ -421,26 +421,28 @@ Game.prototype.wrapAngle = function(r) {
 // -----------------------------------------------------------------------------
 var ActorPlayer = CLIENT.createActorType('player');
 ActorPlayer.create = function(data) {
-    this.r = data.r;
-    this.mr = data.m;
-    this.id = data.p;
-    this.defense = data.d;
-    this.boost = data.b;
-    this.thrust = data.t;
-    this.shield = data.s;
-    this.fade = data.f;
+    this.r = data[0];
+    this.mr = data[1]; 
+    this.defense = data[2];
+    this.thrust = data[3];
+    this.boost = data[4];
+    this.shield = data[5];
+    this.fade = data[6];
+    
+    this.id = data[7];
 };
 
 ActorPlayer.update = function(data) {
-    this.r = data.r;
-    this.mr = data.m;
-    this.defense = data.d;
-    this.thrust = data.t;
-    this.boost = data.b;
-    this.fade = data.f;
+    this.r = data[0];
+    this.mr = data[1]; 
+    this.defense = data[2];
+    this.thrust = data[3];
+    this.boost = data[4];
+    
+    this.fade = data[6];
     
     // Shield
-    if (this.shield && !data.s) {
+    if (this.shield && !data[5]) {
         var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
         this.$g.effectRing(this.x, this.y, 20, 30, 0.5, 3.0, col);
     
@@ -448,7 +450,7 @@ ActorPlayer.update = function(data) {
         var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
         this.$g.effectRing(this.x, this.y, 30, 30, 0.20, -3.0, col);
     }
-    this.shield = data.s;
+    this.shield = data[5];
 };
 
 ActorPlayer.interleave = function() {
@@ -553,7 +555,7 @@ ActorPlayer.render = function() {
 // Bullet ----------------------------------------------------------------------
 var ActorBullet = CLIENT.createActorType('bullet');
 ActorBullet.create = function(data) {
-    this.id = data.i;
+    this.id = data[0];
 };
 
 ActorBullet.destroy = function() {
@@ -575,8 +577,8 @@ ActorBullet.render = function() {
 // Bomb ------------------------------------------------------------------------
 var ActorBomb = CLIENT.createActorType('bomb');
 ActorBomb.create = function(data) {
-    this.radius = data.r;
-    this.id = data.i;
+    this.id = data[0];
+    this.radius = data[1];
 };
 
 ActorBomb.destroy = function() {
@@ -615,7 +617,7 @@ ActorBomb.render = function() {
 // PowerUP ---------------------------------------------------------------------
 var ActorPowerUp = CLIENT.createActorType('powerup');
 ActorPowerUp.create = function(data) {
-    this.type = data.t;
+    this.type = data[0];
     this.createTime = this.$g.getTime();
     
     var col = this.$g.powerUpColors[this.type];
@@ -663,7 +665,7 @@ ActorPowerUp.render = function() {
 // Player Defender -------------------------------------------------------------
 var ActorPlayerDef = CLIENT.createActorType('player_def');
 ActorPlayerDef.create = function(data) {
-    this.id = data.p;
+    this.id = data[0];
     var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
     this.$g.effectExplosion(this.x, this.y, 4, 0.25, 1, col);
 };
