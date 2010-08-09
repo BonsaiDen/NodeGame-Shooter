@@ -63,6 +63,7 @@ Game.prototype.onInit = function() {
     this.initPowerUp('boost',  2, 20, 15);
     this.initPowerUp('defense', 1, 37, 20);
     this.initPowerUp('bomb',    1, 70, 35);
+    this.initPowerUp('camu',    1, 50, 20);
     
     // Start Game
     this.startRound();
@@ -194,6 +195,13 @@ Game.prototype.collidePowerUps = function(o, p) {
     // Bomb
     } else if (o.type == 'bomb') {
         p.bomb = true;
+    
+    // Camu
+    } else if (o.type == 'camu') {
+        if (p.camu == 0) {
+            p.camu = 1;
+            p.camuFade = 100;
+        }
     
     // Player Defense
     } else if (o.type == 'defense') {
@@ -470,13 +478,16 @@ Client.prototype.onMessage = function(msg) {
         this.keys = [!!k[0], !!k[1], !!k[2], !!k[3], !!k[4]];
     
     // Set name and init player
-    } else if (msg.join && this.playerName == ''
-               && msg.join.length >= 2 && msg.join.length <= 12
-               && this.$g.playerCount < this.$g.maxPlayers) {
-        
-        this.playerName = msg.join;
-        this.$g.playerCount += 1;
-        this.init();
+    } else if (msg.join) {
+        msg.join = msg.join.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '_');
+        if (msg.join && this.playerName == ''
+            && msg.join.length >= 2 && msg.join.length <= 12
+            && this.$g.playerCount < this.$g.maxPlayers) {
+            
+            this.playerName = msg.join;
+            this.$g.playerCount += 1;
+            this.init();
+        }
     
     // Leave the game
     } else if (this.playerName != '' && msg.leave) {
@@ -605,6 +616,10 @@ ActorPlayer.create = function(data) {
     this.bomb = false;
     
     this.defs = 0;
+    
+    this.camu = 0;
+    this.camuFade = -1;
+    this.camuTime = 0;
 };
 
 ActorPlayer.update = function() {
@@ -648,7 +663,46 @@ ActorPlayer.update = function() {
     if (this.laser && this.getTime() - this.laserTime > 10000) {
         this.laser = false;
     }
-    this.updated = true;
+    
+    // Camouflage
+    if (this.camu == 1) {
+        // Fade out
+        if (this.camuFade >= 0) {
+            this.camuFade -= 5;
+            this.updated = true;
+        
+        } else {
+            this.camu = 2;
+            this.camuTime = this.getTime();
+            this.camuFade = -2;
+            this.updated = [this.client.id];
+        }
+    
+    // faded
+    } else if (this.camu == 2) {
+        if (this.getTime() - this.camuTime > 15000) {
+            this.camu = 3;
+            this.camuFade = 0;
+            this.updated = true;
+            
+        } else {
+            this.updated = [this.client.id];
+        }
+    
+    // fade in
+    } else if (this.camu == 3) {
+        if (this.camuFade <= 100) {
+            this.camuFade += 5;
+        
+        } else {
+            this.camuFade = -1;
+            this.camu = 0;
+        }
+        this.updated = true;
+        
+    } else {
+        this.updated = true;
+    }
 };
 
 ActorPlayer.destroy = function() {
@@ -671,7 +725,8 @@ ActorPlayer.msg = function(full) {
         'd': (this.defense % 200) != 0,
         't': this.thrust ? 1 : 0,
         'b': this.boost ? 1 : 0,
-        's': this.shield ? 1 : 0
+        's': this.shield ? 1 : 0,
+        'f': this.camuFade
     };
     if (full) {
         msg.p = this.client.id;

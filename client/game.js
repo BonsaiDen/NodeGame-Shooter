@@ -77,7 +77,8 @@ Game.prototype.onConnect = function(success) {
         'life':    '#00b000', // green
         'boost':   '#f0c000', // yellow
         'defense': '#9c008c', // purple
-        'bomb':    '#d0d0d0'  // light gray
+        'bomb':    '#d0d0d0', // light gray
+        'camu':    '#707070'  // camu
     };
     
     // Input
@@ -164,6 +165,7 @@ Game.prototype.onLogin = function(e) {
     e = e || window.event;
     if (e.keyCode == 13) {
         var playerName = document.getElementById('login').value;
+        playerName = playerName.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '_');
         if (playerName.length >= 2 && playerName.length <= 12) {
             document.getElementById('box').style.display = 'none';
             e.preventDefault();
@@ -422,6 +424,7 @@ ActorPlayer.create = function(data) {
     this.boost = data.b;
     this.thrust = data.t;
     this.shield = data.s;
+    this.fade = data.f;
 };
 
 ActorPlayer.update = function(data) {
@@ -430,6 +433,7 @@ ActorPlayer.update = function(data) {
     this.defense = data.d;
     this.thrust = data.t;
     this.boost = data.b;
+    this.fade = data.f;
     
     // Shield
     if (this.shield && !data.s) {
@@ -468,59 +472,77 @@ ActorPlayer.render = function() {
     }
     
     // Draw Ship base
-    this.$g.bg.save();
-    this.$g.bg.translate(this.x, this.y);
-    this.$g.bg.rotate(Math.PI - this.r);
-    
-    this.$g.bg.beginPath();
-    this.$g.bg.moveTo(0, -12);
-    this.$g.bg.lineTo(10 , 12);
-    this.$g.bg.lineTo(-10, 12);
-    this.$g.bg.lineTo(0, -12);
-    this.$g.bg.closePath();
-    this.$g.bg.stroke();
-    
-    if (this.shield) {
-        this.$g.line(3);
-        this.$g.bg.beginPath();
-        this.$g.stroke(this.$g.colorCodesFaded[this.$g.playerColors[this.id]]);
-        this.$g.bg.arc(0, 0, 20, 0, Math.PI * 2, true);
-        this.$g.bg.closePath();
-        this.$g.bg.stroke();
-    }
-    this.$g.bg.restore();
-    
-    // Effects
-    var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
-    if (this.thrust) {
-        var r = this.$g.wrapAngle(this.r - Math.PI);
-        var ox = this.x + Math.sin(r) * 12;
-        var oy = this.y + Math.cos(r) * 12;
-        this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - 0.8 + Math.random() * 1.60),
-                               2, 0.2 + (this.boost ? 0.1 : 0), col);
+    if (this.fade != -1) {
+        if (this.id == this.$.id) {
+            this.$g.bg.globalAlpha = 0.20 + (this.fade / 100 * 0.8);
         
-        if (this.boost) {
-            this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - 0.8 + Math.random() * 1.60),
-                                   2, 0.2 + (this.boost ? 0.1 : 0), col);
+        } else {
+            this.$g.bg.globalAlpha = this.fade / 100;
         }
     }
     
-    if (this.mr != 0) {
-        var d = (this.mr * 10);
-        var r = this.$g.wrapAngle(this.r - Math.PI);
-        var ox = this.x + Math.sin(this.$g.wrapAngle(r - Math.PI * 2.22 * d)) * 14;
-        var oy = this.y + Math.cos(this.$g.wrapAngle(r - Math.PI * 2.22 * d)) * 14;
-        this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - Math.PI * 2.47 * d - 0.4 + Math.random() * 0.80), 2, 0.13, col);
-    }
     
-    if (this.shield) {
-        this.$g.effectRing(this.x, this.y, 20, 24,
-                           this.$g.extreeeeeeme ? 0.025 : 0.05, 0.25, col);
+    if (this.fade > 0 || this.fade == -1 || this.id == this.$.id) {
+        this.$g.bg.save();
+        this.$g.bg.translate(this.x, this.y);
+        this.$g.bg.rotate(Math.PI - this.r);
+        
+        this.$g.bg.beginPath();
+        this.$g.bg.moveTo(0, -12);
+        this.$g.bg.lineTo(10 , 12);
+        this.$g.bg.lineTo(-10, 12);
+        this.$g.bg.lineTo(0, -12);
+        this.$g.bg.closePath();
+        this.$g.bg.stroke();
+        
+        if (this.shield) {
+            this.$g.line(3);
+            this.$g.bg.beginPath();
+            this.$g.stroke(this.$g.colorCodesFaded[this.$g.playerColors[this.id]]);
+            this.$g.bg.arc(0, 0, 20, 0, Math.PI * 2, true);
+            this.$g.bg.closePath();
+            this.$g.bg.stroke();
+        }
+        this.$g.bg.restore();
+    
+        // Effects
+        var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
+        if (this.thrust) {
+            var r = this.$g.wrapAngle(this.r - Math.PI);
+            var ox = this.x + Math.sin(r) * 12;
+            var oy = this.y + Math.cos(r) * 12;
+            this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - 0.8 + Math.random() * 1.60),
+                                   2, 0.2 + (this.boost ? 0.1 : 0), col);
+            
+            if (this.boost) {
+                this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - 0.8 + Math.random() * 1.60),
+                                       2, 0.2 + (this.boost ? 0.1 : 0), col);
+            }
+        }
+        
+        if (this.mr != 0) {
+            var d = (this.mr * 10);
+            var r = this.$g.wrapAngle(this.r - Math.PI);
+            var ox = this.x + Math.sin(this.$g.wrapAngle(r - Math.PI * 2.22 * d)) * 14;
+            var oy = this.y + Math.cos(this.$g.wrapAngle(r - Math.PI * 2.22 * d)) * 14;
+            this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - Math.PI * 2.47 * d - 0.4 + Math.random() * 0.80), 2, 0.13, col);
+        }
+        
+        if (this.shield) {
+            this.$g.effectRing(this.x, this.y, 20, 24,
+                               this.$g.extreeeeeeme ? 0.025 : 0.05, 0.25, col);
+        }
+    
+    } else {
+        this.shield = false;
     }
     
     // Name
-    this.$g.fill(this.$g.colorCodesFaded[this.$g.playerColors[this.id]]);
-    this.$g.text(this.x, this.y - 22, this.$g.playerNames[this.id] + '(' + this.$g.playerScores[this.id] + ')', 'center', 'middle');
+    if (this.fade == -1 || this.id == this.$.id) {
+        this.$g.fill(this.$g.colorCodesFaded[this.$g.playerColors[this.id]]);
+        this.$g.text(this.x, this.y - 22, this.$g.playerNames[this.id] + '(' + this.$g.playerScores[this.id] + ')', 'center', 'middle'); 
+    }
+    this.$g.bg.globalAlpha = 1.0;
 };
 
 
@@ -605,10 +627,15 @@ ActorPowerUp.render = function() {
     }
     
     // Draw
-    this.$g.bg.beginPath();
-    this.$g.bg.arc(0, 0, 5.5, 0, Math.PI * 2, true);
-    this.$g.bg.closePath();
-    this.$g.bg.fill();
+    if (this.type != 'camu') {
+        this.$g.bg.beginPath();
+        this.$g.bg.arc(0, 0, 5.5, 0, Math.PI * 2, true);
+        this.$g.bg.closePath();
+        this.$g.bg.fill();
+    
+    } else {
+        this.$g.line(2);
+    }
     
     this.$g.bg.beginPath();
     this.$g.bg.arc(0, 0, 8, 0, Math.PI * 2, true);

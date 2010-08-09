@@ -247,8 +247,8 @@ Server.prototype.actorsUpdate = function() {
                     allUpdates.push(a.toMessage(false));
                 
                 } else if(typeof a.updated === 'object') {
-                    for(var e = 0; e < a.updates.length; e++) {
-                        clientUpdates[a.updates[e]].push(a.toMessage(false));
+                    for(var e = 0; e < a.updated.length; e++) {
+                        clientUpdates[a.updated[e]].push(a.toMessage(false));
                     }
                 }
                 alive_actors.push(a);
@@ -437,7 +437,11 @@ Actor.prototype.destroy = function() {
     if (this.alive) {
         this.alive = false;
         this.$.actorTypes[this.clas].destroy.call(this);
-        this.$.emit('d', {'i': this.id});
+        this.$.emit('d', {
+            'i': this.id,
+            'x': Math.round(this.x * 100) / 100,
+            'y': Math.round(this.y * 100) / 100
+        });
     }
 };
 

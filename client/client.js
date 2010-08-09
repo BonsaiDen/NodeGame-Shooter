@@ -135,7 +135,7 @@ Client.prototype.connect = function(host, port) {
             that.actors[data.i].event(msg.t, msg.d || {});
         
         } else if (type == 'd') {
-            that.actors[data.i].destroy();
+            that.actors[data.i].destroy(data.x, data.y);
             delete that.actors[data.i];
         }
     };
@@ -247,7 +247,9 @@ Actor.prototype.event = function(type, data) {
     this.$.actor_types[this.clas].event.call(this, type, data);
 };
 
-Actor.prototype.destroy = function() {
+Actor.prototype.destroy = function(x, y) {
+    this.x = x;
+    this.y = y;
     this.$.actorTypes[this.clas].destroy.call(this);
 };
 
