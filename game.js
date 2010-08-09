@@ -82,7 +82,7 @@ Game.prototype.startRound = function() {
     this.$.setField('roundID', this.roundID, true);
     this.$.setField('roundTime', this.roundTime, true);
     this.$.setField('roundGO', 1, true);
-    this.$.setField('roundStats', {}, true);
+    this.$.setField('roundStats', [], true);
     
     // Reset powerup timers
     for(var p in this.powerUps) {
@@ -116,7 +116,7 @@ Game.prototype.endRound = function() {
     for(var c in this.$.clients) {
         if (this.$.clients[c].playerName != '') {
             var stats = this.roundStats[c];
-            sorted.push([this.$.clients[c].score + Math.floor(Math.random() * 10),
+            sorted.push([this.$.clients[c].score,
                          stats.kills, this.$.clients[c].playerName,
                          stats.selfDestructs, this.$.clients[c].playerColor]);
         }
@@ -727,12 +727,13 @@ ActorPlayer.msg = function(full) {
     var msg = {
         'r': Math.round(this.r * 10) / 10,
         'm': this.mr,
-        'd': (this.defense % 200) != 0,
+        'd': (this.defense % 200) != 0 ? 1 : 0,
         't': this.thrust ? 1 : 0,
         'b': this.boost ? 1 : 0,
         's': this.shield ? 1 : 0,
         'f': this.camuFade
     };
+    
     if (full) {
         msg.p = this.client.id;
     }
