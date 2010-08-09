@@ -281,17 +281,26 @@ Server.prototype.actorsDestroy = function() {
 
 // Messaging
 Server.prototype.send = function(conn, type, msg) {
-    var e = JSON.stringify({'t': type, 'd': msg});
+    var e = this.toJSON([type, msg]);
     this.bytesSend += e.length;
     this.bytesSendSecond += e.length;
     conn.write(e);
 };
 
 Server.prototype.emit = function(type, msg) {
-    var e = JSON.stringify({'t': type, 'd': msg});
+    var e = this.toJSON([type, msg]);
     this.bytesSend += e.length * this.clientCount;
     this.bytesSendSecond += e.length * this.clientCount;
     this.$.broadcast(e);
+
+};
+
+Server.prototype.toJSON = function(data) {
+    var msg = JSON.stringify(data);
+    msg = msg.substring(1).substring(0, msg.length - 2);
+    msg = msg.replace(/\"([a-z0-9]+)\"\:/gi, '$1:');
+//    msg = msg.replace(/([a-z0-9]+)\:/gi, '"$1":');
+    return msg;
 };
 
 
@@ -439,8 +448,8 @@ Actor.prototype.destroy = function() {
         this.$.actorTypes[this.clas].destroy.call(this);
         this.$.emit('d', {
             'i': this.id,
-            'x': Math.round(this.x * 100) / 100,
-            'y': Math.round(this.y * 100) / 100
+            'x': Math.round(this.x),
+            'y': Math.round(this.y)
         });
     }
 };

@@ -88,15 +88,20 @@ Client.prototype.connect = function(host, port) {
     
     this.conn.onmessage = function(msg) {
         try {
-            msg = JSON.parse(msg.data);
-        
+            msg = JSON.parse('[' + msg.data.replace(/([a-z0-9]+)\:/gi, '"$1":') + ']');
+            
         } catch(e) {
+            try {
+                console.log('JSON Error:', msg);
+            } catch(e) {
+                
+            }
             return;
         }
         
         // Game
-        var type = msg.t;
-        var data = msg.d;
+        var type = msg[0];
+        var data = msg[1];
         if (type == 's') {
             that.id = data.i;
             that.lastFrame = that.lastRender = that.getTime();
