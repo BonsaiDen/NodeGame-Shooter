@@ -176,7 +176,7 @@ Game.prototype.renderRound = function() {
         this.text(xpos + 260, ypos, 'SelfDest', 'right', 'top');
         
         ypos += 22;
-        for(var i = this.roundStats.length - 1; i >= 0; i--) {
+        for(var i = 0; i < this.roundStats.length; i++) {
             var p = this.roundStats[i];
             this.fill(this.colorCodes[p[4]]);
             this.text(xpos, ypos, p[2], 'right', 'top');
