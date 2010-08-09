@@ -78,7 +78,7 @@ Game.prototype.onConnect = function(success) {
         'boost':   '#f0c000', // yellow
         'defense': '#9c008c', // purple
         'bomb':    '#d0d0d0', // light gray
-        'camu':    '#707070'  // camu
+        'camu':    '#808080'  // camu
     };
     
     // Input
@@ -578,23 +578,34 @@ ActorBomb.create = function(data) {
 ActorBomb.destroy = function() {
     var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
     this.$g.effectArea(this.x, this.y, this.radius, 1.0, col);
-    this.$g.effectRing(this.x, this.y, this.radius / 2 * 0.975, 150, 1, 1.25, col);
+    this.$g.effectRing(this.x, this.y, this.radius / 2 * 0.975, 100, 1, 1.25, col);
     this.$g.effectArea(this.x, this.y, this.radius / 2, 1.5, col);
-    this.$g.effectRing(this.x, this.y, this.radius * 0.975, 200, 1, 1.25, col);
+    this.$g.effectRing(this.x, this.y, this.radius * 0.975, 150, 1, 1.25, col);
 };
 
 ActorBomb.render = function() {
+    this.$g.fill(this.$g.colorCodes[this.$g.playerColors[this.id]]);
+    this.$g.line(1);
+    this.$g.bg.arc(this.x, this.y, 2.5, 0, Math.PI * 2, true);
+    this.$g.bg.closePath();
+    this.$g.bg.fill();
+
     this.$g.line(2);
     this.$g.stroke(this.$g.colorCodes[this.$g.playerColors[this.id]]);
     this.$g.bg.beginPath();
-    this.$g.bg.arc(this.x, this.y, 5, 0, Math.PI * 2, true);
+    this.$g.bg.arc(this.x, this.y, 6.0, 0, Math.PI * 2, true);
     this.$g.bg.closePath();
     this.$g.bg.stroke();
     
-    this.$g.line(1);
-    this.$g.bg.arc(this.x, this.y, 1, 0, Math.PI * 2, true);
-    this.$g.bg.closePath();
-    this.$g.bg.stroke();
+    var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
+    var r = Math.atan2(this.mx, this.my);
+    var ox = this.x - Math.sin(r) * 2;
+    var oy = this.y - Math.cos(r) * 2;
+    this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - 0.8 + Math.random() * 1.60),
+                           1, 0.5, col);
+    
+    this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - 1.6 + Math.random() * 3.20),
+                           0.5, 0.8, col);          
 };
 
 // PowerUP ---------------------------------------------------------------------
