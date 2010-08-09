@@ -32,6 +32,7 @@ Game.prototype.onConnect = function(success) {
         this.canvas.style.display = 'none';
         return;
     }
+    this.canvas.style.display = 'block';
     
     document.getElementById('login').onkeypress = function(e) {
         that.onLogin(e);
