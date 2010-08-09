@@ -127,7 +127,7 @@ Game.prototype.endRound = function() {
         if (d == 0) {
             d = b[1] - a[1];
             if (d == 0) {
-                d = a[2] - b[2];
+                d = a[3] - b[3];
             }
         }
         return d;
@@ -163,11 +163,57 @@ Game.prototype.addPlayerStats = function(id) {
 
 // Gameplay --------------------------------------------------------------------
 Game.prototype.circleCollision = function(a, b, ra, rb) {
+    
+    // Normal
+    if (this.checkCollision(a, b, ra, rb)) {
+        return true;
+    }
+    
+    // Overlap
+    var aa = {};
+    aa.x = a.x
+    aa.y = a.y;
+    
+    // Left / Right
+    if (a.x - ra / 2 < -16) {
+        aa.x = a.x + 32 + this.width;
+    
+    } else if (a.x + ra / 2 > this.width + 16) {
+        aa.x = a.x - 32 - this.width;
+    }
+    if (a.x != aa.x && this.checkCollision(aa, b, ra, rb)) {
+        return true;
+    }
+    
+    // Top // Bottom
+    var ab = {};
+    ab.x = a.x;
+    ab.y = a.y;
+    if (a.y - ra / 2 < -16) {
+        ab.y = a.y + 32 + this.height;
+    
+    } else if (a.y + ra / 2 > this.height + 16) {
+        ab.y = a.y - 32 - this.height;
+    }
+    if (a.y != ab.y && this.checkCollision(ab, b, ra, rb)) {
+        return true;
+    }
+    
+    // Diagonal
+    aa.y = ab.y;
+    if (a.y != aa.y && a.x != aa.x && this.checkCollision(aa, b, ra, rb)) {
+        return true;
+    }
+    return false;
+};
+
+Game.prototype.checkCollision = function(a, b, ra, rb) {
     var r = ra + rb;
     var dx = a.x - b.x;
     var dy = a.y - b.y;
     return r * r > dx * dx + dy * dy; 
 };
+
 
 Game.prototype.initPowerUp = function(type, max, wait, rand) { 
     this.powerUps[type] = [0, 0, max, wait, rand];
@@ -409,19 +455,19 @@ Game.prototype.randomPosition = function(obj) {
 
 Game.prototype.wrapPosition = function(obj) {
     if (obj.x < -16) {
-        obj.x = this.width + 16;
+        obj.x = this.width + 32;
         obj.updated = true;
     
-    } else if (obj.x > this.width + 16) {
+    } else if (obj.x > this.width + 32) {
         obj.x = -16;
         obj.updated = true;
     }
     
     if (obj.y < -16) {
-        obj.y = this.height + 16;
+        obj.y = this.height + 32;
         obj.updated = true;
     
-    } else if (obj.y > this.height + 16) {
+    } else if (obj.y > this.height + 32) {
         obj.y = -16;
         obj.updated = true;
     }

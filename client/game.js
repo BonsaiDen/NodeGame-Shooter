@@ -204,17 +204,17 @@ Game.prototype.renderParticles = function() {
             p.x += Math.sin(p.r) * p.speed;
             p.y += Math.cos(p.r) * p.speed;
             if (p.x < -16) {
-                p.x = this.width + 16;
+                p.x += this.width + 32;
             
             } else if (p.x > this.width + 16) {
-                p.x = -16;
+                p.x -= this.width + 32;
             }
             
             if (p.y < -16) {
-                p.y = this.height + 16;
+                p.y += this.height + 32;
             
             } else if (p.y > this.height + 16) {
-                p.y = -16;
+                p.y -= this.height + 32;
             }
         }
         
@@ -235,6 +235,44 @@ Game.prototype.renderParticles = function() {
                 this.bg.arc(p.x, p.y, p.size, 0, Math.PI * 2, true);
                 this.bg.closePath();
                 this.bg.fill();
+                
+                
+                // Overlap
+                var x = p.x;
+                var y = p.y;
+                if (p.x - p.size / 2 < -16) {
+                    x = p.x + 32 + this.width;
+                
+                } else if (p.x + p.size / 2 > this.width + 16) {
+                    x = p.x - 32 - this.width;
+                }
+                if (x != p.x) {
+                    this.bg.beginPath();
+                    this.bg.arc(x, p.y, p.size, 0, Math.PI * 2, true);
+                    this.bg.closePath();
+                    this.bg.fill();
+                }
+                
+                if (p.y - p.size / 2 < -16) {
+                    y = p.y + 32 + this.height;
+                
+                } else if (p.y + p.size / 2 > this.height + 16) {
+                    y = p.y - 32 - this.height;
+                }
+                
+                if (y != p.y) {
+                    this.bg.beginPath();
+                    this.bg.arc(p.x, y, p.size, 0, Math.PI * 2, true);
+                    this.bg.closePath();
+                    this.bg.fill();
+                }
+                
+                if (y != p.y && x != p.x) {
+                    this.bg.beginPath();
+                    this.bg.arc(x, y, p.size, 0, Math.PI * 2, true);
+                    this.bg.closePath();
+                    this.bg.fill();
+                }
             }
         }
     }
