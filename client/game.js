@@ -592,6 +592,7 @@ ActorBomb.destroy = function() {
 ActorBomb.render = function() {
     this.$g.fill(this.$g.colorCodes[this.$g.playerColors[this.id]]);
     this.$g.line(1);
+    this.$g.bg.beginPath();
     this.$g.bg.arc(this.x, this.y, 2.5, 0, Math.PI * 2, true);
     this.$g.bg.closePath();
     this.$g.bg.fill();
@@ -632,7 +633,7 @@ ActorPowerUp.destroy = function() {
 
 ActorPowerUp.render = function() {
     this.$g.line(1);
-    this.$g.fill(this.$g.powerUpColors[this.type]);
+    
     this.$g.stroke(this.$g.powerUpColors[this.type]);
     this.$g.bg.save();
     this.$g.bg.translate(this.x, this.y);
@@ -645,6 +646,7 @@ ActorPowerUp.render = function() {
     
     // Draw
     if (this.type != 'camu') {
+        this.$g.fill(this.$g.powerUpColors[this.type]);
         this.$g.bg.beginPath();
         this.$g.bg.arc(0, 0, 5.5, 0, Math.PI * 2, true);
         this.$g.bg.closePath();
