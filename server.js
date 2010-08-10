@@ -73,7 +73,6 @@ Server.prototype.run = function() {
     console.log('>> Server started');
     
     var that = this;
-
     for(var i in this.actorTypes) {
         this.actors[i] = []; 
     }
@@ -92,7 +91,7 @@ Server.prototype.run = function() {
         var m = Math.floor(t / 60);
         var s = t % 60;
         
-        console.log('>> Running ' + m + ':' + (s < 10 ? '0' : '') + s + ' / '
+        console.log('>> #' + m + ':' + (s < 10 ? '0' : '') + s + ' / '
                     + that.clientCount
                     + ' Client(s) / ' + that.actorCount + ' Actor(s) / '
                     + (Math.round(that.bytesSendSecond / 10 * 100 / 1024) / 100) +' kb/s');
@@ -104,6 +103,8 @@ Server.prototype.run = function() {
     // Exit
     process.addListener('SIGINT', function () {
         console.log('>> Shutting down...');
+        console.log('>> ' + (Math.round(that.bytesSend / 10 * 100 / 1024) / 100)
+                    +' kb send in total');
         
         clearInterval(that.$g._loop);
         that.actorsDestroy();
