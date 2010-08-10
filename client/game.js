@@ -235,20 +235,20 @@ Game.prototype.renderParticles = function() {
                 // Overlap
                 var x = p.x;
                 var y = p.y;
-                if (p.x - p.size / 2 < -16) {
+                if (p.x - p.size < -16) {
                     x = p.x + 32 + this.width;
                 
-                } else if (p.x + p.size / 2 > this.width + 16) {
+                } else if (p.x + p.size > this.width + 16) {
                     x = p.x - 32 - this.width;
                 }
                 if (x != p.x) {
                     this.fillCircle(x, p.y, p.size, p.col || '#ffffff');
                 }
                 
-                if (p.y - p.size / 2 < -16) {
+                if (p.y - p.size < -16) {
                     y = p.y + 32 + this.height;
                 
-                } else if (p.y + p.size / 2 > this.height + 16) {
+                } else if (p.y + p.size > this.height + 16) {
                     y = p.y - 32 - this.height;
                 }
                 

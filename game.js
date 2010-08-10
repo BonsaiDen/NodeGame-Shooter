@@ -60,6 +60,14 @@ Game.prototype.onInit = function() {
     
     this.$.setField('max', this.maxPlayers, true);
     
+    // Sizes
+    this.sizePlayer = 11;
+    this.sizeShield = 22;
+    this.sizePowerUp = 10;
+    this.sizeBullet = 2;
+    this.sizeDefend = 3;
+    this.sizeBomb = 4;
+    
     // PowerUPS
     this.powerUps = {};
     this.initPowerUp('shield',  2, 23, 10);
@@ -180,10 +188,10 @@ Game.prototype.circleCollision = function(a, b, ra, rb) {
     aa.y = a.y;
     
     // Left / Right
-    if (a.x - ra / 2 < -16) {
+    if (a.x - ra < -16) {
         aa.x = a.x + 32 + this.width;
     
-    } else if (a.x + ra / 2 > this.width + 16) {
+    } else if (a.x + ra > this.width + 16) {
         aa.x = a.x - 32 - this.width;
     }
     if (a.x != aa.x && this.checkCollision(aa, b, ra, rb)) {
@@ -194,10 +202,10 @@ Game.prototype.circleCollision = function(a, b, ra, rb) {
     var ab = {};
     ab.x = a.x;
     ab.y = a.y;
-    if (a.y - ra / 2 < -16) {
+    if (a.y - ra < -16) {
         ab.y = a.y + 32 + this.height;
     
-    } else if (a.y + ra / 2 > this.height + 16) {
+    } else if (a.y + ra > this.height + 16) {
         ab.y = a.y - 32 - this.height;
     }
     if (a.y != ab.y && this.checkCollision(ab, b, ra, rb)) {
@@ -290,7 +298,10 @@ Game.prototype.collidePowerUps = function(o, p) {
 Game.prototype.onUpdate = function() {
 
     // RoundTimer
-    this.$.setField('rt', this.roundTimeLeft + (this.roundStart - this.getTime()), false);
+    this.$.setField('rt', 
+                    this.roundTimeLeft + (this.roundStart - this.getTime()),
+                    false);
+    
     if (this.roundFinished) {
         return;
     }
@@ -309,102 +320,28 @@ Game.prototype.onUpdate = function() {
     var players      = this.getActors('player');
     var players_defs = this.getActors('player_def');
     var powerups     = this.getActors('powerup');
-    var bullets      = this.getActors('bullet');
     var bombs        = this.getActors('bomb');
     
+    // Players
     for(var i = 0, l = players.length; i < l; i++) {
         var p = players[i];
         if (p.hp > 0 && p.defense == 0) {
-            
-            // Player / Player Def collision
-            for(var e = 0, dl = players_defs.length; e < dl; e++) {
-                var pd = players_defs[e];
-                if (pd.alive && this.circleCollision(p, pd, 12, 3)) {
-                    pd.destroy();
-                    p.hp -= 15;
-                    if (p.hp <= 0) {
-                        pd.player.client.addScore(10);
-                        this.getPlayerStats(pd.player.client.id).kills += 1;
-                        p.client.kill();
-                        break;
-                    }
-                }
-            }
-            if (p.hp < 0) {
-                continue;
-            }
-            
-            // Player / Bomb
-            for(var e = 0, dl = bombs.length; e < dl; e++) {
-                var bo = bombs[e];
-                if (bo.alive && this.circleCollision(p, bo, 10, 5)) {
-                    bo.destroy();
-                }
-            }
-            
-            // Player / Player collision
-            for(var e = i + 1; e < l; e++) {
-                var pp = players[e];
-                if (pp.hp > 0 && pp.defense == 0) {
-                    if (this.circleCollision(p, pp, 10, 10)) {
-                        p.hp = 0;
-                        pp.hp = 0;
-                        pp.client.kill(); 
-                        p.client.kill();
-                        
-                        this.getPlayerStats(p.client.id).selfDestructs += 1;
-                        this.getPlayerStats(pp.client.id).selfDestructs += 1;
-                        break;
-                    }
-                }
-            }
-            
-            if (p.hp > 0) {
-                // PowerUPs
-                for(var f = 0, lf = powerups.length; f < lf; f++) {
-                    var o = powerups[f];
-                    if (o.alive && this.circleCollision(p, o, 10, 10)) {
-                        this.collidePowerUps(o, p);
-                    }
-                }
-                
-                // Bullets
-                for(var f = 0, lf = bullets.length; f < lf; f++) {
-                    var b = bullets[f];
-                    if (b.alive) {
-                        
-                        // Hit on ship
-                        if (!p.shield && this.circleCollision(p, b, 12, 2)) {
-                            b.destroy();
-                            p.hp -= 5;
-                            if (p.hp <= 0) {
-                                b.player.client.addScore(10);
-                                this.getPlayerStats(b.player.client.id).kills += 1;
-                                p.client.kill();
-                                break;
-                            }
-                        
-                        // Hit on Shield
-                        } else if (p.shield
-                                   && (b.player != p || this.getTime() - b.time > 150)
-                                   && this.circleCollision(p, b, 22, 2)) {
-                            
-                            b.destroy();
-                        }
-                    }
-                }
-            }
+            this.collidePlayer(p, i, l);
         }
     }
     
-    // Player Def 
+    // Player Defends
     for(var i = 0, dl = players_defs.length; i < dl; i++) {
         var pd = players_defs[i];
         if (pd.alive && pd.player.hp > 0) {
-            // powerup collision
+        
+            // PowerUp collision
             for(var f = 0, lf = powerups.length; f < lf; f++) {
                 var o = powerups[f];
-                if (o.alive && this.circleCollision(pd, o, 3, 10)) {
+                if (o.alive && this.circleCollision(pd, o,
+                                                    this.sizeDefend,
+                                                    this.sizePowerUp)) {
+                    
                     this.collidePowerUps(o, pd.player);
                 }
             }
@@ -412,7 +349,10 @@ Game.prototype.onUpdate = function() {
             // Player Bomb
             for(var e = 0, dl = bombs.length; e < dl; e++) {
                 var bo = bombs[e];
-                if (bo.alive && this.circleCollision(pd, bo, 3, 5)) {
+                if (bo.alive && this.circleCollision(pd, bo,
+                                                     this.sizeDefend,
+                                                     this.sizeBomb)) {
+                    
                     bo.destroy();
                     pd.destroy();
                     break;
@@ -425,7 +365,10 @@ Game.prototype.onUpdate = function() {
             }
             for(var e = i + 1, dl = players_defs.length; e < dl; e++) {
                 var pdd = players_defs[e];
-                if (pdd.alive && this.circleCollision(pdd, pd, 3, 3)) {
+                if (pdd.alive && this.circleCollision(pdd, pd,
+                                                      this.sizeDefend,
+                                                      this.sizeDefend)) {
+                    
                     pdd.destroy();
                     pd.destroy();
                     break;
@@ -444,6 +387,168 @@ Game.prototype.onUpdate = function() {
     }
 };
 
+Game.prototype.collidePlayer = function(p, i, l) {
+    var players      = this.getActors('player');
+    var players_defs = this.getActors('player_def');
+    var powerups     = this.getActors('powerup');
+    var bullets      = this.getActors('bullet');
+    var bombs        = this.getActors('bomb');
+    
+    // Player / Player Defend collision
+    for(var e = 0, dl = players_defs.length; e < dl; e++) {
+        var pd = players_defs[e];
+        if (pd.alive && this.circleCollision(p, pd,
+                                             this.sizePlayer,
+                                             this.sizeDefend)) {
+            
+            pd.destroy();
+            p.hp -= 15;
+            if (p.hp <= 0) {
+                pd.player.client.addScore(10);
+                this.getPlayerStats(pd.player.client.id).kills += 1;
+                p.client.kill();
+                break;
+            }
+        }
+    }
+    if (p.hp < 0) {
+        continue;
+    }
+    
+    // Player / Bomb
+    for(var e = 0, dl = bombs.length; e < dl; e++) {
+        var bo = bombs[e];
+        if (bo.alive && this.circleCollision(p, bo, this.sizePlayer,
+                                                    this.sizeBomb)) {
+            
+            bo.destroy();
+        }
+    }
+    
+    // Player / Player collision
+    for(var e = i + 1; e < l; e++) {
+        var pp = players[e];
+        if (pp.hp > 0 && pp.defense == 0) {
+            if (this.circleCollision(p, pp, this.sizePlayer, this.sizePlayer)) {
+                p.hp = 0;
+                pp.hp = 0;
+                pp.client.kill(); 
+                p.client.kill();
+                
+                this.getPlayerStats(p.client.id).selfDestructs += 1;
+                this.getPlayerStats(pp.client.id).selfDestructs += 1;
+                break;
+            }
+        }
+    }
+    
+    if (p.hp > 0) {
+        // PowerUPs
+        for(var f = 0, lf = powerups.length; f < lf; f++) {
+            var o = powerups[f];
+            if (o.alive && this.circleCollision(p, o, this.sizePlayer,
+                                                      this.sizePowerUp)) {
+                
+                this.collidePowerUps(o, p);
+            }
+        }
+        
+        // Bullets
+        for(var f = 0, lf = bullets.length; f < lf; f++) {
+            var b = bullets[f];
+            if (b.alive) {
+                
+                // Hit on ship
+                if (!p.shield && this.circleCollision(p, b, this.sizePlayer,
+                                                            this.sizeBullet)) {
+                    
+                    b.destroy();
+                    p.hp -= 5;
+                    if (p.hp <= 0) {
+                        b.player.client.addScore(10);
+                        this.getPlayerStats(b.player.client.id).kills += 1;
+                        p.client.kill();
+                        break;
+                    }
+                
+                // Hit on Shield
+                } else if (p.shield
+                           && (b.player != p || this.getTime() - b.time > 150)
+                           && this.circleCollision(p, b, this.sizeShield,
+                                                         this.sizeBullet)) {
+                    
+                    b.destroy();
+                }
+            }
+        }
+    }
+};
+
+
+
+// Bomb ------------------------------------------------------------------------
+Game.prototype.destroyBomb = function(b) {
+    b.player.bomb = false;
+    b.player.client.bomb = null;
+    
+    // Bombs
+    var bombs = this.getActors('bomb');
+    for(var i = 0, l = bombs.length; i < l; i++) {
+        var e = bombs[i];
+        if (e.alive && this.circleCollision(b, e, b.range, this.sizeBomb)) {
+            e.destroy();
+        }
+    }
+    
+    // Defs
+    var players_defs = this.getActors('player_def');
+    for(var i = 0, l = players_defs.length; i < l; i++) {
+        var e = players_defs[i];
+        if (e.alive && this.circleCollision(b, e, b.range, this.sizeDefend)) {
+            e.destroy();
+        }
+    }
+    
+    // Players
+    var players = this.getActors('player');
+    for(var i = 0, l = players.length; i < l; i++) {
+        var e = players[i];
+        if (e.alive && this.circleCollision(b, e, b.range, this.sizePlayer)) {
+            e.client.kill();
+            if (b.player && b.player.client.bombLaunched) {
+                if (e != b.player) {
+                    b.player.client.addScore(10);
+                    this.getPlayerStats(b.player.client.id).kills += 1;
+                
+                } else {
+                    b.player.client.addScore(-5);
+                    this.getPlayerStats(b.player.client.id).selfDestructs += 1;
+                }
+            }
+        }
+    }
+    b.player.client.bombLaunched = false;
+    
+    // Powerups
+    var powerups = this.getActors('powerup');
+    for(var i = 0, l = powerups.length; i < l; i++) {
+        var e = powerups[i];
+        if (e.alive && this.circleCollision(b, e, b.range, this.sizePowerUp)) {
+            e.destroy();
+            this.removePowerUp(e.type);
+        }
+    }
+    
+    // Bullets
+    var bullets = this.getActors('bullet');
+    for(var i = 0, l = bullets.length; i < l; i++) {
+        var e = bullets[i];
+        if (e.alive && this.circleCollision(b, e, b.range, this.sizeBullet)) {
+            e.destroy();
+        }
+    }
+}
+
 
 // Helpers ---------------------------------------------------------------------
 Game.prototype.wrapAngle = function(r) {
@@ -456,27 +561,56 @@ Game.prototype.wrapAngle = function(r) {
     return r;
 };
 
-Game.prototype.randomPosition = function(obj) {
-    obj.x = (Math.random() * (this.width - 50)) + 25;
-    obj.y = (Math.random() * (this.height - 50)) + 25;
+Game.prototype.randomPosition = function(obj, size) {
+    var players      = this.getActors('player');
+    var powerups     = this.getActors('powerup');
+    
+    var found = false;
+    var tries = 0;
+    while(!found && tries < 15) {
+        obj.x = (Math.random() * (this.width - 50)) + 25;
+        obj.y = (Math.random() * (this.height - 50)) + 25;
+        
+        found = true;
+        for(var i = 0, l = players.length; i < l; i++) {
+            if (this.checkCollision(players[i], obj,
+                                    this.sizePlayer * 1.5, size * 1.5)) {
+                
+                found = false;
+                break;
+            }
+        }
+        
+        if (found) {
+            for(var i = 0, l = powerups.length; i < l; i++) {
+                if (this.checkCollision(powerups[i], obj,
+                                        this.sizePowerUp * 1.5, size * 1.5)) {
+                    
+                    found = false;
+                    break;
+                }
+            }
+        }
+        tries++;
+    }
 };
 
 Game.prototype.wrapPosition = function(obj) {
     if (obj.x < -16) {
-        obj.x = this.width + 32;
+        obj.x += this.width + 32;
         obj.updated = true;
     
     } else if (obj.x > this.width + 32) {
-        obj.x = -16;
+        obj.x -= this.width + 32;
         obj.updated = true;
     }
     
     if (obj.y < -16) {
-        obj.y = this.height + 32;
+        obj.y += this.height + 32
         obj.updated = true;
     
     } else if (obj.y > this.height + 32) {
-        obj.y = -16;
+        obj.y -= this.height + 32;
         obj.updated = true;
     }
 };

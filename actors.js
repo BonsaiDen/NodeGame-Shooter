@@ -31,13 +31,12 @@ ActorPlayer.create = function(data) {
     this.r = (Math.random() * Math.PI * 2) - Math.PI;
     this.mr = 0;
     
-    this.$g.randomPosition(this);
+    this.$g.randomPosition(this, this.$g.sizePlayer);
     
     this.thrust = false;
     this.defense = 1400;
     this.defenseTime = this.getTime();
     this.defMode = true;
-    
     
     // Syncing
     this.sync = 10;
@@ -106,7 +105,7 @@ ActorPlayer.update = function() {
     }
     
     // Laser
-    if (this.laser && this.getTime() - this.laserTime > 10000) {
+    if (this.laser && this.getTime() - this.laserTime > 7500) {
         this.laser = false;
     }
     
@@ -154,8 +153,9 @@ ActorPlayer.update = function() {
 ActorPlayer.syncData = function() {
     this.sync++;
     if (this.boost != this.boostOld || this.shield != this.shieldOld
-        || this.thrust != this.thrustOld || this.mr != 0 || this.mr != this.mrOld
-        || this.mx != this.mxOld || this.my != this.myOld || this.sync > 8) {
+        || this.thrust != this.thrustOld || this.mr != 0
+        || this.mr != this.mrOld || this.mx != this.mxOld
+        || this.my != this.myOld || this.sync > 8) {
         
         this.sync = 0;
         if (this.camu == 2) {
@@ -184,7 +184,6 @@ ActorPlayer.destroy = function() {
             this.defs--;
         }
     }
-    //this.event('explode');
 };
 
 ActorPlayer.msg = function(full) {
@@ -212,7 +211,7 @@ ActorBullet.create = function(data) {
     this.player = data.player;
     this.sync = 10;
     
-    var r = data.r != null ? data.r : this.$g.wrapAngle(this.player.r + this.player.mr);
+    var r = data.r;
     this.x = this.player.x + Math.sin(r) * 12;
     this.y = this.player.y + Math.cos(r) * 12;
     
@@ -266,7 +265,7 @@ var ActorBomb = NodeShooter.createActorType('bomb');
 ActorBomb.create = function(data) {
     this.time = this.getTime();
     this.player = data.player;
-    this.range = 140;
+    this.range = 120;
     this.sync = 10;
     
     var r = data.r != null ? data.r : this.$g.wrapAngle(this.player.r + this.player.mr);
@@ -314,66 +313,7 @@ ActorBomb.update = function() {
 };
 
 ActorBomb.destroy = function() {
-    this.player.bomb = false;
-    this.player.client.bomb = null;
-    
-    var players      = this.$.getActors('player');
-    var players_defs = this.$.getActors('player_def');
-    var powerups     = this.$.getActors('powerup');
-    var bullets      = this.$.getActors('bullet');
-    var bombs        = this.$.getActors('bomb');
-    
-    // Bombs
-    for(var i = 0, l = bombs.length; i < l; i++) {
-        var e = bombs[i];
-        if (e.alive && this.$g.circleCollision(this, e, this.range, 2)) {
-            e.destroy();
-        }
-    }
-    
-    // Defs
-    for(var i = 0, l = players_defs.length; i < l; i++) {
-        var e = players_defs[i];
-        if (e.alive && this.$g.circleCollision(this, e, this.range, 3)) {
-            e.destroy();
-        }
-    }
-    
-    // Players
-    for(var i = 0, l = players.length; i < l; i++) {
-        var e = players[i];
-        if (e.alive && this.$g.circleCollision(this, e, this.range, 12)) {
-            e.client.kill();
-            if (this.player.client.bombLaunched) {
-                if (e != this.player) {
-                    this.player.client.addScore(10);
-                    this.$g.getPlayerStats(this.player.client.id).kills += 1;
-                
-                } else {
-                    this.player.client.addScore(-5);
-                    this.$g.getPlayerStats(this.player.client.id).selfDestructs += 1;
-                }
-            }
-        }
-    }
-    this.player.client.bombLaunched = false;
-    
-    // Powerups
-    for(var i = 0, l = powerups.length; i < l; i++) {
-        var e = powerups[i];
-        if (e.alive && this.$g.circleCollision(this, e, this.range, 10)) {
-            e.destroy();
-            this.$g.removePowerUp(e.type);
-        }
-    }
-    
-    // Bullets
-    for(var i = 0, l = bullets.length; i < l; i++) {
-        var e = bullets[i];
-        if (e.alive && this.$g.circleCollision(this, e, this.range, 2)) {
-            e.destroy();
-        }
-    }
+    this.$g.destroyBomb(this);
 };
 
 ActorBomb.msg = function(full) {
@@ -384,7 +324,7 @@ ActorBomb.msg = function(full) {
 // PowerUp ----------------------------------------------------------------------
 var ActorPowerUp = NodeShooter.createActorType('powerup');
 ActorPowerUp.create = function(data) {
-    this.$g.randomPosition(this);
+    this.$g.randomPosition(this, this.$g.sizePowerUp);
     this.type = data.type;
     this.time = this.getTime() + 15000 + Math.ceil(Math.random() * 5000);
 };
@@ -446,7 +386,9 @@ ActorPlayerDef.destroy = function() {
 
 ActorPlayerDef.msg = function(full) {
     return full ? [this.player.client.id, this.r,
-                   Math.round(this.player.x * 100) / 100, Math.round(this.player.y * 100) / 100]
-                   : [this.r, Math.round(this.player.x * 100) / 100, Math.round(this.player.y * 100) / 100];
+                   Math.round(this.player.x * 100) / 100,
+                   Math.round(this.player.y * 100) / 100]
+                   : [this.r, Math.round(this.player.x * 100) / 100,
+                      Math.round(this.player.y * 100) / 100];
 };
 

@@ -58,7 +58,7 @@ Client.prototype.init = function() {
         this.$g.addPlayerStats(this.id);
         
         this.moveTime = this.getTime();
-        this.keys = [0, 0, 0, 0];
+        this.keys = [0, 0, 0, 0, 0];
         this.shotTime = this.getTime() + 1000;
         this.bomb = null;
         this.bombLaunched = false;
@@ -130,6 +130,7 @@ Client.prototype.onUpdate = function() {
         return;
     }
     
+    
     // Turn
     var moved = false;
     if (this.keys[1]) {
@@ -150,6 +151,10 @@ Client.prototype.onUpdate = function() {
             moved = true;
             if (this.bombLaunched) {
                 this.bomb.destroy();
+                
+                if (!this.player) {
+                    return;
+                }
             
             } else {
                 this.bomb = this.createActor('bomb',{
@@ -177,7 +182,11 @@ Client.prototype.onUpdate = function() {
     // Shoot
     if (this.keys[4] && this.getTime() - this.shotTime > (this.player.laser ? 400 : 600)) {
         moved = true;
-        this.createActor('bullet', {'player': this.player, 'r': null, 'd': 12});
+        this.createActor('bullet', {
+            'player': this.player,
+            'r': this.$g.wrapAngle(this.r + this.mr),
+            'd': 12
+        });
         this.shotTime = this.getTime();
     }
     
