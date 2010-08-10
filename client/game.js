@@ -131,7 +131,11 @@ Game.prototype.onWebSocketError = function() {
 };
 
 
-Game.prototype.onQuit = function(clean) {
+Game.prototype.onClose = function() {
+    document.location.href = document.location.href.split('#')[0].split('?')[0];
+};
+
+Game.prototype.onErroe = function(e) {
     document.location.href = document.location.href.split('#')[0].split('?')[0];
 };
 

@@ -42,7 +42,13 @@ Game.prototype.onUpdate = function(data) {
 Game.prototype.onRender = function() {
 };
 
-Game.prototype.onQuit = function(clean) {
+Game.prototype.onShutdown = function(clean) {
+};
+
+Game.prototype.onClose = function() {
+};
+
+Game.prototype.onError = function(e) {
 };
 
 Game.prototype.getTime = function() {
@@ -70,6 +76,15 @@ function Client(fps) {
     this.actors = {};
     this.actorTypes = {};
     
+    this.msgGameStart = 1;
+    this.msgGameFields = 2;
+    this.msgGameShutdown = 3;
+    
+    this.msgActorsCreate = 4;
+    this.msgActorsInit = 5;
+    this.msgActorsUpdate = 6;
+    this.msgActorsEvent = 7;
+    this.msgActorsDestroy = 8;
     this.$g = new Game(this);
 };
 
@@ -86,79 +101,90 @@ Client.prototype.connect = function(host, port) {
         that.$g.onConnect(true);
     };
     
-    this.conn.onmessage = function(msg) {
-        try {
-            msg = JSON.parse('[' + msg.data.replace(/([a-z0-9]+)\:/gi, '"$1":') + ']');
-            
-        } catch(e) {
-            try {
-                console.log('JSON Error:', msg);
-            } catch(e) {
-                
-            }
-            return;
-        }
-        
-        // Game
-        var type = msg[0];
-        var data = msg.length > 1 ? msg[1] : [];
-        if (type == 's') {
-            that.id = data.i;
-            that.lastFrame = that.lastRender = that.getTime();
-            
-            that.intervalTime = data.n;
-            that.intervalSteps = that.intervalTime / 10;
-            that.interval = setInterval(function() {that.update()}, 9);
-            
-            that.$g.onInit(data.d);
-        
-        } else if (type == 'f') {
-            that.$g.onUpdate(data);
-        
-        } else if (type == 'e') {
-            
-            
-        // Actors
-        } else if (type == 'i') {
-            for(var i = 0, l = data.a.length; i < l; i++) {
-                var a = data.a[i];
-                that.actors[a[0][1]] = new Actor(that, a);
-            }
-        
-        } else if (type == 'u') {
-            for(var i = 0, l = data.a.length; i < l; i++) {
-                var a = data.a[i];
-                if (that.actors[a[0][1]]) {
-                    that.actors[a[0][1]].update(a);
-                }
-            }
-        
-        } else if (type == 'c') {
-            that.actors[data[0][1]] = new Actor(that, data);
-        
-        } else if (type == 'n') {
-            that.actors[data[0]].event(data[1], data.length > 2 ? data[2] : {});
-        
-        } else if (type == 'd') {
-            that.actors[data[0]].destroy(data[1], data[2]);
-            delete that.actors[data[0]];
-        }
-    };
+    this.conn.onmessage = function(msg){
+        that.onMessage(msg);
+    }
     
-    this.conn.onerror = this.conn.onclose = function(e) {
+    this.conn.onclose = function(e) {
         if (that.connected) {
             that.quit();
-            that.$g.onQuit(true);
+            that.$g.onClose();
         
         } else {
             that.$g.onConnect(false);
         }
     };
     
+    this.conn.onerror = function(e) {
+        if (that.connected) {
+            that.quit();
+            that.$g.onError(e);
+        }
+    };
+    
     window.onbeforeunload = window.onunload = function() {
         that.conn.close();
     };
-}
+};
+
+Client.prototype.onMessage = function(msg) {
+    var that = this;
+    try {
+        var data = JSON.parse('[' + msg.data.replace(/([a-z0-9]+)\:/gi, '"$1":') + ']');
+        var type = data.shift();
+    
+    } catch(e) {
+        try {
+            console.log('JSON Error:', msg);
+        } catch(e) {
+            
+        }
+        return;
+    }
+    
+    // Game
+    if (type == this.msgGameStart) {
+        this.id = data[0];
+        this.lastFrame = this.lastRender = this.getTime();
+        
+        this.intervalTime = data[1];
+        this.intervalSteps = this.intervalTime / 10;
+        this.interval = setInterval(function() {that.update()}, 9);
+        
+        this.$g.onInit(data[2]);
+    
+    } else if (type == this.msgGameFields) {
+        this.$g.onUpdate(data[0]);
+    
+    } else if (type == this.msgGameShutdown) {
+        this.$g.onShutdown(data);
+        
+    // Actors
+    } else if (type == this.msgActorsCreate) {
+        this.actors[data[0][1]] = new Actor(this, data);
+    
+    } else if (type == this.msgActorsInit) {
+        for(var i = 0, l = data.length; i < l; i++) {
+            var a = data[i];
+            this.actors[a[0][1]] = new Actor(this, a);
+        }
+    
+    } else if (type == this.msgActorsUpdate) {
+        for(var i = 0, l = data.length; i < l; i++) {
+            var a = data[i];
+            if (this.actors[a[0][1]]) {
+                this.actors[a[0][1]].update(a);
+            }
+        }
+    
+    } else if (type == this.msgActorsEvent) {
+        this.actors[data[0]].event(data[1], data.length > 2 ? data[2] : {});
+    
+    } else if (type == this.msgActorsDestroy) {
+        this.actors[data[0]].destroy(data[1], data[2]);
+        delete this.actors[data[0]];
+    }
+};
 
 Client.prototype.quit = function() {
     clearInterval(this.interval);
@@ -187,7 +213,6 @@ Client.prototype.render = function() {
         this.$g.onRender();
     }
     
-    // interval actors
     for(var c in this.actors) {
         var a = this.actors[c];
         a.x += a.mx / this.intervalSteps;

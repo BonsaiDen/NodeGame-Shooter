@@ -34,6 +34,16 @@ function Server(port) {
     this.clients = {};
     this.clientID = 0;
     
+    this.msgGameStart = 1;
+    this.msgGameFields = 2;
+    this.msgGameShutdown = 3;
+    
+    this.msgActorsCreate = 4;
+    this.msgActorsInit = 5;
+    this.msgActorsUpdate = 6;
+    this.msgActorsEvent = 7;
+    this.msgActorsDestroy = 8; 
+    
     this.$ = ws.createServer();    
     this.$.addListener('connection', function(conn) {
         var id = that.clientAdd(conn);
@@ -94,7 +104,8 @@ Server.prototype.run = function() {
         console.log('>> #' + m + ':' + (s < 10 ? '0' : '') + s + ' / '
                     + that.clientCount
                     + ' Client(s) / ' + that.actorCount + ' Actor(s) / '
-                    + (Math.round(that.bytesSendSecond / 10 * 100 / 1024) / 100) +' kb/s');
+                    + (Math.round(that.bytesSendSecond / 10 * 100 / 1024) / 100)
+                    +' kb/s');
         
         that.bytesSendSecond = 0;
         
@@ -108,7 +119,7 @@ Server.prototype.run = function() {
         
         clearInterval(that.$g._loop);
         that.actorsDestroy();
-        that.emit('e', {});
+        that.emit(that.msgGameShutdown, []);
         setTimeout(function() {
             for(var c in that.clients) {
                 that.clients[c].close();
@@ -208,12 +219,12 @@ Server.prototype.actorsUpdate = function() {
     this.actorCount = acc;
     
     if (allUpdates.length > 0) {
-        this.emit('u', {'a': allUpdates});
+        this.emit(this.msgActorsUpdate, allUpdates);
     }
     
     for(var i in this.clients) {
         if (clientUpdates[i].length > 0) {
-            this.send(this.clients[i].conn, 'u', {'a': clientUpdates[i]});
+            this.send(this.clients[i].conn, this.msgActorsUpdate, clientUpdates[i]);
         }
     }
     
@@ -230,14 +241,16 @@ Server.prototype.actorsDestroy = function() {
 
 // Messaging -------------------------------------------------------------------
 Server.prototype.send = function(conn, type, msg) {
-    var e = this.toJSON([type, msg]);
+    msg.unshift(type);
+    var e = this.toJSON(msg);
     this.bytesSend += e.length;
     this.bytesSendSecond += e.length;
     conn.write(e);
 };
 
 Server.prototype.emit = function(type, msg) {
-    var e = this.toJSON([type, msg]);
+    msg.unshift(type);
+    var e = this.toJSON(msg);
     this.bytesSend += e.length * this.clientCount;
     this.bytesSendSecond += e.length * this.clientCount;
     this.$.broadcast(e);
@@ -293,13 +306,13 @@ Server.prototype.pushFields = function(mode) {
         this.fieldsChanged = true;
     
     } else if (this.fieldsChanged) {
-        this.emit('f', this.fields);
+        this.emit(this.msgGameFields, [this.fields]);
         this.fieldsChanged = false;
     }
 };
 
 Server.prototype.forceFields = function(mode) {
-    this.emit('f', this.fields);
+    this.emit(this.msgGameFields, [this.fields]);
     this.fieldsChanged = false;
 };
 
@@ -369,13 +382,13 @@ Client.prototype._init = function() {
         }
     }
     
-    this.send('s', {
-        'd': this.$.fields,
-        'n': this.$.interval,
-        'i': this.id
-    });
+    this.send(this.$.msgGameStart, [
+        this.id,
+        this.$.interval,
+        this.$.fields
+    ]);
     
-    this.send('i', {'a': actors});
+    this.send(this.$.msgActorsInit, actors);
 };
 exports.Client = Client;
 
@@ -438,7 +451,7 @@ function Actor(srv, clas, data, client) {
     this.updated = true;
     
     this.$.actorTypes[this.clas].create.call(this, data); 
-    this.$.emit('c', this.toMessage(true));
+    this.$.emit(this.$.msgActorsCreate, this.toMessage(true));
     return this;
 }
 
@@ -450,7 +463,7 @@ Actor.prototype.destroy = function() {
     if (this.alive) {
         this.alive = false;
         this.$.actorTypes[this.clas].destroy.call(this);
-        this.$.emit('d', [this.id, Math.round(this.x), Math.round(this.y)]);
+        this.$.emit(this.$.msgActorsDestroy, [this.id, Math.round(this.x), Math.round(this.y)]);
     }
 };
 
@@ -477,7 +490,7 @@ Actor.prototype.event = function(type, data) {
     if (data != null) {
         msg.push(data);
     }
-    this.$.emit('n', msg);
+    this.$.emit(this.$.msgActorsEvent, msg);
 };
 
 // Getters
