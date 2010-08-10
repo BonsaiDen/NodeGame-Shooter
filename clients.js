@@ -76,9 +76,9 @@ Client.prototype.kill = function() {
         this.player.destroy();
         if (this.player.bomb && !this.bombLaunched) {
             var bomb = this.createActor('bomb', {
-                            'r': null,
-                            'player': this.player,
-                            'd': 0
+                'r': 0,
+                'player': this.player,
+                'd': 0
             });
             bomb.destroy();
         }
@@ -157,9 +157,9 @@ Client.prototype.onUpdate = function() {
             
             } else {
                 this.bomb = this.createActor('bomb',{
-                                'r': null,
-                                'player': this.player,
-                                'd': 14
+                    'r': this.$g.wrapAngle(this.player.r + this.player.mr),
+                    'player': this.player,
+                    'd': 14
                 });
                 this.bombLaunched = true;
             }
@@ -179,7 +179,9 @@ Client.prototype.onUpdate = function() {
     this.player.thrust = this.keys[0];
     
     // Shoot
-    if (this.keys[4] && this.getTime() - this.shotTime > (this.player.laser ? 400 : 600)) {
+    if (this.keys[4]
+        && this.getTime() - this.shotTime > (this.player.laser ? 400 : 600)) {
+        
         moved = true;
         this.createActor('bullet', {
             'player': this.player,

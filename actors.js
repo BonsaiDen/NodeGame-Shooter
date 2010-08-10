@@ -268,7 +268,7 @@ ActorBomb.create = function(data) {
     this.range = 120;
     this.sync = 10;
     
-    var r = data.r != null ? data.r : this.$g.wrapAngle(this.player.r + this.player.mr);
+    var r = data.r;
     this.x = this.player.x + Math.sin(r) * 12;
     this.y = this.player.y + Math.cos(r) * 12;
     
@@ -321,7 +321,7 @@ ActorBomb.msg = function(full) {
 };
 
 
-// PowerUp ----------------------------------------------------------------------
+// PowerUp ---------------------------------------------------------------------
 var ActorPowerUp = NodeShooter.createActorType('powerup');
 ActorPowerUp.create = function(data) {
     this.$g.randomPosition(this, this.$g.sizePowerUp);
@@ -341,7 +341,7 @@ ActorPowerUp.msg = function(full) {
 };
 
 
-// Player Defender ----------------------------------------------------------------------
+// Player Defender -------------------------------------------------------------
 var ActorPlayerDef = NodeShooter.createActorType('player_def');
 ActorPlayerDef.create = function(data) {
     this.player = data.player;
@@ -365,7 +365,11 @@ ActorPlayerDef.update = function() {
     this.my = this.player.my;
     
     if (this.getTime() - this.shotTime > (this.level == 1 ? 1200 : 250)) {
-        this.$.createActor('bullet', {'player': this.player, 'r': this.r, 'd': 35});
+        this.$.createActor('bullet', {
+            'player': this.player,
+            'r': this.r,
+            'd': 35
+        });
         this.shotTime = this.getTime();
     }
     this.r = this.$g.wrapAngle(this.r + 0.20);
