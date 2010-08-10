@@ -21,6 +21,9 @@
 */
 
 var CLIENT = new Client(30);
+window.onload = function() {
+    CLIENT.connect(HOST, PORT);
+};
 
 
 // Game ------------------------------------------------------------------------
@@ -46,9 +49,6 @@ Game.prototype.onConnect = function(success) {
     };
     
     // Canvas
-    this.fillColor = '';
-    this.strokeColor = '';
-    this.lineWidth = 0;
     this.particles = [];
     this.small = localStorage.getItem('small') == 'true' || false;
     this.scale = this.small ? 0.5 : 1;
@@ -188,13 +188,12 @@ Game.prototype.renderRound = function() {
         this.font((this.scale == 1 ? 12 : 17));
     
     } else {
-        this.text(this.width - 4, 1, m + ':' + s + ' left | Round #' + this.roundID, 'right', 'top');
+        this.text(this.width - 4, 1, m + ':' + s + ' left | Round #'
+                  + this.roundID, 'right', 'top');
     }
 };
 
 Game.prototype.renderParticles = function() {
-    this.line(2);
-    
     var remove = [];
     for(var i = 0, l = this.particles.length; i < l; i++) {
         var p = this.particles[i];
@@ -226,16 +225,12 @@ Game.prototype.renderParticles = function() {
             this.fill(p.col || '#ffffff');
             var scale = this.timeScale(p.time, p.d);
             if (!p.size) {
-                this.bg.globalAlpha = (0 - scale) * p.a;
+                this.alpha(Math.round((0 - scale) * p.a * 100) / 100);
                 this.bg.fillRect(p.x - 2, p.y - 2, 4, 4);
                 
             } else {
-                this.bg.globalAlpha = ((0 - scale) * 0.5);
-                this.bg.beginPath();
-                this.bg.arc(p.x, p.y, p.size, 0, Math.PI * 2, true);
-                this.bg.closePath();
-                this.bg.fill();
-                
+                this.alpha(Math.round(((0 - scale) * 0.5) * 100) / 100);
+                this.fillCircle(p.x, p.y, p.size, p.col || '#ffffff');
                 
                 // Overlap
                 var x = p.x;
@@ -247,10 +242,7 @@ Game.prototype.renderParticles = function() {
                     x = p.x - 32 - this.width;
                 }
                 if (x != p.x) {
-                    this.bg.beginPath();
-                    this.bg.arc(x, p.y, p.size, 0, Math.PI * 2, true);
-                    this.bg.closePath();
-                    this.bg.fill();
+                    this.fillCircle(x, p.y, p.size, p.col || '#ffffff');
                 }
                 
                 if (p.y - p.size / 2 < -16) {
@@ -261,17 +253,11 @@ Game.prototype.renderParticles = function() {
                 }
                 
                 if (y != p.y) {
-                    this.bg.beginPath();
-                    this.bg.arc(p.x, y, p.size, 0, Math.PI * 2, true);
-                    this.bg.closePath();
-                    this.bg.fill();
+                    this.fillCircle(p.x, y, p.size, p.col || '#ffffff');
                 }
                 
                 if (y != p.y && x != p.x) {
-                    this.bg.beginPath();
-                    this.bg.arc(x, y, p.size, 0, Math.PI * 2, true);
-                    this.bg.closePath();
-                    this.bg.fill();
+                    this.fillCircle(x, y, p.size, p.col || '#ffffff');
                 }
             }
         }
@@ -280,7 +266,7 @@ Game.prototype.renderParticles = function() {
     for(var i = 0, l = remove.length; i < l; i++) {
         this.particles.splice(remove[i] - i, 1);
     }
-    this.bg.globalAlpha = 1.0;
+    this.alpha(1.0);
 };
 
 
@@ -341,6 +327,14 @@ Game.prototype.checkPlayers = function(data) {
     }
 };
 
+Game.prototype.playerColor = function(id) {
+    return this.colorCodes[this.playerColors[id]];
+};
+
+Game.prototype.playerColorFaded = function(id) {
+    return this.colorCodesFaded[this.playerColors[id]];
+};
+
 
 // Effects ---------------------------------------------------------------------
 Game.prototype.effectArea = function(x, y, size, d, col) {
@@ -357,23 +351,16 @@ Game.prototype.effectArea = function(x, y, size, d, col) {
 
 Game.prototype.effectParticle = function(x, y, r, speed, d, col, a) {
     d = this.extreeeeeeme ? d * 2 : d;
-    this.particles.push({
-        'x': x, 'y': y,
-        'r': this.wrapAngle(r), 'speed': speed,
-        'time': this.getTime() + d * 1000,
-        'd': d * 1000,
-        'col': col,
-        'a': a
-    });
-    if (this.extreeeeeeme) {
+    for(var i = 0; i < (this.extreeeeeeme ? 2 : 1); i++) {
         this.particles.push({
-            'x': x + Math.random(), 'y': y + Math.random(),
-            'r': this.wrapAngle(r), 'speed': speed,
+            'x': x + Math.random(10) * i, 'y': y + Math.random(10) * i,
+            'r': this.wrapAngle(r),
+            'speed': speed,
             'time': this.getTime() + d * 1000,
             'd': d * 1000,
             'col': col,
             'a': a
-        });  
+        });
     }
 };
 
@@ -414,11 +401,30 @@ Game.prototype.font = function(size) {
     this.bg.font = 'bold ' + size + 'px Monaco, "DejaVu Sans Mono", "Bitstream Vera Sans Mono"';
 };
 
+Game.prototype.strokeCircle = function(x, y, size, line, color) {
+    this.line(line);
+    this.stroke(color);
+    this.bg.beginPath();
+    this.bg.arc(x, y, size, 0, Math.PI * 2, true);
+    this.bg.closePath();
+    this.bg.stroke();
+};
+
+Game.prototype.fillCircle = function(x, y, size, color) {
+    this.line(0.5);
+    this.fill(color);
+    this.bg.beginPath();
+    this.bg.arc(x, y, size, 0, Math.PI * 2, true);
+    this.bg.closePath();
+    this.bg.fill();
+};
+
 Game.prototype.line = function(width) {
-    if (this.lineWidth != width) {
-        this.bg.lineWidth = width;
-        this.lineWidth = width;
-    }
+    this.bg.lineWidth = width;
+};
+
+Game.prototype.alpha = function(value) {
+    this.bg.globalAlpha = value;
 };
 
 Game.prototype.text = function(x, y, text, align, baseline) {
@@ -428,17 +434,11 @@ Game.prototype.text = function(x, y, text, align, baseline) {
 };
 
 Game.prototype.fill = function(color) {
-    if (this.fillColor != color) {
-        this.bg.fillStyle = color;
-        this.fillColor = color;
-    }   
+    this.bg.fillStyle = color;
 };
 
 Game.prototype.stroke = function(color) {
-    if (this.strokeColor != color) {
-        this.bg.strokeStyle = color;
-        this.strokeColor = color;
-    }
+    this.bg.strokeStyle = color;
 };
 
 Game.prototype.timeScale = function(time, scale) {
@@ -454,304 +454,5 @@ Game.prototype.wrapAngle = function(r) {
         r += Math.PI * 2;
     }
     return r;
-};
-
-
-// Actors ----------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-var ActorPlayer = CLIENT.createActorType('player');
-ActorPlayer.create = function(data) {
-    this.r = data[0];
-    this.mr = data[1]; 
-    this.defense = data[2];
-    this.thrust = data[3];
-    this.boost = data[4];
-    this.shield = data[5];
-    this.fade = data[6];
-    
-    this.id = data[7];
-};
-
-ActorPlayer.update = function(data) {
-    this.r = data[0];
-    this.mr = data[1]; 
-    this.defense = data[2];
-    this.thrust = data[3];
-    this.boost = data[4];
-    
-    this.fade = data[6];
-    
-    // Shield
-    if (this.shield && !data[5]) {
-        var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
-        this.$g.effectRing(this.x, this.y, 20, 30, 0.5, 3.0, col, 1);
-    
-    } else if (!this.shield && data.s) {
-        var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
-        this.$g.effectRing(this.x, this.y, 30, 30, 0.20, -3.0, col, 1);
-    }
-    this.shield = data[5];
-};
-
-ActorPlayer.interleave = function() {
-    this.r = this.$g.wrapAngle(this.r + this.mr / (this.$.intervalSteps * 2.5));
-};
-
-ActorPlayer.destroy = function() {
-    var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
-    this.$g.effectExplosion(this.x, this.y, 20, 1.5, 1.5, col);
-    this.$g.effectArea(this.x, this.y, 20, 0.5, col);
-    
-    if (this.shield) {
-        this.$g.effectRing(this.x, this.y, 20, 42, 0.6, 4.0, col, 1);
-    }
-};
-
-ActorPlayer.render = function() {
-    // Color
-    this.$g.line(3);
-    if (this.defense) {
-        this.$g.stroke(this.$g.colorCodesFaded[this.$g.playerColors[this.id]]);
-    
-    } else {
-        this.$g.stroke(this.$g.colorCodes[this.$g.playerColors[this.id]]);
-    }
-    
-    // Draw Ship base
-    var alpha = 1.0;
-    if (this.fade != -1) {
-        if (this.id == this.$.id) {
-            alpha = 0.20 + (this.fade / 100 * 0.8);
-        
-        } else {
-            alpha = this.fade / 100;
-        }
-        this.$g.bg.globalAlpha = alpha;
-    }
-    
-    
-    if (this.fade > 0 || this.fade == -1 || this.id == this.$.id) {
-        this.$g.bg.save();
-        this.$g.bg.translate(this.x, this.y);
-        this.$g.bg.rotate(Math.PI - this.r);
-        
-        this.$g.bg.beginPath();
-        this.$g.bg.moveTo(0, -12);
-        this.$g.bg.lineTo(10 , 12);
-        this.$g.bg.lineTo(-10, 12);
-        this.$g.bg.lineTo(0, -12);
-        this.$g.bg.closePath();
-        this.$g.bg.stroke();
-        
-        if (this.shield) {
-            this.$g.line(3);
-            this.$g.bg.beginPath();
-            this.$g.stroke(this.$g.colorCodesFaded[this.$g.playerColors[this.id]]);
-            this.$g.bg.arc(0, 0, 20, 0, Math.PI * 2, true);
-            this.$g.bg.closePath();
-            this.$g.bg.stroke();
-        }
-        this.$g.bg.restore();
-    
-        // Effects
-        var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
-        if (this.thrust) {
-            var r = this.$g.wrapAngle(this.r - Math.PI);
-            var ox = this.x + Math.sin(r) * 12;
-            var oy = this.y + Math.cos(r) * 12;
-            this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - 0.8 + Math.random() * 1.60),
-                                   2, 0.2 + (this.boost ? 0.1 : 0), col, alpha);
-            
-            if (this.boost) {
-                this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - 0.8 + Math.random() * 1.60),
-                                       2, 0.2 + (this.boost ? 0.1 : 0), col, alpha);
-            }
-        }
-        
-        if (this.mr != 0) {
-            var d = (this.mr * 10);
-            var r = this.$g.wrapAngle(this.r - Math.PI);
-            var ox = this.x + Math.sin(this.$g.wrapAngle(r - Math.PI * 2.22 * d)) * 14;
-            var oy = this.y + Math.cos(this.$g.wrapAngle(r - Math.PI * 2.22 * d)) * 14;
-            this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - Math.PI * 2.47 * d - 0.4 + Math.random() * 0.80), 2, 0.13, col, alpha);
-        }
-        
-        if (this.shield) {
-            this.$g.effectRing(this.x, this.y, 20, 24,
-                               this.$g.extreeeeeeme ? 0.025 : 0.05, 0.25, col, alpha);
-        }
-    
-    } else {
-        this.shield = false;
-    }
-    
-    // Name
-    if (this.fade == -1 || this.id == this.$.id) {
-        this.$g.fill(this.$g.colorCodesFaded[this.$g.playerColors[this.id]]);
-        this.$g.text(this.x, this.y - 22, this.$g.playerNames[this.id] + '(' + this.$g.playerScores[this.id] + ')', 'center', 'middle'); 
-    }
-    this.$g.bg.globalAlpha = 1.0;
-};
-
-
-// Bullet ----------------------------------------------------------------------
-var ActorBullet = CLIENT.createActorType('bullet');
-ActorBullet.create = function(data) {
-    this.id = data[0];
-};
-
-ActorBullet.destroy = function() {
-    var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
-    this.$g.effectExplosion(this.x, this.y, 4, 0.35, 1, col);
-    this.$g.effectArea(this.x, this.y, 3.5, 0.35, col);  
-};
-
-ActorBullet.render = function() {
-    this.$g.line(3);
-    this.$g.bg.beginPath();
-    this.$g.bg.arc(this.x, this.y, 1.25, 0, Math.PI * 2, true);
-    this.$g.bg.closePath();
-    this.$g.stroke(this.$g.colorCodes[this.$g.playerColors[this.id]]);
-    this.$g.bg.stroke();
-};
-
-
-// Bomb ------------------------------------------------------------------------
-var ActorBomb = CLIENT.createActorType('bomb');
-ActorBomb.create = function(data) {
-    this.id = data[0];
-    this.radius = data[1];
-};
-
-ActorBomb.destroy = function() {
-    var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
-    this.$g.effectArea(this.x, this.y, this.radius, 1.0, col);
-    this.$g.effectRing(this.x, this.y, this.radius / 2 * 0.975, 100, 1, 1.25, col, 1);
-    this.$g.effectArea(this.x, this.y, this.radius / 2, 1.5, col);
-    this.$g.effectRing(this.x, this.y, this.radius * 0.975, 150, 1, 1.25, col, 1);
-};
-
-ActorBomb.render = function() {
-    this.$g.fill(this.$g.colorCodes[this.$g.playerColors[this.id]]);
-    this.$g.line(1);
-    this.$g.bg.beginPath();
-    this.$g.bg.arc(this.x, this.y, 2.5, 0, Math.PI * 2, true);
-    this.$g.bg.closePath();
-    this.$g.bg.fill();
-
-    this.$g.line(2);
-    this.$g.stroke(this.$g.colorCodes[this.$g.playerColors[this.id]]);
-    this.$g.bg.beginPath();
-    this.$g.bg.arc(this.x, this.y, 6.0, 0, Math.PI * 2, true);
-    this.$g.bg.closePath();
-    this.$g.bg.stroke();
-    
-    var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
-    var r = Math.atan2(this.mx, this.my);
-    var ox = this.x - Math.sin(r) * 2;
-    var oy = this.y - Math.cos(r) * 2;
-    this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - 0.8 + Math.random() * 1.60),
-                           1, 0.5, col, 1);
-    
-    this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - 1.6 + Math.random() * 3.20),
-                           0.5, 0.8, col, 1);          
-};
-
-// PowerUP ---------------------------------------------------------------------
-var ActorPowerUp = CLIENT.createActorType('powerup');
-ActorPowerUp.create = function(data) {
-    this.type = data[0];
-    this.createTime = this.$g.getTime();
-    
-    var col = this.$g.powerUpColors[this.type];
-    this.$g.effectExplosion(this.x, this.y, 8, 1, 0.5, col);
-};
-
-ActorPowerUp.destroy = function() {
-    var col = this.$g.powerUpColors[this.type];
-    this.$g.effectExplosion(this.x, this.y, 8, 1, 0.5, col);
-    this.$g.effectArea(this.x, this.y, 8, 0.3, col);
-};
-
-ActorPowerUp.render = function() {
-    this.$g.line(1);
-    this.$g.fill(this.$g.powerUpColors[this.type]);
-    this.$g.stroke(this.$g.powerUpColors[this.type]);
-    this.$g.bg.save();
-    this.$g.bg.translate(this.x, this.y);
-    
-    // Scale
-    var scale = this.$g.timeScale(this.createTime, 1000);
-    if (scale != 1) {
-        this.$g.bg.scale(scale, scale);
-    }
-    
-    // Draw
-    if (this.type != 'camu') {
-        
-        this.$g.bg.beginPath();
-        this.$g.bg.arc(0, 0, 5.5, 0, Math.PI * 2, true);
-        this.$g.bg.closePath();
-        this.$g.bg.fill();
-        
-    } else {
-        this.$g.line(2);
-    }
-    
-    this.$g.bg.beginPath();
-    this.$g.bg.arc(0, 0, 8, 0, Math.PI * 2, true);
-    this.$g.bg.closePath();
-    this.$g.bg.stroke();
-    this.$g.bg.restore();
-};
-
-
-// Player Defender -------------------------------------------------------------
-var ActorPlayerDef = CLIENT.createActorType('player_def');
-ActorPlayerDef.create = function(data) {
-    this.dx = this.x;
-    this.dy = this.y;
-    this.id = data[0];
-    this.r = data[1];
-    this.x = data[2];
-    this.y = data[3];
-    
-    var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
-    this.$g.effectExplosion(this.x, this.y, 4, 0.25, 1, col);
-};
-
-ActorPlayerDef.destroy = function() {
-    this.r = this.$g.wrapAngle(this.r + 0.20 / this.$.intervalSteps);
-    this.dx = this.x + Math.sin(this.r) * 35;
-    this.dy = this.y + Math.cos(this.r) * 35;
-    
-    var col = this.$g.colorCodes[this.$g.playerColors[this.id]];
-    this.$g.effectExplosion(this.dx, this.dy, 6, 0.5, 1, col);
-};
-
-ActorPlayerDef.render = function() {
-    this.$g.line(3);
-    this.$g.stroke(this.$g.colorCodes[this.$g.playerColors[this.id]]);
-    this.$g.bg.beginPath();
-    this.$g.bg.arc(this.dx, this.dy, 1.5, 0, Math.PI * 2, true);
-    this.$g.bg.arc(this.dx, this.dy, 3.5, 0, Math.PI * 2, true);
-    this.$g.bg.closePath();
-    this.$g.bg.stroke();
-};
-
-ActorPlayerDef.update = function(data) {
-    this.r = data[0];
-    this.x = data[1];
-    this.y = data[2];
-};
-
-ActorPlayerDef.interleave = function() {
-    this.r = this.$g.wrapAngle(this.r + 0.20 / this.$.intervalSteps);
-    this.dx = this.x + Math.sin(this.r) * 35;
-    this.dy = this.y + Math.cos(this.r) * 35;
-};
-
-window.onload = function() {
-    CLIENT.connect(HOST, PORT);
 };
 
