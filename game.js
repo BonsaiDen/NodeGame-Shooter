@@ -236,7 +236,7 @@ Game.prototype.createPowerUp = function(type, dec, init) {
     var up = this.powerUps[type];
     var add = (up[3] * 1000) + Math.random() * (up[4] * 1000);
     if (init) {
-        add -= (up[3] / 2 * 1000) + Math.random();
+        add -= (up[3] / 2 * 1000) * (Math.random() / 2 + 0.5);
     }
     up[1] = this.getTime() + add;
     if (dec) {

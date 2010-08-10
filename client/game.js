@@ -102,10 +102,6 @@ Game.prototype.onInit = function(data) {
     this.checkPlayers(data);
     
     this.initCanvas();
-    
-    // Login box
-    document.getElementById('box').style.display = 'block';
-    document.getElementById('login').focus();
 };
 
 Game.prototype.onUpdate = function(data) {
@@ -322,11 +318,17 @@ Game.prototype.checkPlayers = function(data) {
     
     if (!this.playing && this.roundGO) {
         var box = document.getElementById('box');
+        var controls = document.getElementById('controls');
         if (count < data.max) {
-            box.style.display = 'block';
+            if (box.style.display != 'block') {
+                box.style.display = 'block';
+                controls.style.display = 'block';
+                document.getElementById('login').focus();
+            }
         
         } else {
             box.style.display = 'none';
+            controls.style.display = 'none';
         }
     }
 };
