@@ -32,11 +32,11 @@ function Server(port) {
     
     this.clientCount = 0;
     this.clients = {};
+    this.clientID = 0;
     
     this.$ = ws.createServer();    
     this.$.addListener('connection', function(conn) {
-        that.clientAdd(conn);
-        
+        var id = that.clientAdd(conn);
         conn.addListener('message', function(msg) {
             if (msg.length > 512) {
                 console.log('!! ' + 'Message longer than 512 chars');
@@ -44,7 +44,7 @@ function Server(port) {
             
             } else {
                 try {
-                    that.clientState(conn.id, JSON.parse(msg));
+                    that.clientState(id, JSON.parse(msg));
                 
                 } catch (e) {
                     console.log('!! Error: ' + e);
@@ -52,12 +52,11 @@ function Server(port) {
                 }
             }
         });
+        
+        conn.addListener('close', function(conn) {
+            that.clientRemove(id);
+        });
     });
-    
-    this.$.addListener('close', function(conn) {
-        that.clientRemove(conn.id);
-    });
-    
     this.$.listen(port);
     
     // Actors
@@ -68,6 +67,8 @@ function Server(port) {
     return this;
 }
 
+
+// Start -----------------------------------------------------------------------
 Server.prototype.run = function() {
     console.log('>> Server started');
     
@@ -119,68 +120,14 @@ Server.prototype.run = function() {
 exports.Server = Server;
 
 
-// Getters
-Server.prototype.getTime = function() {
-    return this.time;
-};
-
-// Fields
-Server.prototype.setField = function(key, value, send) {
-    this.fields[key] = value;
-    if (send) {
-        this.fieldsChanged = true;
-    }
-};
-
-Server.prototype.setFieldItem = function(key, item, value, send) {
-    this.fields[key][item] = value;
-    if (send) {
-        this.fieldsChanged = true;
-    }
-};
-
-Server.prototype.getField = function(key) {
-    return this.fields[key];
-};
-
-Server.prototype.delField = function(key) {
-    if (this.fields[key]) {
-        delete this.fields[key];
-        this.fieldsChanged = true;
-    } 
-};
-
-Server.prototype.delFieldItem = function(key, item) {
-    if (this.fields[key][item]) {
-        delete this.fields[key][item];
-        this.fieldsChanged = true;
-    } 
-};
-
-Server.prototype.pushFields = function(mode) {
-    if (mode) {
-        this.fieldsChanged = true;
-    
-    } else if (this.fieldsChanged) {
-        this.emit('f', this.fields);
-        this.fieldsChanged = false;
-    }
-};
-
-Server.prototype.forceFields = function(mode) {
-    this.emit('f', this.fields);
-    this.fieldsChanged = false;
-};
-
-
-// Clients
+// Clients ---------------------------------------------------------------------
 Server.prototype.clientAdd = function(conn) {
-    if (!this.clients[conn.id]) {
-        var c = this.clients[conn.id] = new Client(this, conn);
-        this.clientCount++;
-        c._init();
-        c.onInit();   
-    }
+    this.clientID += 1;
+    var c = this.clients[this.clientID] = new Client(this, conn, this.clientID);
+    this.clientCount++;
+    c._init();
+    c.onInit(); 
+    return this.clientID;
 };
 
 Server.prototype.clientState = function(id, msg) {
@@ -202,7 +149,7 @@ Server.prototype.clientsUpdate = function() {
 };
 
 
-// Actors
+// Actors ----------------------------------------------------------------------
 Server.prototype.createActor = function(clas, data) {
     var a = new Actor(this, clas, data, null);
     this.actors[clas].push(a);
@@ -279,7 +226,8 @@ Server.prototype.actorsDestroy = function() {
     }
 };
 
-// Messaging
+
+// Messaging -------------------------------------------------------------------
 Server.prototype.send = function(conn, type, msg) {
     var e = this.toJSON([type, msg]);
     this.bytesSend += e.length;
@@ -299,6 +247,59 @@ Server.prototype.toJSON = function(data) {
     msg = msg.substring(1).substring(0, msg.length - 2);
     msg = msg.replace(/\"([a-z0-9]+)\"\:/gi, '$1:');
     return msg;
+};
+
+
+// Helpers ---------------------------------------------------------------------
+Server.prototype.getTime = function() {
+    return this.time;
+};
+
+Server.prototype.setField = function(key, value, send) {
+    this.fields[key] = value;
+    if (send) {
+        this.fieldsChanged = true;
+    }
+};
+
+Server.prototype.setFieldItem = function(key, item, value, send) {
+    this.fields[key][item] = value;
+    if (send) {
+        this.fieldsChanged = true;
+    }
+};
+
+Server.prototype.getField = function(key) {
+    return this.fields[key];
+};
+
+Server.prototype.delField = function(key) {
+    if (this.fields[key]) {
+        delete this.fields[key];
+        this.fieldsChanged = true;
+    } 
+};
+
+Server.prototype.delFieldItem = function(key, item) {
+    if (this.fields[key][item]) {
+        delete this.fields[key][item];
+        this.fieldsChanged = true;
+    } 
+};
+
+Server.prototype.pushFields = function(mode) {
+    if (mode) {
+        this.fieldsChanged = true;
+    
+    } else if (this.fieldsChanged) {
+        this.emit('f', this.fields);
+        this.fieldsChanged = false;
+    }
+};
+
+Server.prototype.forceFields = function(mode) {
+    this.emit('f', this.fields);
+    this.fieldsChanged = false;
 };
 
 
@@ -348,11 +349,11 @@ Game.prototype.onUpdate = function() {
 
 // Clients ---------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-function Client(srv, conn, client) {
+function Client(srv, conn, id) {
     this.$ = srv;
     this.$g = srv.$g;
     this.conn = conn;
-    this.id = conn.id;
+    this.id = id;
     return this;
 }
 
@@ -459,7 +460,7 @@ Actor.prototype.toMessage = function(full) {
             Math.round(this.my * 1000) / 1000
         ],
         this.$.actorTypes[this.clas].msg.call(this, full)
-    ];;
+    ];
 };
 
 Actor.prototype.event = function(type, data) {
