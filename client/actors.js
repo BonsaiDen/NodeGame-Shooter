@@ -57,7 +57,7 @@ ActorPlayer.update = function(data) {
 };
 
 ActorPlayer.interleave = function() {
-    var nr = this.r + this.mr / this.$.intervalSteps * 1.1;
+    var nr = this.r + this.mr / (this.$.intervalSteps * 1.1);
     if ((this.mr < 0 && nr > this.nr) || (this.mr > 0 && nr < this.nr)) {
         this.r = this.$g.wrapAngle(nr);
     }
