@@ -130,7 +130,6 @@ Client.prototype.onUpdate = function() {
         return;
     }
     
-    
     // Turn
     var moved = false;
     if (this.keys[1]) {
@@ -184,7 +183,7 @@ Client.prototype.onUpdate = function() {
         moved = true;
         this.createActor('bullet', {
             'player': this.player,
-            'r': this.$g.wrapAngle(this.r + this.mr),
+            'r': this.$g.wrapAngle(this.player.r + this.player.mr),
             'd': 12
         });
         this.shotTime = this.getTime();
