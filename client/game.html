@@ -29,6 +29,13 @@
             display: none;
         }
         
+        #controls {
+            width: 480px;
+            margin: 0px auto 8px;
+
+        }
+        
+        
         input {
             border: 2px #f0f0f0 solid;
             background-color: #000000;
@@ -96,7 +103,8 @@
             WebSockets are supported in Chrome 5+, Firefox 4 Beta+ and Safari 4.
         </div>
         <div id="size"><a href="#" onclick="CLIENT.$g.onResize()">CHANGE SIZE</a> | <a href="#" id="extreme" onclick="CLIENT.$g.onExtreme()">ACTIVATE EXTREEEEME</a></div>
-        <div id="box"><input id="login" type="text" value="" maxlength="12"/></div>
+        <div id="box">Your Name<br/><input id="login" type="text" value="" maxlength="12"/></div>
+        <div id="controls">W/A/D or Arrow Keys control your Ship | Space shoots | M / Return fires and detonates a bomb</div>
         <div id="copyright">Copyright (c) 2010 Ivo Wetzel | <a href="http://twitter.com/BonsaiDen">Twitter @BonsaiDen</a></div>
     </body>
 </html>
