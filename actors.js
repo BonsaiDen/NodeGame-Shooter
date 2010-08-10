@@ -58,8 +58,6 @@ ActorPlayer.create = function(data) {
     this.laserTime = 0;
     
     this.bomb = false;
-    
-    this.defs = 0;
     this.defender = null;
     
     this.camu = 0;
@@ -181,7 +179,6 @@ ActorPlayer.destroy = function() {
         var pd = players_defs[i];
         if (pd.player == this) {
             pd.destroy();
-            this.defs--;
         }
     }
 };
@@ -346,10 +343,10 @@ var ActorPlayerDef = NodeShooter.createActorType('player_def');
 ActorPlayerDef.create = function(data) {
     this.player = data.player;
     this.player.defender = this;
-    this.player.defs++;
     this.level = 1;
     this.r = (Math.random() * (Math.PI * 2)) - Math.PI;
     this.shotTime = this.getTime();
+    this.initTime = this.getTime();
     
     this.mxOld = this.mx;
     this.myOld = this.my;
@@ -364,13 +361,19 @@ ActorPlayerDef.update = function() {
     this.mx = this.player.mx;
     this.my = this.player.my;
     
-    if (this.getTime() - this.shotTime > (this.level == 1 ? 1200 : 250)) {
-        this.$.createActor('bullet', {
-            'player': this.player,
-            'r': this.r,
-            'd': 35
-        });
-        this.shotTime = this.getTime();
+    if (this.getTime() - this.initTime < 22500) {
+        if (this.getTime() - this.initTime > 15000) {
+            this.level = 2;
+        }
+        
+        if (this.getTime() - this.shotTime > (this.level == 1 ? 1200 : 225)) {
+            this.$.createActor('bullet', {
+                'player': this.player,
+                'r': this.r,
+                'd': 35
+            });
+            this.shotTime = this.getTime();
+        }
     }
     this.r = this.$g.wrapAngle(this.r + 0.20);
     
@@ -385,7 +388,6 @@ ActorPlayerDef.update = function() {
 
 ActorPlayerDef.destroy = function() {
     this.player.defender = null;
-    this.player.defs--;
 };
 
 ActorPlayerDef.msg = function(full) {

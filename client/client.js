@@ -149,7 +149,7 @@ Client.prototype.onMessage = function(msg) {
         
         this.intervalTime = data[1];
         this.intervalSteps = this.intervalTime / 10;
-        this.interval = setInterval(function() {that.update()}, 9);
+        this.interval = setInterval(function() {that.update()}, 15);
         
         this.$g.onInit(data[2]);
     

@@ -278,11 +278,12 @@ Game.prototype.collidePowerUps = function(o, p) {
     
     // Player Defense
     } else if (o.type == 'defense') {
-        if (p.defs < 1) {
+        if (!p.defender) {
             this.createActor('player_def', {'player': p});
         
         } else {
-            p.defender.level += 1;
+            p.defender.level = 1;
+            p.defender.initTime = this.getTime();
         }
     
     // Life
@@ -476,7 +477,7 @@ Game.prototype.collidePlayer = function(p, i, l) {
                 
                 // Hit on Shield
                 } else if (p.shield
-                           && (b.player != p || this.getTime() - b.time > 150)
+                           && (b.player != p || this.getTime() - b.time > 225)
                            && this.circleCollision(p, b, this.sizeShield,
                                                          this.sizeBullet)) {
                     
@@ -603,7 +604,7 @@ Game.prototype.wrapPosition = function(obj) {
         obj.x += this.width + 32;
         obj.updated = true;
     
-    } else if (obj.x > this.width + 32) {
+    } else if (obj.x > this.width + 16) {
         obj.x -= this.width + 32;
         obj.updated = true;
     }
@@ -612,7 +613,7 @@ Game.prototype.wrapPosition = function(obj) {
         obj.y += this.height + 32
         obj.updated = true;
     
-    } else if (obj.y > this.height + 32) {
+    } else if (obj.y > this.height + 16) {
         obj.y -= this.height + 32;
         obj.updated = true;
     }

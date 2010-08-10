@@ -271,5 +271,19 @@ ActorPlayerDef.interleave = function() {
     this.r = this.$g.wrapAngle(this.r + 0.20 / this.$.intervalSteps);
     this.dx = this.x + Math.sin(this.r) * 35;
     this.dy = this.y + Math.cos(this.r) * 35;
+
+    if (this.dx < -16) {
+        this.dx += this.$g.width + 32;
+    
+    } else if (this.dx > this.$g.width + 16) {
+        this.dx -= this.$g.width + 32;
+    }
+    
+    if (this.y < -16) {
+        this.y += this.$g.height + 32;
+    
+    } else if (this.y > this.$g.height + 16) {
+        this.y -= this.$g.height + 32;
+    }
 };
 
