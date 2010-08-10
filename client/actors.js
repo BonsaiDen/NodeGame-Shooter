@@ -133,8 +133,10 @@ ActorPlayer.render = function() {
         
         // Shield ring
         if (this.shield) {
-            this.$g.effectRing(this.x, this.y, 20, 24,
-                               this.$g.extreeeeeeme ? 0.025 : 0.05, 0.25,
+            this.$g.strokeCircle(this.x, this.y, 20, 2.5, col);
+            this.$g.effectRing(this.x, this.y, 20, 22 * (Math.random() + 0.5),
+                               this.$g.extreeeeeeme ? 0.02 : 0.04,
+                               this.$g.extreeeeeeme ? 0.125 : 0.25,
                                col, alpha);
         }
     
@@ -179,9 +181,9 @@ ActorBomb.create = function(data) {
 ActorBomb.destroy = function() {
     var col = this.$g.playerColor(this.id);
     this.$g.effectArea(this.x, this.y, this.radius, 1.0, col);
-    this.$g.effectRing(this.x, this.y, this.radius / 2 * 0.975, 100, 1, 1.25, col, 1);
+    this.$g.effectRing(this.x, this.y, this.radius / 2 * 0.975, 75, 1, 1.25, col, 1);
     this.$g.effectArea(this.x, this.y, this.radius / 2, 1.5, col);
-    this.$g.effectRing(this.x, this.y, this.radius * 0.975, 150, 1, 1.25, col, 1);
+    this.$g.effectRing(this.x, this.y, this.radius * 0.975, 125, 1, 1.25, col, 1);
 };
 
 ActorBomb.render = function() {
