@@ -88,8 +88,8 @@ ActorPlayer.update = function() {
     this.$g.wrapPosition(this);
     
     // Invincibility
-    if (this.getTime() - this.defenseTime > 50 && this.defense > 0) {
-        this.defense -= 50;
+    if (this.getTime() - this.defenseTime > 100 && this.defense > 0) {
+        this.defense -= 100;
         this.updated = true;
         this.defenseTime = this.getTime();
     }
