@@ -101,7 +101,7 @@ Client.prototype.connect = function(host, port) {
         
         // Game
         var type = msg[0];
-        var data = msg[1];
+        var data = msg.length > 1 ? msg[1] : [];
         if (type == 's') {
             that.id = data.i;
             that.lastFrame = that.lastRender = that.getTime();

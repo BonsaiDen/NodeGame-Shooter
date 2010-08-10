@@ -454,7 +454,7 @@ Actor.prototype.destroy = function() {
 };
 
 Actor.prototype.toMessage = function(full) {
-    return  [
+    var msg = [
         [
             full ? this.clas : 0,
             this.id,
@@ -462,9 +462,13 @@ Actor.prototype.toMessage = function(full) {
             Math.round(this.y * 100) / 100,
             Math.round(this.mx * 1000) / 1000,
             Math.round(this.my * 1000) / 1000
-        ],
-        this.$.actorTypes[this.clas].msg.call(this, full)
+        ]
     ];
+    var d = this.$.actorTypes[this.clas].msg.call(this, full);
+    if (d.length > 0) {
+        msg.push(d);
+    }
+    return msg;
 };
 
 Actor.prototype.event = function(type, data) {
