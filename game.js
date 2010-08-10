@@ -100,7 +100,7 @@ Game.prototype.startRound = function() {
     // Reset powerup timers
     for(var p in this.powerUps) {
         this.powerUps[p][0] = 0;
-        this.createPowerUp(p, false);
+        this.createPowerUp(p, false, true);
     }
     
     // Reset player stats
@@ -232,9 +232,12 @@ Game.prototype.initPowerUp = function(type, max, wait, rand) {
     this.powerUps[type] = [0, 0, max, wait, rand];
 };
 
-Game.prototype.createPowerUp = function(type, dec) { 
+Game.prototype.createPowerUp = function(type, dec, init) { 
     var up = this.powerUps[type];
     var add = (up[3] * 1000) + Math.random() * (up[4] * 1000);
+    if (init) {
+        add -= (up[3] / 2 * 1000) + Math.random();
+    }
     up[1] = this.getTime() + add;
     if (dec) {
         up[0]--;
@@ -289,7 +292,7 @@ Game.prototype.collidePowerUps = function(o, p) {
             p.hp = 30;
         }
     }
-    this.createPowerUp(o.type, true);
+    this.createPowerUp(o.type, true, false);
     o.destroy();
 };
 
@@ -311,7 +314,7 @@ Game.prototype.onUpdate = function() {
         var up = this.powerUps[p];
         if (this.getTime() > up[1] && up[0] < up[2]) {
             this.createActor('powerup', {'type': p});
-            this.createPowerUp(p, false);
+            this.createPowerUp(p, false, false);
             up[0]++;
         }
     }
