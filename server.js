@@ -391,6 +391,10 @@ Client.prototype.onRemove = function() {
 };
 
 // Stuff
+Client.prototype.getInfo = function() {
+    return this.conn.id;
+}
+
 Client.prototype.getTime = function() {
     return this.$.getTime();
 };

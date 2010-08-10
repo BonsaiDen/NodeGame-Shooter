@@ -29,7 +29,7 @@ var Client = gs.Client;
 Client.prototype.onInit = function() {
     this.playerName = '';
     this.playerColor = -1;
-    console.log('++ #' + this.id + ' connected');
+    console.log('++ [' + this.getInfo() + '] connected');
     this.$.pushFields(true);
 };
 
@@ -46,7 +46,7 @@ Client.prototype.init = function() {
                 }
             }
         }
-        console.log('++ #' + this.id + ' ' + this.playerName
+        console.log('++ [' + this.getInfo() + '] ' + this.playerName
                     + ' has joined, color ' + this.playerColor);
         
         this.$.setFieldItem('o', this.id, this.playerColor, true); // colors
@@ -196,7 +196,7 @@ Client.prototype.onUpdate = function() {
         this.moveTime = this.getTime();
     }
     if (this.getTime() - this.moveTime > 30000) {
-        console.log('++ #' + this.id + ' ' + this.playerName
+        console.log('++ [' + this.getInfo() + '] ' + this.playerName
                      + ' kicked for idleing');
         
         this.player.bomb = false;
@@ -207,14 +207,14 @@ Client.prototype.onUpdate = function() {
 
 Client.prototype.onRemove = function() {
     this.leave();
-    console.log('-- #' + this.id + ' quit');
+    console.log('-- [' + this.getInfo() + '] quit');
 };
 
 Client.prototype.leave = function() {
     if (this.playerName != '') {
         this.$g.playerColors[this.playerColor] = -1;
         this.$g.playerCount -= 1;
-        console.log('-- #' + this.id + ' ' + this.playerName + ' has left');
+        console.log('-- [' + this.getInfo() + '] ' + this.playerName + ' has left');
         this.playerName = '';
         this.$.delFieldItem('p', this.id); // players
         this.$.delFieldItem('c', this.id); // scores
