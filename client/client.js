@@ -130,7 +130,10 @@ Client.prototype.connect = function(host, port) {
 Client.prototype.onMessage = function(msg) {
     var that = this;
     try {
-        var data = JSON.parse('[' + msg.data.replace(/([a-z0-9]+)\:/gi, '"$1":') + ']');
+        var data = JSON.parse('[' +
+                              msg.data.replace(/([a-z0-9]+)\:/gi, '"$1":')
+                              + ']');
+        
         var type = data.shift();
     
     } catch(e) {

@@ -111,11 +111,13 @@ ActorPlayer.render = function() {
             var r = this.$g.wrapAngle(this.r - Math.PI);
             var ox = this.x + Math.sin(r) * 12;
             var oy = this.y + Math.cos(r) * 12;
-            this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - 0.8 + Math.random() * 1.60),
+            this.$g.effectParticle(ox, oy,
+                                   this.$g.wrapAngle(r - 0.8 + Math.random() * 1.60),
                                    2, 0.2 + (this.boost ? 0.1 : 0), col, alpha);
             
             if (this.boost) {
-                this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - 0.8 + Math.random() * 1.60),
+                this.$g.effectParticle(ox, oy,
+                                       this.$g.wrapAngle(r - 0.8 + Math.random() * 1.60),
                                        2, 0.2 + (this.boost ? 0.1 : 0), col, alpha);
             }
         }
@@ -181,9 +183,13 @@ ActorBomb.create = function(data) {
 ActorBomb.destroy = function() {
     var col = this.$g.playerColor(this.id);
     this.$g.effectArea(this.x, this.y, this.radius, 1.0, col);
-    this.$g.effectRing(this.x, this.y, this.radius / 2 * 0.975, 75, 1, 1.25, col, 1);
+    this.$g.effectRing(this.x, this.y, this.radius / 2 * 0.975, 75, 1, 1.25,
+                       col, 1);
+    
     this.$g.effectArea(this.x, this.y, this.radius / 2, 1.5, col);
-    this.$g.effectRing(this.x, this.y, this.radius * 0.975, 125, 1, 1.25, col, 1);
+    this.$g.effectRing(this.x, this.y, this.radius * 0.975, 125, 1, 1.25,
+                       col, 1);
+    
 };
 
 ActorBomb.render = function() {
@@ -194,10 +200,12 @@ ActorBomb.render = function() {
     var r = Math.atan2(this.mx, this.my);
     var ox = this.x - Math.sin(r) * 2;
     var oy = this.y - Math.cos(r) * 2;
-    this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - 0.8 + Math.random() * 1.60),
+    this.$g.effectParticle(ox, oy,
+                           this.$g.wrapAngle(r - 0.8 + Math.random() * 1.60),
                            1, 0.5, col, 1);
     
-    this.$g.effectParticle(ox, oy, this.$g.wrapAngle(r - 1.6 + Math.random() * 3.20),
+    this.$g.effectParticle(ox, oy,
+                           this.$g.wrapAngle(r - 1.6 + Math.random() * 3.20),
                            0.5, 0.8, col, 1);          
 };
 
@@ -251,7 +259,6 @@ ActorPlayerDef.create = function(data) {
 };
 
 ActorPlayerDef.destroy = function() {
-    ActorPlayerDef.wrap.call(this);
     this.$g.effectExplosion(this.dx, this.dy, 6, 0.5, 1,
                             this.$g.playerColor(this.id));
 };

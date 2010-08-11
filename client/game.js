@@ -60,8 +60,11 @@ Game.prototype.onConnect = function(success) {
     this.playerScores = {};
     this.playerColors = {};
     
-    this.colorCodes      = ['#f00000', '#0080ff', '#f0f000', '#00f000', '#9000ff', '#f0f0f0'];
-    this.colorCodesFaded = ['#700000', '#004080', '#707000', '#007000', '#500080', '#707070'];
+    this.colorCodes      = ['#f00000', '#0080ff', '#f0f000',
+                            '#00f000', '#9000ff', '#f0f0f0'];
+    
+    this.colorCodesFaded = ['#700000', '#004080', '#707000',
+                            '#007000', '#500080', '#707070'];
     
     // Rounds
     this.roundTime = 0;
@@ -155,7 +158,9 @@ Game.prototype.onRender = function() {
 Game.prototype.renderRound = function() {
     this.fill('#ffffff');
     
-    var t = Math.round((this.roundTime + (this.roundStart - this.getTime())) / 1000);
+    var t = Math.round((this.roundTime
+                       + (this.roundStart - this.getTime())) / 1000);
+    
     var m = Math.floor(t / 60);
     var s = t % 60;
     if (s < 10) {
@@ -280,7 +285,10 @@ Game.prototype.onResize = function(data) {
 
 Game.prototype.onExtreme = function(data) {
     this.extreeeeeeme = !this.extreeeeeeme;
-    document.getElementById('extreme').innerHTML = (this.extreeeeeeme ? 'DEACTIVATE' : 'ACTIVATE') + ' EXTREEEEME';
+    document.getElementById('extreme').innerHTML = (this.extreeeeeeme
+                                                    ? 'DEACTIVATE'
+                                                    : 'ACTIVATE')
+                                                    + ' EXTREEEEME';
 };
 
 Game.prototype.onLogin = function(e) {
@@ -404,7 +412,8 @@ Game.prototype.initCanvas = function() {
 };
 
 Game.prototype.font = function(size) {
-    this.bg.font = 'bold ' + size + 'px Monaco, "DejaVu Sans Mono", "Bitstream Vera Sans Mono"';
+    this.bg.font = 'bold ' + size+ 'px'
+                   + ' Monaco, "DejaVu Sans Mono", "Bitstream Vera Sans Mono"';
 };
 
 Game.prototype.strokeCircle = function(x, y, size, line, color) {
