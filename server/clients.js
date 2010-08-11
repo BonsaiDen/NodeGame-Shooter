@@ -49,12 +49,12 @@ Client.prototype.init = function() {
         console.log('++ [' + this.getInfo() + '] ' + this.playerName
                     + ' has joined, color ' + this.playerColor);
         
-        this.$.setFieldItem('o', this.id, this.playerColor, true); // colors
-        this.$.setFieldItem('p', this.id, this.playerName, true); // players
+        this.$.setFieldItem('o', this.id, this.playerColor); // colors
+        this.$.setFieldItem('p', this.id, this.playerName); // players
         this.reset = -1;
         
         this.score = 0;
-        this.$.setFieldItem('c', this.id, this.score, true); // scores
+        this.$.setFieldItem('c', this.id, this.score); // scores
         this.$g.addPlayerStats(this.id);
         
         this.moveTime = this.getTime();
@@ -63,7 +63,7 @@ Client.prototype.init = function() {
         this.bomb = null;
         this.bombLaunched = false;
         
-        this.$.forceFields();
+        //this.$.forceFields();
         this.player = this.createActor('player', {'r': 0});
     }
 };
@@ -89,7 +89,7 @@ Client.prototype.kill = function() {
 
 Client.prototype.addScore = function(add) {
     this.score += add;
-    this.$.setFieldItem('c', this.id, this.score, true); // scores
+    this.$.setFieldItem('c', this.id, this.score); // scores
 };
 
 Client.prototype.onMessage = function(msg) {

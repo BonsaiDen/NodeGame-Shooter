@@ -24,12 +24,13 @@
 // -----------------------------------------------------------------------------
 var ws = require(__dirname + '/lib/ws');
 
-function Server(port) {
+function Server(port, maxClients) {
     var that = this;
     
     this.fields = {};
     this.fieldsChanged = false;
     
+    this.maxClients = maxClients || 64;
     this.clientCount = 0;
     this.clients = {};
     this.clientID = 0;
@@ -46,6 +47,11 @@ function Server(port) {
     
     this.$ = ws.createServer();    
     this.$.addListener('connection', function(conn) {
+        if (this.clientCount >= this.maxClients) {
+            conn.close();
+            return;
+        }
+    
         var id = that.clientAdd(conn);
         conn.addListener('message', function(msg) {
             if (msg.length > 512) {
@@ -272,14 +278,14 @@ Server.prototype.getTime = function() {
 
 Server.prototype.setField = function(key, value, send) {
     this.fields[key] = value;
-    if (send) {
+    if (send !== false) {
         this.fieldsChanged = true;
     }
 };
 
 Server.prototype.setFieldItem = function(key, item, value, send) {
     this.fields[key][item] = value;
-    if (send) {
+    if (send !== false) {
         this.fieldsChanged = true;
     }
 };

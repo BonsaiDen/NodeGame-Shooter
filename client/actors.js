@@ -240,21 +240,20 @@ ActorPowerUp.render = function() {
 // Player Defender -------------------------------------------------------------
 var ActorPlayerDef = CLIENT.createActorType('player_def');
 ActorPlayerDef.create = function(data) {
-    this.dx = this.x;
-    this.dy = this.y;
     this.id = data[0];
     this.r = data[1];
     this.x = data[2];
     this.y = data[3];
-        
-    this.$g.effectExplosion(this.x, this.y, 4, 0.25, 1, this.$g.playerColor(this.id));
+    
+    ActorPlayerDef.wrap.call(this);
+    this.$g.effectExplosion(this.dx, this.dy, 4, 0.25, 1,
+                            this.$g.playerColor(this.id));
 };
 
 ActorPlayerDef.destroy = function() {
-    this.r = this.$g.wrapAngle(this.r + 0.20 / this.$.intervalSteps);
-    this.dx = this.x + Math.sin(this.r) * 35;
-    this.dy = this.y + Math.cos(this.r) * 35;
-    this.$g.effectExplosion(this.dx, this.dy, 6, 0.5, 1, this.$g.playerColor(this.id));
+    ActorPlayerDef.wrap.call(this);
+    this.$g.effectExplosion(this.dx, this.dy, 6, 0.5, 1,
+                            this.$g.playerColor(this.id));
 };
 
 ActorPlayerDef.render = function() {
@@ -269,9 +268,12 @@ ActorPlayerDef.update = function(data) {
 
 ActorPlayerDef.interleave = function() {
     this.r = this.$g.wrapAngle(this.r + 0.20 / this.$.intervalSteps);
+    ActorPlayerDef.wrap.call(this);
+};
+
+ActorPlayerDef.wrap = function() {
     this.dx = this.x + Math.sin(this.r) * 35;
     this.dy = this.y + Math.cos(this.r) * 35;
-
     if (this.dx < -16) {
         this.dx += this.$g.width + 32;
     

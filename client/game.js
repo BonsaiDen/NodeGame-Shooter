@@ -82,9 +82,6 @@ Game.prototype.onConnect = function(success) {
         'camu':    '#808080'  // camu
     };
     
-    this.powerUpImages = new Image();
-    this.powerUpImages.src = 'powerups.png';
-    
     // Input
     this.keys = {};
     window.onkeydown = window.onkeyup = function(e, key) {

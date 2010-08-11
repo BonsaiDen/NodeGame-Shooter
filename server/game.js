@@ -39,10 +39,10 @@ Game.prototype.onInit = function() {
     this.width = 480;
     this.height = 480;
     
-    this.$.setField('s', [this.width, this.height], true); // size
-    this.$.setField('p', {}, true); // players
-    this.$.setField('c', {}, true); // scores
-    this.$.setField('o', {}, true); // colors
+    this.$.setField('s', [this.width, this.height]); // size
+    this.$.setField('p', {}); // players
+    this.$.setField('c', {}); // scores
+    this.$.setField('o', {}); // colors
     
     // Rounds
     this.roundTime = 180000;
@@ -58,7 +58,7 @@ Game.prototype.onInit = function() {
     this.playerCount = 0;
     this.playerColors = [-1, -1, -1, -1, -1, -1, -1];
     
-    this.$.setField('max', this.maxPlayers, true);
+    this.$.setField('max', this.maxPlayers);
     
     // Sizes
     this.sizePlayer = 11;
@@ -92,10 +92,10 @@ Game.prototype.startRound = function() {
     this.roundStart = this.getTime();
     this.roundTimeLeft = this.roundTime;
     
-    this.$.setField('ri', this.roundID, true); // roundID
-    this.$.setField('rt', this.roundTime, true); //roundTime
-    this.$.setField('rg', 1, true); // roundGO
-    this.$.setField('rs', [], true); //roundStats
+    this.$.setField('ri', this.roundID); // roundID
+    this.$.setField('rt', this.roundTime); //roundTime
+    this.$.setField('rg', 1); // roundGO
+    this.$.setField('rs', []); //roundStats
     
     // Reset powerup timers
     for(var p in this.powerUps) {
@@ -147,9 +147,9 @@ Game.prototype.endRound = function() {
     }
     sorted.sort(sortScore);
     
-    this.$.setField('rt', this.roundWait, true);
-    this.$.setField('rg', 0, true);
-    this.$.setField('rs', sorted, true);
+    this.$.setField('rt', this.roundWait);
+    this.$.setField('rg', 0);
+    this.$.setField('rs', sorted);
     this.roundStats = {};
     
     var that = this;
