@@ -58,7 +58,7 @@ Game.prototype.onInit = function() {
     this.playerCount = 0;
     this.playerColors = [-1, -1, -1, -1, -1, -1, -1];
     
-    this.$.setField('max', this.maxPlayers);
+    this.$.setField('m', this.maxPlayers);
     
     // Sizes
     this.sizePlayer = 11;
@@ -578,7 +578,7 @@ Game.prototype.randomPosition = function(obj, size) {
         found = true;
         for(var i = 0, l = players.length; i < l; i++) {
             if (this.checkCollision(players[i], obj,
-                                    this.sizePlayer * 1.5, size * 1.5)) {
+                                    this.sizePlayer * 2, size * 2)) {
                 
                 found = false;
                 break;
@@ -588,7 +588,7 @@ Game.prototype.randomPosition = function(obj, size) {
         if (found) {
             for(var i = 0, l = powerups.length; i < l; i++) {
                 if (this.checkCollision(powerups[i], obj,
-                                        this.sizePowerUp * 1.5, size * 1.5)) {
+                                        this.sizePowerUp * 2, size * 2)) {
                     
                     found = false;
                     break;

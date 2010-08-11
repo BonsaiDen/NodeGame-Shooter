@@ -98,6 +98,7 @@ Game.prototype.onConnect = function(success) {
 Game.prototype.onInit = function(data) {
     this.width = data.s[0];
     this.height = data.s[1];
+    this.maxPlayers = data.m;
     this.playerNames = data.p;
     this.playerScores = data.c;
     this.playerColors = data.o;
@@ -320,14 +321,14 @@ Game.prototype.checkRound = function(data) {
 
 Game.prototype.checkPlayers = function(data) {
     var count = 0;
-    for(var i in data.players) {
+    for(var i in data.p) {
         count++;
     }
-    
+    console.log(data.p);
+    var box = document.getElementById('box');
+    var controls = document.getElementById('controls'); 
     if (!this.playing && this.roundGO) {
-        var box = document.getElementById('box');
-        var controls = document.getElementById('controls');
-        if (count < data.max) {
+        if (count < data.m) {
             if (box.style.display != 'block') {
                 box.style.display = 'block';
                 controls.style.display = 'block';

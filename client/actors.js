@@ -112,13 +112,18 @@ ActorPlayer.render = function() {
             var ox = this.x + Math.sin(r) * 12;
             var oy = this.y + Math.cos(r) * 12;
             this.$g.effectParticle(ox, oy,
-                                   this.$g.wrapAngle(r - 0.8 + Math.random() * 1.60),
+                                   this.$g.wrapAngle(r - 0.8 + Math.random()
+                                                     * 1.60),
+                                   
                                    2, 0.2 + (this.boost ? 0.1 : 0), col, alpha);
             
             if (this.boost) {
                 this.$g.effectParticle(ox, oy,
-                                       this.$g.wrapAngle(r - 0.8 + Math.random() * 1.60),
-                                       2, 0.2 + (this.boost ? 0.1 : 0), col, alpha);
+                                       this.$g.wrapAngle(r - 0.8 + Math.random()
+                                                         * 1.60),
+                                       
+                                       2, 0.2 + (this.boost ? 0.1 : 0), col,
+                                       alpha);
             }
         }
         
@@ -126,10 +131,15 @@ ActorPlayer.render = function() {
         if (this.mr != 0) {
             var d = (this.mr * 10);
             var r = this.$g.wrapAngle(this.r - Math.PI);
-            var ox = this.x + Math.sin(this.$g.wrapAngle(r - Math.PI * 2.22 * d)) * 14;
-            var oy = this.y + Math.cos(this.$g.wrapAngle(r - Math.PI * 2.22 * d)) * 14;
+            var ox = this.x + Math.sin(this.$g.wrapAngle(r - Math.PI * 2.22 * d)
+                                       ) * 14;
             
-            r = this.$g.wrapAngle(r - Math.PI * 2.47 * d - 0.4 + Math.random() * 0.80);
+            var oy = this.y + Math.cos(this.$g.wrapAngle(r - Math.PI * 2.22 * d)
+                                       ) * 14;
+            
+            r = this.$g.wrapAngle(r - Math.PI * 2.47 * d - 0.4 + Math.random()
+                                  * 0.80);
+            
             this.$g.effectParticle(ox, oy, r, 2, 0.13, col, alpha);
         }
         
