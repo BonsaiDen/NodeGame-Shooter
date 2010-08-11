@@ -324,7 +324,7 @@ Game.prototype.checkPlayers = function(data) {
     for(var i in data.p) {
         count++;
     }
-    console.log(data.p);
+    
     var box = document.getElementById('box');
     var controls = document.getElementById('controls'); 
     if (!this.playing && this.roundGO) {
