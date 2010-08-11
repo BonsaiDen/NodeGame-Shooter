@@ -161,19 +161,19 @@ Client.prototype.onMessage = function(msg) {
         
     // Actors
     } else if (type == this.msgActorsCreate) {
-        this.actors[data[0][1]] = new Actor(this, data);
+        this.actors[data[0][0]] = new Actor(this, data);
     
     } else if (type == this.msgActorsInit) {
         for(var i = 0, l = data.length; i < l; i++) {
             var a = data[i];
-            this.actors[a[0][1]] = new Actor(this, a);
+            this.actors[a[0][0]] = new Actor(this, a);
         }
     
     } else if (type == this.msgActorsUpdate) {
         for(var i = 0, l = data.length; i < l; i++) {
             var a = data[i];
-            if (this.actors[a[0][1]]) {
-                this.actors[a[0][1]].update(a);
+            if (this.actors[a[0][0]]) {
+                this.actors[a[0][0]].update(a);
             }
         }
     
@@ -255,23 +255,23 @@ function Actor(game, data) {
     this.$g = game.$g;
     
     var d = data[0]
-    this.clas = d[0];
-    this.id = d[1];
+    this.id = d[0];
     
-    this.x = d[2];
-    this.y = d[3];
-    this.mx = d[4];
-    this.my = d[5];
+    this.x = d[1];
+    this.y = d[2];
+    this.mx = d[3];
+    this.my = d[4];
+    this.clas = d[5];
     
     this.$.actorTypes[this.clas].create.call(this, data[1]);
 }
 
 Actor.prototype.update = function(data) {
     var d = data[0];
-    this.x = d[2];
-    this.y = d[3];
-    this.mx = d[4];
-    this.my = d[5];
+    this.x = d[1];
+    this.y = d[2];
+    this.mx = d[3];
+    this.my = d[4];
     
     this.$.actorTypes[this.clas].update.call(this, data[1]);
 };

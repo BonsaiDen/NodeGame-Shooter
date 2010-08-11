@@ -224,7 +224,8 @@ Server.prototype.actorsUpdate = function() {
     
     for(var i in this.clients) {
         if (clientUpdates[i].length > 0) {
-            this.send(this.clients[i].conn, this.msgActorsUpdate, clientUpdates[i]);
+            this.send(this.clients[i].conn, this.msgActorsUpdate,
+                                            clientUpdates[i]);
         }
     }
     
@@ -317,7 +318,7 @@ Server.prototype.forceFields = function(mode) {
 };
 
 
-// Actors ----------------------------------------------------------------------
+// Gane ------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 function Game(srv) {
     this.$ = srv;
@@ -448,7 +449,7 @@ function Actor(srv, clas, data, client) {
     this.my = 0;
     
     this.alive = true;
-    this.updated = true;
+    this.updated = false;
     
     this.$.actorTypes[this.clas].create.call(this, data); 
     this.$.emit(this.$.msgActorsCreate, this.toMessage(true));
@@ -463,21 +464,24 @@ Actor.prototype.destroy = function() {
     if (this.alive) {
         this.alive = false;
         this.$.actorTypes[this.clas].destroy.call(this);
-        this.$.emit(this.$.msgActorsDestroy, [this.id, Math.round(this.x), Math.round(this.y)]);
+        this.$.emit(this.$.msgActorsDestroy, [this.id, Math.round(this.x),
+                                                       Math.round(this.y)]);
     }
 };
 
 Actor.prototype.toMessage = function(full) {
-    var msg = [
-        [
-            full ? this.clas : 0,
-            this.id,
-            Math.round(this.x * 100) / 100,
-            Math.round(this.y * 100) / 100,
-            Math.round(this.mx * 1000) / 1000,
-            Math.round(this.my * 1000) / 1000
-        ]
+    var raw = [
+        this.id,
+        Math.round(this.x * 100) / 100,
+        Math.round(this.y * 100) / 100,
+        Math.round(this.mx * 1000) / 1000,
+        Math.round(this.my * 1000) / 1000
     ];
+    if (full) {
+        raw.push(this.clas);
+    }
+    
+    var msg = [raw];
     var d = this.$.actorTypes[this.clas].msg.call(this, full);
     if (d.length > 0) {
         msg.push(d);

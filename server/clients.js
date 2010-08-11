@@ -214,7 +214,9 @@ Client.prototype.leave = function() {
     if (this.playerName != '') {
         this.$g.playerColors[this.playerColor] = -1;
         this.$g.playerCount -= 1;
-        console.log('-- [' + this.getInfo() + '] ' + this.playerName + ' has left');
+        console.log('-- [' + this.getInfo() + '] ' + this.playerName
+                    + ' has left');
+        
         this.playerName = '';
         this.$.delFieldItem('p', this.id); // players
         this.$.delFieldItem('c', this.id); // scores

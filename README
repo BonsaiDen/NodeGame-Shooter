@@ -4,7 +4,7 @@ About
   node-websocket-server and HTML5 WebSockets as well as Canvas.
 
   Depending on the time of the day(read: wether my PC is running or not)
-  there might be a 5 player server available at 
+  there might be a 6 player server available at 
   < http://dl.dropbox.com/u/2332843/game.html >.
 
 
@@ -28,7 +28,7 @@ License
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License along with
-  NodeGame: Shooter. If not, see <http://www.gnu.org/licenses/>.
+  NodeGame: Shooter. If not, see < http://www.gnu.org/licenses/ >.
 
 
 # node-websocket-server
