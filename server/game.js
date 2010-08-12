@@ -67,6 +67,8 @@ Shooter.onInit = function() {
     
     // PowerUPS
     this.powerUps = {};
+    this.powerUpCount = 0;
+    this.powerUpsMax = 3;
     this.initPowerUp('shield',  2, 23, 10);
     this.initPowerUp('laser',   1, 32, 15);
     this.initPowerUp('life',    2,  8,  8);
@@ -231,16 +233,18 @@ Shooter.createPowerUp = function(type, dec, init) {
     var up = this.powerUps[type];
     var add = (up[3] * 1000) + Math.random() * (up[4] * 1000);
     if (init) {
-        add -= (up[3] / 2 * 1000) * (Math.random() / 2 + 0.5);
+        add -= (up[4] / 2 * 1000) * (Math.random() / 2 + 0.5);
     }
     up[1] = this.getTime() + add;
     if (dec) {
+        this.powerUpCount--;
         up[0]--;
     }
 };
 
 Shooter.removePowerUp = function(type) { 
     this.powerUps[type][0]--;
+    this.powerUpCount--;
 };
 
 Shooter.collidePowerUps = function(o, p) {
@@ -309,9 +313,16 @@ Shooter.onUpdate = function() {
     for(var p in this.powerUps) {
         var up = this.powerUps[p];
         if (this.getTime() > up[1] && up[0] < up[2]) {
-            this.createActor('powerup', {'type': p});
-            this.createPowerUp(p, false, false);
-            up[0]++;
+            if (this.powerUpCount < this.powerUpsMax) {
+                this.createActor('powerup', {'type': p});
+                this.createPowerUp(p, false, false);
+                
+                up[0]++;
+                this.powerUpCount++;
+            
+            } else {
+                up[1] += 5000 + 2500 * Math.random();
+            }
         }
     }
     
