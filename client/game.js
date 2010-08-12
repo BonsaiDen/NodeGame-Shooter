@@ -87,10 +87,16 @@ Game.prototype.onConnect = function(success) {
     
     // Input
     this.keys = {};
-    window.onkeydown = window.onkeyup = function(e, key) {
-        (key = e.keyCode) != 116 ? (e.type == "keydown" ? 
-                                    (!that.keys[key] ? that.keys[key] = 1 : 0) 
-                                    : delete that.keys[key]) : 0;
+    window.onkeydown = window.onkeyup = function(e) {
+        var key = e.keyCode;
+        if (key != 116) {
+            if (e.type == "keydown") {
+                that.keys[key] = 1;
+            
+            } else {
+                that.keys[key] = 2;
+            }
+        }
     };
 };
 
@@ -117,11 +123,16 @@ Game.prototype.onUpdate = function(data) {
 };
 
 Game.prototype.onControl = function(data) {
-    return {'keys': [this.keys[87] || this.keys[38],
-                     this.keys[68] || this.keys[39],
-                     this.keys[13] || this.keys[77],
-                     this.keys[65] || this.keys[37],
-                     this.keys[32]]
+    for(var i in this.keys) {
+        if (this.keys[i] == 2) {
+            this.keys[i] = 0;
+        }
+    }
+    return {'keys': [this.keys[87] || this.keys[38] || 0,
+                     this.keys[68] || this.keys[39] || 0,
+                     this.keys[13] || this.keys[77] || 0,
+                     this.keys[65] || this.keys[37] || 0,
+                     this.keys[32] || 0]
     };
 };
 
