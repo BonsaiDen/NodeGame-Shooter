@@ -87,24 +87,24 @@ ActorPlayer.update = function() {
     this.$g.wrapPosition(this);
     
     // Invincibility
-    if (this.getTime() - this.defenseTime > 100 && this.defense > 0) {
+    if (this.timeDiff(this.defenseTime) > 100 && this.defense > 0) {
         this.defense -= 100;
         this.updated = true;
         this.defenseTime = this.getTime();
     }
     
     // Shield
-    if (this.shield && this.getTime() - this.shieldTime > 12500) {
+    if (this.shield && this.timeDiff(this.shieldTime) > 12500) {
         this.shield = false;
     }
     
     // Speed
-    if (this.boost && this.getTime() - this.boostTime > 10000) {
+    if (this.boost && this.timeDiff(this.boostTime) > 10000) {
         this.boost = false;
     }
     
     // Laser
-    if (this.laser && this.getTime() - this.laserTime > 7500) {
+    if (this.laser && this.timeDiff(this.laserTime) > 7500) {
         this.laser = false;
     }
     
@@ -124,7 +124,7 @@ ActorPlayer.update = function() {
     
     // faded
     } else if (this.camu == 2) {
-        if (this.getTime() - this.camuTime > 15000) {
+        if (this.timeDiff(this.camuTime) > 15000) {
             this.camu = 3;
             this.camuFade = 0;
             this.updated = true;
@@ -241,7 +241,7 @@ ActorBullet.update = function() {
     this.$g.wrapPosition(this);
     
     // Destroy
-    if (this.getTime() - this.time > 3000) {
+    if (this.timeDiff(this.time) > 3000) {
         this.destroy();
     
     } else {
@@ -298,7 +298,7 @@ ActorBomb.update = function() {
     this.$g.wrapPosition(this);
     
     // Destroy
-    if (this.getTime() - this.time > 4000) {
+    if (this.timeDiff(this.time) > 4000) {
         this.destroy();
     
     } else {
@@ -362,12 +362,12 @@ ActorPlayerDef.update = function() {
     this.mx = this.player.mx;
     this.my = this.player.my;
     
-    if (this.getTime() - this.initTime < 22500) {
-        if (this.getTime() - this.initTime > 15000) {
+    if (this.timeDiff(this.initTime) < 22500) {
+        if (this.timeDiff(this.initTime) > 15000) {
             this.level = 2;
         }
         
-        if (this.getTime() - this.shotTime > (this.level == 1 ? 1200 : 225)) {
+        if (this.timeDiff(this.shotTime) > (this.level == 1 ? 1200 : 225)) {
             this.$.createActor('bullet', {
                 'player': this.player,
                 'r': this.r,

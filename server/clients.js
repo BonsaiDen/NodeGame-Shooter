@@ -30,7 +30,7 @@ Client.prototype.onInit = function() {
     this.playerName = '';
     this.playerColor = -1;
     console.log('++ [' + this.getInfo() + '] connected');
-    this.$.pushFields(true);
+    this.$.emitFields();
 };
 
 Client.prototype.init = function() {
@@ -63,7 +63,7 @@ Client.prototype.init = function() {
         this.bomb = null;
         this.bombLaunched = false;
         
-        //this.$.forceFields();
+        this.$.emitFields();
         this.player = this.$.createActor('player', {'r': 0, 'client': this});
     }
 };
@@ -122,7 +122,7 @@ Client.prototype.onUpdate = function() {
     }
     
     if (this.reset != -1) {
-        if (this.getTime() - this.reset > 3000) {
+        if (this.timeDiff(this.reset) > 3000) {
             this.shotTime = this.getTime();
             this.player = this.$.createActor('player', {'r': 0});
             this.reset = -1;
@@ -180,7 +180,7 @@ Client.prototype.onUpdate = function() {
     
     // Shoot
     if (this.keys[4]
-        && this.getTime() - this.shotTime > (this.player.laser ? 400 : 600)) {
+        && this.timeDiff(this.shotTime) > (this.player.laser ? 400 : 600)) {
         
         moved = true;
         this.$.createActor('bullet', {
@@ -195,7 +195,7 @@ Client.prototype.onUpdate = function() {
     if (moved) {
         this.moveTime = this.getTime();
     }
-    if (this.getTime() - this.moveTime > 30000) {
+    if (this.timeDiff(this.moveTime) > 30000) {
         console.log('++ [' + this.getInfo() + '] ' + this.playerName
                      + ' kicked for idleing');
         

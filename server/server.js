@@ -24,17 +24,11 @@
 // -----------------------------------------------------------------------------
 var ws = require(__dirname + '/lib/ws');
 
-function Server(port, maxClients) {
-    var that = this;
-    
-    this.fields = {};
-    this.fieldsChanged = false;
-    
+function Server(port, maxClients, maxChars) {
+    this.maxChars = maxChars || 128;
     this.maxClients = maxClients || 64;
-    this.clientCount = 0;
-    this.clients = {};
-    this.clientID = 0;
     
+    // these could be global but... meh...
     this.msgGameStart = 1;
     this.msgGameFields = 2;
     this.msgGameShutdown = 3;
@@ -43,19 +37,33 @@ function Server(port, maxClients) {
     this.msgActorsInit = 5;
     this.msgActorsUpdate = 6;
     this.msgActorsEvent = 7;
-    this.msgActorsDestroy = 8; 
+    this.msgActorsDestroy = 8;
     
-    this.$ = ws.createServer();    
+    // Server setup
+    this.clientCount = 0;
+    this.clients = {};
+    this.clientID = 0;
+    
+    this.fields = {};
+    this.fieldsChanged = false;
+    
+    this.$ = ws.createServer();   
+    
+    var that = this;
     this.$.addListener('connection', function(conn) {
         if (this.clientCount >= this.maxClients) {
             conn.close();
             return;
         }
-    
+        
         var id = that.clientAdd(conn);
         conn.addListener('message', function(msg) {
-            if (msg.length > 512) {
-                console.log('!! ' + 'Message longer than 512 chars');
+        
+            // a little bit paranoid...
+            if (msg.length > that.maxChars) {
+                console.log('!! ' + 'Message longer than ' + that.maxChars
+                            + ' chars');
+                
                 conn.close();
             
             } else {
@@ -73,14 +81,15 @@ function Server(port, maxClients) {
             that.clientRemove(id);
         });
     });
-    this.$.listen(port);
     
     // Actors
     this.actorCount = 0;
     this.actorID = 0;
     this.actorTypes = {};
     this.actors = {};
-    return this;
+    
+    // Hey Listen!
+    this.$.listen(port);
 }
 
 
@@ -180,7 +189,6 @@ Server.prototype.createActorType = function(id) {
         this.update = function() {};
         this.destroy = function() {};
         this.msg = function(full) {return {};};
-        return this;
     }
     this.actorTypes[id] = new ActorType();
     return this.actorTypes[id];
@@ -197,7 +205,7 @@ Server.prototype.actorsUpdate = function() {
         clientUpdates[i] = [];
     }
     
-    var acc = 0;
+    this.actorCount = 0;
     for(var t in this.actors) {
         var alive_actors = [];
         for(var i = 0, l = this.actors[t].length; i < l; i++) {
@@ -219,10 +227,10 @@ Server.prototype.actorsUpdate = function() {
             }
         }
         this.actors[t] = alive_actors;
-        acc += this.actors[t].length;
+        this.actorCount += this.actors[t].length;
     }
-    this.actorCount = acc;
     
+    // Emit updates
     if (allUpdates.length > 0) {
         this.emit(this.msgActorsUpdate, allUpdates);
     }
@@ -233,7 +241,6 @@ Server.prototype.actorsUpdate = function() {
                                             clientUpdates[i]);
         }
     }
-    
 };
 
 Server.prototype.actorsDestroy = function() {
@@ -275,6 +282,10 @@ Server.prototype.getTime = function() {
     return this.time;
 };
 
+Server.prototype.timeDiff = function(time) {
+    return this.time - time;
+};
+
 Server.prototype.setField = function(key, value, send) {
     this.fields[key] = value;
     if (send !== false) {
@@ -307,7 +318,7 @@ Server.prototype.delFieldItem = function(key, item) {
     } 
 };
 
-Server.prototype.pushFields = function(mode) {
+Server.prototype.updateFields = function(mode) {
     if (mode) {
         this.fieldsChanged = true;
     
@@ -317,7 +328,7 @@ Server.prototype.pushFields = function(mode) {
     }
 };
 
-Server.prototype.forceFields = function(mode) {
+Server.prototype.emitFields = function(mode) {
     this.emit(this.msgGameFields, [this.fields]);
     this.fieldsChanged = false;
 };
@@ -342,7 +353,7 @@ Game.prototype.loop = function() {
 
 Game.prototype.run = function() {
     if (this.running) {
-        this.$.pushFields(false);
+        this.$.updateFields(false);
         this._time = this.$.time = new Date().getTime();
         while(this._lastTime <= this._time) {
             this.$.clientsUpdate();
@@ -356,6 +367,10 @@ Game.prototype.run = function() {
 
 Game.prototype.getTime = function() {
     return this._time;
+};
+
+Game.prototype.timeDiff = function(time) {
+    return this.$.timeDiff(time);
 };
 
 Game.prototype.getActors = function(clas) {
@@ -381,7 +396,6 @@ function Client(srv, conn, id) {
     this.$g = srv.$g;
     this.conn = conn;
     this.id = id;
-    return this;
 }
 
 Client.prototype._init = function() {
@@ -426,6 +440,10 @@ Client.prototype.getTime = function() {
     return this.$.getTime();
 };
 
+Client.prototype.timeDiff = function(time) {
+    return this.$.timeDiff(time);
+};
+
 Client.prototype.send = function(type, msg) {
     this.$.send(this.conn, type, msg);
 };
@@ -458,7 +476,6 @@ function Actor(srv, clas, data) {
     }
     this.create(data); 
     this.$.emit(this.$.msgActorsCreate, this.toMessage(true));
-    return this;
 }
 Actor.prototype.destroy = function() {
     if (this.alive) {
@@ -497,8 +514,11 @@ Actor.prototype.event = function(type, data) {
     this.$.emit(this.$.msgActorsEvent, msg);
 };
 
-// Getters
 Actor.prototype.getTime = function() {
     return this.$.getTime();
+};
+
+Actor.prototype.timeDiff = function(time) {
+    return this.$.timeDiff(time);
 };
 

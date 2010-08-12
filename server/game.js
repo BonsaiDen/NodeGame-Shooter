@@ -227,7 +227,6 @@ Game.prototype.checkCollision = function(a, b, ra, rb) {
     return r * r > dx * dx + dy * dy; 
 };
 
-
 Game.prototype.initPowerUp = function(type, max, wait, rand) { 
     this.powerUps[type] = [0, 0, max, wait, rand];
 };
@@ -309,7 +308,7 @@ Game.prototype.onUpdate = function() {
     if (this.roundFinished) {
         return;
     }
-
+    
     // PowerUP creation
     for(var p in this.powerUps) {
         var up = this.powerUps[p];
@@ -477,7 +476,7 @@ Game.prototype.collidePlayer = function(p, i, l) {
                 
                 // Hit on Shield
                 } else if (p.shield
-                           && (b.player != p || this.getTime() - b.time > 225)
+                           && (b.player != p || this.timeDiff(b.time) > 225)
                            && this.circleCollision(p, b, this.sizeShield,
                                                          this.sizeBullet)) {
                     
