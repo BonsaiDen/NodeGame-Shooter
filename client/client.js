@@ -69,9 +69,9 @@ function Client(fps) {
     this.id = '';
     
     this.intervalTime = 0;
-    this.interval = null;
     this.intervalSteps = 0;
     this.fpsTime = Math.round(1000 / fps);
+    this.running = false;
     
     this.actors = {};
     this.actorTypes = {};
@@ -152,7 +152,8 @@ Client.prototype.onMessage = function(msg) {
         
         this.intervalTime = data[1];
         this.intervalSteps = this.intervalTime / 10;
-        this.interval = setInterval(function() {that.update()}, 15);
+        this.running = true;
+        this.loop();
         
         this.$g.onInit(data[2]);
     
@@ -190,17 +191,25 @@ Client.prototype.onMessage = function(msg) {
 };
 
 Client.prototype.quit = function() {
-    clearInterval(this.interval);
+    this.running = false;
     for(var i in this.actors) {
         this.actors[i].destroy();
     }
 };
 
+Client.prototype.loop = function() {
+    var that = this;
+    setTimeout(function() {that.update()}, 5);
+};
+
 Client.prototype.update = function() {
-    var currentFrame = this.getTime();
-    while(this.lastFrame < currentFrame) {
-        this.render();
-        this.lastFrame += 10;
+    if (this.running) {
+        var currentFrame = this.getTime();
+        while(this.lastFrame < currentFrame) {
+            this.render();
+            this.lastFrame += 10;
+        }
+        this.loop();
     }
 };
 
@@ -221,7 +230,6 @@ Client.prototype.render = function() {
         a.x += a.mx / this.intervalSteps;
         a.y += a.my / this.intervalSteps;
         a.interleave();
-        
         if (render) {
             a.render();
         }
@@ -276,6 +284,7 @@ function Actor(game, data) {
 
 Actor.prototype.update = function(data) {
     var d = data[0];
+    console.log(this.x - d[1], this.y - d[2]);
     this.x = d[1];
     this.y = d[2];
     this.mx = d[3];

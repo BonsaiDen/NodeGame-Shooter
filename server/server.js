@@ -123,7 +123,7 @@ Server.prototype.run = function() {
         console.log('>> ' + (Math.round(that.bytesSend / 10 * 100 / 1024) / 100)
                     +' kb send in total');
         
-        clearInterval(that.$g._loop);
+        that.$g.running = false;
         that.actorsDestroy();
         that.emit(that.msgGameShutdown, []);
         setTimeout(function() {
@@ -330,20 +330,27 @@ function Game(srv) {
     this._time = this.$.time;
     this._lastTime = this._time;
     this.$.interval = this.onInit();
-    
-    var that = this;
-    this._loop = setInterval(function(){that.run();}, 5);
+    this.running = true;
+    this.loop();
 }
 exports.Game = Game;
 
+Game.prototype.loop = function() {
+    var that = this;
+    setTimeout(function(){that.run();}, 5);
+};
+
 Game.prototype.run = function() {
-    this.$.pushFields(false);
-    this._time = this.$.time = new Date().getTime();
-    while(this._lastTime <= this._time) {
-        this.$.clientsUpdate();
-        this.$.actorsUpdate();
-        this.onUpdate(); 
-        this._lastTime += this.$.interval 
+    if (this.running) {
+        this.$.pushFields(false);
+        this._time = this.$.time = new Date().getTime();
+        while(this._lastTime <= this._time) {
+            this.$.clientsUpdate();
+            this.$.actorsUpdate();
+            this.onUpdate(); 
+            this._lastTime += this.$.interval 
+        }
+        this.loop();
     }
 };
 
