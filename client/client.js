@@ -27,7 +27,6 @@
 function Game(client) {
     this.$s = client;
     this.id = -1; 
-    this.intervalSteps = 0;
 };
 
 Game.prototype.onConnect = function(success) {
@@ -58,9 +57,15 @@ Game.prototype.getTime = function() {
     return this.$s.getTime();
 };
 
+Game.prototype.getInterval = function() {
+    return this.$s.intervalSteps;
+};
+
 Game.prototype.send = function(msg) {
     this.$s.send(msg);
 };
+
+
 
 
 // Client ----------------------------------------------------------------------
@@ -71,6 +76,7 @@ function Client(fps) {
     this.lastState = '';
     this.lastFrame = 0;
     this.lastRender = 0;
+    this.intervalSteps = 0;
     this.running = false;
     
     this.actors = {};
@@ -148,7 +154,7 @@ Client.prototype.onMessage = function(msg) {
     if (type == this.msgGameStart) {
         this.$.id = data[0];
         this.lastFrame = this.lastRender = this.getTime();
-        this.$.intervalSteps = data[1] / 10;
+        this.intervalSteps = data[1] / 10;
         
         this.running = true;
         this.loop();
@@ -233,8 +239,8 @@ Client.prototype.render = function() {
     
     for(var c in this.actors) {
         var a = this.actors[c];
-        a.x += a.mx / this.$.intervalSteps;
-        a.y += a.my / this.$.intervalSteps;
+        a.x += a.mx / this.intervalSteps;
+        a.y += a.my / this.intervalSteps;
         a.interleave();
         if (render) {
             a.render();
