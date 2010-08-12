@@ -25,7 +25,7 @@ var gs = require(__dirname + '/server');
 
 // Actors ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-var ActorPlayer = NodeShooter.createActorType('player');
+var ActorPlayer = Server.createActorType('player');
 ActorPlayer.create = function(data) {
     this.client = data.client;
     this.hp = 15;
@@ -203,7 +203,7 @@ ActorPlayer.msg = function(full) {
 
 
 // Bullet ----------------------------------------------------------------------
-var ActorBullet = NodeShooter.createActorType('bullet');
+var ActorBullet = Server.createActorType('bullet');
 ActorBullet.create = function(data) {
     this.time = this.getTime();
     this.player = data.player;
@@ -259,7 +259,7 @@ ActorBullet.msg = function(full) {
 
 
 // Bomb ------------------------------------------------------------------------
-var ActorBomb = NodeShooter.createActorType('bomb');
+var ActorBomb = Server.createActorType('bomb');
 ActorBomb.create = function(data) {
     this.time = this.getTime();
     this.player = data.player;
@@ -320,7 +320,7 @@ ActorBomb.msg = function(full) {
 
 
 // PowerUp ---------------------------------------------------------------------
-var ActorPowerUp = NodeShooter.createActorType('powerup');
+var ActorPowerUp = Server.createActorType('powerup');
 ActorPowerUp.create = function(data) {
     this.$g.randomPosition(this, this.$g.sizePowerUp);
     this.type = data.type;
@@ -340,7 +340,7 @@ ActorPowerUp.msg = function(full) {
 
 
 // Player Defender -------------------------------------------------------------
-var ActorPlayerDef = NodeShooter.createActorType('player_def');
+var ActorPlayerDef = Server.createActorType('player_def');
 ActorPlayerDef.create = function(data) {
     this.player = data.player;
     this.player.defender = this;

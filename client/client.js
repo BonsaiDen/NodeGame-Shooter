@@ -66,8 +66,6 @@ Game.prototype.send = function(msg) {
 };
 
 
-
-
 // Client ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 function Client(fps) {
@@ -201,7 +199,7 @@ Client.prototype.quit = function() {
     }
 };
 
-Client.prototype.createGame = function(fps) {
+Client.prototype.initGame = function(fps) {
     this.fpsTime = Math.round(1000 / fps);
     this.$ = new Game(this);
     return this.$;

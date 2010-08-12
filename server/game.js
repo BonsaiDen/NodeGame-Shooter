@@ -20,22 +20,19 @@
   
 */
 
-var server = require(__dirname + '/server');
-var Game = server.Game;
+var NodeGame = require(__dirname + '/server');
 
 // Init
-NodeShooter = new server.Server(28785);
+Server = new NodeGame.Server(28785);
 require(__dirname + '/clients');
 require(__dirname + '/actors');
-
-process.nextTick(function() {
-    NodeShooter.run();
-});
+Server.run();
 
 
 // Game ------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Game.prototype.onInit = function() {
+var Shooter = Server.initGame(50);
+Shooter.onInit = function() {
     this.width = 480;
     this.height = 480;
     
@@ -80,12 +77,11 @@ Game.prototype.onInit = function() {
     
     // Start Game
     this.startRound();
-    return 50;
 };
 
 
 // Rounds ----------------------------------------------------------------------
-Game.prototype.startRound = function() {
+Shooter.startRound = function() {
     this.roundID++;
     console.log('>> Round #' + this.roundID + ' started!');
     
@@ -114,7 +110,7 @@ Game.prototype.startRound = function() {
     setTimeout(function(){that.endRound();}, this.roundTime);
 };
 
-Game.prototype.endRound = function() {
+Shooter.endRound = function() {
     console.log('>> Round #' + this.roundID + ' finished!');
     
     // Reset
@@ -156,17 +152,17 @@ Game.prototype.endRound = function() {
     setTimeout(function(){that.startRound();}, this.roundWait);
 };
 
-Game.prototype.removePlayerStats = function(id) {
+Shooter.removePlayerStats = function(id) {
     if (this.roundStats[id]) {
         delete this.roundStats[id];
     }
 };
 
-Game.prototype.getPlayerStats = function(id) {
+Shooter.getPlayerStats = function(id) {
     return this.roundStats[id];
 };
 
-Game.prototype.addPlayerStats = function(id) {
+Shooter.addPlayerStats = function(id) {
     this.roundStats[id] = {
         'kills': 0,
         'selfDestructs': 0
@@ -175,7 +171,7 @@ Game.prototype.addPlayerStats = function(id) {
 
 
 // Gameplay --------------------------------------------------------------------
-Game.prototype.circleCollision = function(a, b, ra, rb) {
+Shooter.circleCollision = function(a, b, ra, rb) {
     
     // Normal
     if (this.checkCollision(a, b, ra, rb)) {
@@ -220,18 +216,18 @@ Game.prototype.circleCollision = function(a, b, ra, rb) {
     return false;
 };
 
-Game.prototype.checkCollision = function(a, b, ra, rb) {
+Shooter.checkCollision = function(a, b, ra, rb) {
     var r = ra + rb;
     var dx = a.x - b.x;
     var dy = a.y - b.y;
     return r * r > dx * dx + dy * dy; 
 };
 
-Game.prototype.initPowerUp = function(type, max, wait, rand) { 
+Shooter.initPowerUp = function(type, max, wait, rand) { 
     this.powerUps[type] = [0, 0, max, wait, rand];
 };
 
-Game.prototype.createPowerUp = function(type, dec, init) { 
+Shooter.createPowerUp = function(type, dec, init) { 
     var up = this.powerUps[type];
     var add = (up[3] * 1000) + Math.random() * (up[4] * 1000);
     if (init) {
@@ -243,11 +239,11 @@ Game.prototype.createPowerUp = function(type, dec, init) {
     }
 };
 
-Game.prototype.removePowerUp = function(type) { 
+Shooter.removePowerUp = function(type) { 
     this.powerUps[type][0]--;
 };
 
-Game.prototype.collidePowerUps = function(o, p) {
+Shooter.collidePowerUps = function(o, p) {
     
     // Shield
     if (o.type == 'shield') {
@@ -298,7 +294,7 @@ Game.prototype.collidePowerUps = function(o, p) {
 
 
 // Mainloop --------------------------------------------------------------------
-Game.prototype.onUpdate = function() {
+Shooter.onUpdate = function() {
 
     // RoundTimer
     this.$.setField('rt', 
@@ -390,7 +386,7 @@ Game.prototype.onUpdate = function() {
     }
 };
 
-Game.prototype.collidePlayer = function(p, i, l) {
+Shooter.collidePlayer = function(p, i, l) {
     var players      = this.getActors('player');
     var players_defs = this.getActors('player_def');
     var powerups     = this.getActors('powerup');
@@ -490,7 +486,7 @@ Game.prototype.collidePlayer = function(p, i, l) {
 
 
 // Bomb ------------------------------------------------------------------------
-Game.prototype.destroyBomb = function(b) {
+Shooter.destroyBomb = function(b) {
     b.player.bomb = false;
     b.player.client.bomb = null;
     
@@ -554,7 +550,7 @@ Game.prototype.destroyBomb = function(b) {
 
 
 // Helpers ---------------------------------------------------------------------
-Game.prototype.wrapAngle = function(r) {
+Shooter.wrapAngle = function(r) {
     if (r > Math.PI) {
         r -= Math.PI * 2;
     }
@@ -564,7 +560,7 @@ Game.prototype.wrapAngle = function(r) {
     return r;
 };
 
-Game.prototype.randomPosition = function(obj, size) {
+Shooter.randomPosition = function(obj, size) {
     var players      = this.getActors('player');
     var powerups     = this.getActors('powerup');
     
@@ -598,7 +594,7 @@ Game.prototype.randomPosition = function(obj, size) {
     }
 };
 
-Game.prototype.wrapPosition = function(obj) {
+Shooter.wrapPosition = function(obj) {
     if (obj.x < -16) {
         obj.x += this.width + 32;
         obj.updated = true;

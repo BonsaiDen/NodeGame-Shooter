@@ -47,6 +47,9 @@ function Server(port, maxClients, maxChars) {
     this.fields = {};
     this.fieldsChanged = false;
     
+    this.bytesSend = 0;
+    this.bytesSendSecond = 0;
+    
     this.$ = ws.createServer();   
     
     var that = this;
@@ -95,6 +98,13 @@ function Server(port, maxClients, maxChars) {
 
 // Start -----------------------------------------------------------------------
 Server.prototype.run = function() {
+    var that = this;
+    process.nextTick(function() {
+        that.start();
+    });
+};
+
+Server.prototype.start = function() {
     console.log('>> Server started');
     
     var that = this;
@@ -105,10 +115,7 @@ Server.prototype.run = function() {
     // Mainloop
     this.startTime = new Date().getTime();
     this.time = new Date().getTime();
-    this.interval = 0;
-    this.$g = new Game(this);
-    this.bytesSend = 0;
-    this.bytesSendSecond = 0;
+    this.$g.start();
     
     // Status
     setInterval(function() {
@@ -142,6 +149,11 @@ Server.prototype.run = function() {
             process.exit(0);
         }, 100);
     });
+};
+
+Server.prototype.initGame = function(interval) {
+    this.$g = new Game(this, interval);
+    return this.$g;
 };
 
 exports.Server = Server;
@@ -336,15 +348,18 @@ Server.prototype.emitFields = function(mode) {
 
 // Gane ------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-function Game(srv) {
+function Game(srv, interval) {
     this.$ = srv;
+    this.interval = interval;
+}
+
+Game.prototype.start = function() {
     this._time = this.$.time;
     this._lastTime = this._time;
-    this.$.interval = this.onInit();
     this.running = true;
+    this.onInit();
     this.loop();
-}
-exports.Game = Game;
+};
 
 Game.prototype.loop = function() {
     var that = this;
@@ -359,7 +374,7 @@ Game.prototype.run = function() {
             this.$.clientsUpdate();
             this.$.actorsUpdate();
             this.onUpdate(); 
-            this._lastTime += this.$.interval 
+            this._lastTime += this.interval;
         }
         this.loop();
     }
@@ -411,7 +426,7 @@ Client.prototype._init = function() {
     
     this.send(this.$.msgGameStart, [
         this.id,
-        this.$.interval,
+        this.$g.interval,
         this.$.fields
     ]);
     
