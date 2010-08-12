@@ -100,6 +100,7 @@ Shooter.startRound = function() {
         this.powerUps[p][0] = 0;
         this.createPowerUp(p, false, true);
     }
+    this.powerUpCount = 0; 
     
     // Reset player stats
     this.roundFinished = false;
@@ -321,7 +322,7 @@ Shooter.onUpdate = function() {
                 this.powerUpCount++;
             
             } else {
-                up[1] += 5000 + 2500 * Math.random();
+                up[1] += up[4] * (Math.random() / 2 + 0.5) * 1000;
             }
         }
     }
