@@ -125,17 +125,20 @@ Shooter.onUpdate = function(data) {
 };
 
 Shooter.onControl = function(data) {
+    var keys = {'keys': [
+        this.keys[87] || this.keys[38] || 0,
+        this.keys[68] || this.keys[39] || 0,
+        this.keys[13] || this.keys[77] || 0,
+        this.keys[65] || this.keys[37] || 0,
+        this.keys[32] || 0]
+    };
+    
     for(var i in this.keys) {
         if (this.keys[i] == 2) {
             this.keys[i] = 0;
         }
     }
-    return {'keys': [this.keys[87] || this.keys[38] || 0,
-                     this.keys[68] || this.keys[39] || 0,
-                     this.keys[13] || this.keys[77] || 0,
-                     this.keys[65] || this.keys[37] || 0,
-                     this.keys[32] || 0]
-    };
+    return keys;
 };
 
 Shooter.onWebSocketError = function() {
