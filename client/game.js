@@ -20,15 +20,17 @@
   
 */
 
-var CLIENT = new Client(30);
+var Client = new NodeGame();
 window.onload = function() {
-    CLIENT.connect(HOST, PORT);
+    Client.connect(HOST, PORT);
 };
 
 
 // Game ------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Game.prototype.onConnect = function(success) {
+var Shooter = Client.createGame(30);
+
+Shooter.onConnect = function(success) {
     var that = this;
     this.canvas = document.getElementById('bg');
     if (!success) {
@@ -101,7 +103,7 @@ Game.prototype.onConnect = function(success) {
 };
 
 
-Game.prototype.onInit = function(data) {
+Shooter.onInit = function(data) {
     this.width = data.s[0];
     this.height = data.s[1];
     this.maxPlayers = data.m;
@@ -114,7 +116,7 @@ Game.prototype.onInit = function(data) {
     this.initCanvas();
 };
 
-Game.prototype.onUpdate = function(data) {
+Shooter.onUpdate = function(data) {
     this.playerNames = data.p;
     this.playerScores = data.c;
     this.playerColors = data.o;
@@ -122,7 +124,7 @@ Game.prototype.onUpdate = function(data) {
     this.checkPlayers(data);
 };
 
-Game.prototype.onControl = function(data) {
+Shooter.onControl = function(data) {
     for(var i in this.keys) {
         if (this.keys[i] == 2) {
             this.keys[i] = 0;
@@ -136,23 +138,23 @@ Game.prototype.onControl = function(data) {
     };
 };
 
-Game.prototype.onWebSocketError = function() {
+Shooter.onWebSocketError = function() {
     document.getElementById('bg').style.display = 'none';
     document.getElementById('fail').style.display = 'block';
 };
 
 
-Game.prototype.onClose = function() {
+Shooter.onClose = function() {
     document.location.href = document.location.href.split('#')[0].split('?')[0];
 };
 
-Game.prototype.onErroe = function(e) {
+Shooter.onErroe = function(e) {
     document.location.href = document.location.href.split('#')[0].split('?')[0];
 };
 
 
 // Renderimg -------------------------------------------------------------------
-Game.prototype.onRender = function() {
+Shooter.onRender = function() {
     
     // Clear
     this.fill('#000000');
@@ -167,7 +169,7 @@ Game.prototype.onRender = function() {
     this.renderRound();
 };
 
-Game.prototype.renderRound = function() {
+Shooter.renderRound = function() {
     this.fill('#ffffff');
     
     var t = Math.round((this.roundTime
@@ -210,7 +212,7 @@ Game.prototype.renderRound = function() {
     }
 };
 
-Game.prototype.renderParticles = function() {
+Shooter.renderParticles = function() {
     var remove = [];
     for(var i = 0, l = this.particles.length; i < l; i++) {
         var p = this.particles[i];
@@ -289,13 +291,13 @@ Game.prototype.renderParticles = function() {
 
 
 // Interface -------------------------------------------------------------------
-Game.prototype.onResize = function(data) {
+Shooter.onResize = function(data) {
     this.small = !this.small;
     this.scale = this.small ? 0.5 : 1;
     this.initCanvas();
 };
 
-Game.prototype.onExtreme = function(data) {
+Shooter.onExtreme = function(data) {
     this.extreeeeeeme = !this.extreeeeeeme;
     document.getElementById('extreme').innerHTML = (this.extreeeeeeme
                                                     ? 'DEACTIVATE'
@@ -303,7 +305,7 @@ Game.prototype.onExtreme = function(data) {
                                                     + ' EXTREEEEME';
 };
 
-Game.prototype.onLogin = function(e) {
+Shooter.onLogin = function(e) {
     e = e || window.event;
     if (e.keyCode == 13) {
         var playerName = document.getElementById('login').value;
@@ -320,7 +322,7 @@ Game.prototype.onLogin = function(e) {
 
 
 // Rounds & Players ------------------------------------------------------------
-Game.prototype.checkRound = function(data) {
+Shooter.checkRound = function(data) {
     if (this.roundGO != !!data.rg) {
         this.roundStart = this.getTime();
         this.roundID = data.ri;
@@ -330,7 +332,7 @@ Game.prototype.checkRound = function(data) {
     this.roundGO = !!data.rg;
 };
 
-Game.prototype.checkPlayers = function(data) {
+Shooter.checkPlayers = function(data) {
     var count = 0;
     for(var i in data.p) {
         count++;
@@ -353,17 +355,17 @@ Game.prototype.checkPlayers = function(data) {
     }
 };
 
-Game.prototype.playerColor = function(id) {
+Shooter.playerColor = function(id) {
     return this.colorCodes[this.playerColors[id]];
 };
 
-Game.prototype.playerColorFaded = function(id) {
+Shooter.playerColorFaded = function(id) {
     return this.colorCodesFaded[this.playerColors[id]];
 };
 
 
 // Effects ---------------------------------------------------------------------
-Game.prototype.effectArea = function(x, y, size, d, col) {
+Shooter.effectArea = function(x, y, size, d, col) {
     d = d * 1000;
     d = this.extreeeeeeme ? d * 2 : d;
     this.particles.push({
@@ -375,7 +377,7 @@ Game.prototype.effectArea = function(x, y, size, d, col) {
     });
 };
 
-Game.prototype.effectParticle = function(x, y, r, speed, d, col, a) {
+Shooter.effectParticle = function(x, y, r, speed, d, col, a) {
     d = this.extreeeeeeme ? d * 2 : d;
     for(var i = 0; i < (this.extreeeeeeme ? 2 : 1); i++) {
         this.particles.push({
@@ -390,7 +392,7 @@ Game.prototype.effectParticle = function(x, y, r, speed, d, col, a) {
     }
 };
 
-Game.prototype.effectExplosion = function(x, y, count, d, speed, col) {
+Shooter.effectExplosion = function(x, y, count, d, speed, col) {
     count = this.extreeeeeeme ? count * 2 : count;
     var r = (Math.PI * 2 * Math.random());
     var rs = Math.PI * 2 / count;
@@ -401,7 +403,7 @@ Game.prototype.effectExplosion = function(x, y, count, d, speed, col) {
     }
 };
 
-Game.prototype.effectRing = function(x, y, size, count, d, speed, col, a) {
+Shooter.effectRing = function(x, y, size, count, d, speed, col, a) {
     for(var i = 0; i < count; i++) {
         var r = (Math.PI * 2 / count * i) - Math.PI;
         
@@ -415,7 +417,7 @@ Game.prototype.effectRing = function(x, y, size, count, d, speed, col, a) {
 
 
 // Helpers ---------------------------------------------------------------------
-Game.prototype.initCanvas = function() {
+Shooter.initCanvas = function() {
     this.canvas.width = this.width * this.scale;
     this.canvas.height = this.height * this.scale;
     this.bg = this.canvas.getContext('2d');
@@ -423,12 +425,12 @@ Game.prototype.initCanvas = function() {
     this.font((this.scale == 1 ? 11 : 17));
 };
 
-Game.prototype.font = function(size) {
+Shooter.font = function(size) {
     this.bg.font = 'bold ' + size+ 'px'
                    + ' Monaco, "DejaVu Sans Mono", "Bitstream Vera Sans Mono"';
 };
 
-Game.prototype.strokeCircle = function(x, y, size, line, color) {
+Shooter.strokeCircle = function(x, y, size, line, color) {
     this.line(line);
     this.stroke(color);
     this.bg.beginPath();
@@ -437,7 +439,7 @@ Game.prototype.strokeCircle = function(x, y, size, line, color) {
     this.bg.stroke();
 };
 
-Game.prototype.fillCircle = function(x, y, size, color) {
+Shooter.fillCircle = function(x, y, size, color) {
     this.line(0.5);
     this.fill(color);
     this.bg.beginPath();
@@ -446,34 +448,34 @@ Game.prototype.fillCircle = function(x, y, size, color) {
     this.bg.fill();
 };
 
-Game.prototype.line = function(width) {
+Shooter.line = function(width) {
     this.bg.lineWidth = width;
 };
 
-Game.prototype.alpha = function(value) {
+Shooter.alpha = function(value) {
     this.bg.globalAlpha = value;
 };
 
-Game.prototype.text = function(x, y, text, align, baseline) {
+Shooter.text = function(x, y, text, align, baseline) {
     this.bg.textAlign = align;
     this.bg.textBaseline = baseline;
     this.bg.fillText(text, x, y);   
 };
 
-Game.prototype.fill = function(color) {
+Shooter.fill = function(color) {
     this.bg.fillStyle = color;
 };
 
-Game.prototype.stroke = function(color) {
+Shooter.stroke = function(color) {
     this.bg.strokeStyle = color;
 };
 
-Game.prototype.timeScale = function(time, scale) {
+Shooter.timeScale = function(time, scale) {
     var diff = this.getTime() - time;
     return diff < scale ? d = 1 / scale * diff : 1;         
 };
 
-Game.prototype.wrapAngle = function(r) {
+Shooter.wrapAngle = function(r) {
     if (r > Math.PI) {
         r -= Math.PI * 2;
     }
