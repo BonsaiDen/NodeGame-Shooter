@@ -151,7 +151,7 @@ Shooter.onClose = function() {
     document.location.href = document.location.href.split('#')[0].split('?')[0];
 };
 
-Shooter.onErroe = function(e) {
+Shooter.onError = function(e) {
     document.location.href = document.location.href.split('#')[0].split('?')[0];
 };
 
@@ -430,7 +430,7 @@ Shooter.initCanvas = function() {
 
 Shooter.font = function(size) {
     this.bg.font = 'bold ' + size+ 'px'
-                   + ' Monaco, "DejaVu Sans Mono", "Bitstream Vera Sans Mono"';
+                   + ' "Tahoma", "DejaVu Sans Mono", "Bitstream Vera Sans Mono"';
 };
 
 Shooter.strokeCircle = function(x, y, size, line, color) {
