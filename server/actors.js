@@ -27,6 +27,7 @@ var gs = require(__dirname + '/server');
 // -----------------------------------------------------------------------------
 var ActorPlayer = NodeShooter.createActorType('player');
 ActorPlayer.create = function(data) {
+    this.client = data.client;
     this.hp = 15;
     this.r = (Math.random() * Math.PI * 2) - Math.PI;
     this.mr = 0;

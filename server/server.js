@@ -171,7 +171,6 @@ Server.prototype.clientsUpdate = function() {
 Server.prototype.createActor = function(clas, data) {
     var a = new Actor(this, clas, data, null);
     this.actors[clas].push(a);
-    this.actorCount++;
     return a;
 };
 
@@ -338,6 +337,7 @@ function Game(srv) {
 exports.Game = Game;
 
 Game.prototype.run = function() {
+    this.$.pushFields(false);
     this._time = this.$.time = new Date().getTime();
     while(this._lastTime <= this._time) {
         this.$.clientsUpdate();
@@ -345,7 +345,6 @@ Game.prototype.run = function() {
         this.onUpdate(); 
         this._lastTime += this.$.interval 
     }
-    this.$.pushFields(false);
 };
 
 Game.prototype.getTime = function() {
@@ -420,17 +419,6 @@ Client.prototype.getTime = function() {
     return this.$.getTime();
 };
 
-Client.prototype.createActor = function(clas, data) {
-    var a = new Actor(this.$, clas, data, this);
-    this.$.actors[clas].push(a);
-    this.$.actorCount++;
-    return a;
-};
-
-Client.prototype.emit = function(type, msg) {
-    this.$.emit(type, msg);
-}
-
 Client.prototype.send = function(type, msg) {
     this.$.send(this.conn, type, msg);
 };
@@ -442,13 +430,12 @@ Client.prototype.close = function() {
 
 // Actors ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-function Actor(srv, clas, data, client) {
+function Actor(srv, clas, data) {
     this.$ = srv;
     this.$g = srv.$g;
     this.id = this.$.actorID;
     this.$.actorID += 1;
     this.clas = clas;
-    this.client = client;
     this.x = 0;
     this.y = 0;
     this.mx = 0;
