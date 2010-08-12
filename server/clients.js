@@ -124,7 +124,7 @@ Client.prototype.onUpdate = function() {
     if (this.reset != -1) {
         if (this.timeDiff(this.reset) > 3000) {
             this.shotTime = this.getTime();
-            this.player = this.$.createActor('player', {'r': 0});
+            this.player = this.$.createActor('player', {'r': 0, 'client': this});
             this.reset = -1;
         }
         return;
