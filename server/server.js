@@ -444,15 +444,15 @@ function Actor(srv, clas, data) {
     this.alive = true;
     this.updated = false;
     
-    this.$.actorTypes[this.clas].create.call(this, data); 
+    for(var m in this.$.actorTypes[this.clas]) {
+        if (m != 'destroy') {
+            this[m] = this.$.actorTypes[this.clas][m];
+        }
+    }
+    this.create(data); 
     this.$.emit(this.$.msgActorsCreate, this.toMessage(true));
     return this;
 }
-
-Actor.prototype.update = function() {
-    this.$.actorTypes[this.clas].update.call(this);
-};
-
 Actor.prototype.destroy = function() {
     if (this.alive) {
         this.alive = false;
@@ -475,7 +475,7 @@ Actor.prototype.toMessage = function(full) {
     }
     
     var msg = [raw];
-    var d = this.$.actorTypes[this.clas].msg.call(this, full);
+    var d = this.msg(full);
     if (d.length > 0) {
         msg.push(d);
     }

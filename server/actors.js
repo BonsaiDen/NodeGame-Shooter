@@ -130,7 +130,7 @@ ActorPlayer.update = function() {
             this.updated = true;
             
         } else {
-            ActorPlayer.syncData.call(this);
+            this.syncData();
         }
     
     // fade in
@@ -145,7 +145,7 @@ ActorPlayer.update = function() {
         this.updated = true;
         
     } else {
-        ActorPlayer.syncData.call(this);
+        this.syncData();
     }
 };
 

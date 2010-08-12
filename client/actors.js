@@ -263,7 +263,7 @@ ActorPlayerDef.create = function(data) {
     this.x = data[2];
     this.y = data[3];
     
-    ActorPlayerDef.wrap.call(this);
+    this.wrap();
     this.$g.effectExplosion(this.dx, this.dy, 4, 0.25, 1,
                             this.$g.playerColor(this.id));
 };
@@ -285,7 +285,7 @@ ActorPlayerDef.update = function(data) {
 
 ActorPlayerDef.interleave = function() {
     this.r = this.$g.wrapAngle(this.r + 0.20 / this.$.intervalSteps);
-    ActorPlayerDef.wrap.call(this);
+    this.wrap();
 };
 
 ActorPlayerDef.wrap = function() {

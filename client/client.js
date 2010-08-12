@@ -220,10 +220,10 @@ Client.prototype.render = function() {
         var a = this.actors[c];
         a.x += a.mx / this.intervalSteps;
         a.y += a.my / this.intervalSteps;
-        this.actorTypes[a.clas].interleave.call(a);
+        a.interleave();
         
         if (render) {
-            this.actorTypes[a.clas].render.call(a);
+            a.render();
         }
     }
 };
@@ -266,7 +266,12 @@ function Actor(game, data) {
     this.my = d[4];
     this.clas = d[5];
     
-    this.$.actorTypes[this.clas].create.call(this, data[1]);
+    for(var m in this.$.actorTypes[this.clas]) {
+        if (m != 'update' && m != 'destroy') {
+            this[m] = this.$.actorTypes[this.clas][m];
+        }
+    }
+    this.create(data[1]);
 }
 
 Actor.prototype.update = function(data) {
@@ -275,12 +280,7 @@ Actor.prototype.update = function(data) {
     this.y = d[2];
     this.mx = d[3];
     this.my = d[4];
-    
     this.$.actorTypes[this.clas].update.call(this, data[1]);
-};
-
-Actor.prototype.event = function(type, data) {
-    this.$.actor_types[this.clas].event.call(this, type, data);
 };
 
 Actor.prototype.destroy = function(x, y) {

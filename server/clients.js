@@ -100,7 +100,7 @@ Client.prototype.onMessage = function(msg) {
     
     // Set name and init player
     } else if (msg.join) {
-        msg.join = msg.join.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '_');
+        msg.join = msg.join.trim().replace(/\s+/g, '_');
         if (msg.join && this.playerName == ''
             && msg.join.length >= 2 && msg.join.length <= 12
             && this.$g.playerCount < this.$g.maxPlayers) {
