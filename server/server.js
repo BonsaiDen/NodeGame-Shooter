@@ -23,10 +23,12 @@
 // Server ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 var ws = require(__dirname + '/lib/ws');
+var sys = require('sys');
 
 function Server(port, maxClients, maxChars) {
     this.maxChars = maxChars || 128;
     this.maxClients = maxClients || 64;
+    this.port = port;
     
     // these could be global but... meh...
     this.msgGameStart = 1;
@@ -46,9 +48,10 @@ function Server(port, maxClients, maxChars) {
     
     this.fields = {};
     this.fieldsChanged = false;
+    this.logs = [];
     
     this.bytesSend = 0;
-    this.bytesSendSecond = 0;
+    this.bytesSendLast = 0;
     
     this.$ = ws.createServer();   
     
@@ -64,7 +67,7 @@ function Server(port, maxClients, maxChars) {
         
             // a little bit paranoid...
             if (msg.length > that.maxChars) {
-                console.log('!! ' + 'Message longer than ' + that.maxChars
+                that.log('Message longer than ' + that.maxChars
                             + ' chars');
                 
                 conn.close();
@@ -74,7 +77,7 @@ function Server(port, maxClients, maxChars) {
                     that.clientState(id, JSON.parse(msg));
                 
                 } catch (e) {
-                    console.log('!! Error: ' + e);
+                    that.log('Error: ' + e);
                     conn.close();
                 }
             }
@@ -92,7 +95,7 @@ function Server(port, maxClients, maxChars) {
     this.actors = {};
     
     // Hey Listen!
-    this.$.listen(port);
+    this.$.listen(this.port);
 }
 
 
@@ -105,8 +108,6 @@ Server.prototype.run = function() {
 };
 
 Server.prototype.start = function() {
-    console.log('>> Server started');
-    
     var that = this;
     for(var i in this.actorTypes) {
         this.actors[i] = []; 
@@ -115,34 +116,22 @@ Server.prototype.start = function() {
     // Mainloop
     this.startTime = new Date().getTime();
     this.time = new Date().getTime();
+    this.log('>> Server started');
     this.$g.start();
+    that.status();
     
     // Status
-    setInterval(function() {
-        var t = Math.round((that.time - that.startTime) / 1000);
-        var m = Math.floor(t / 60);
-        var s = t % 60;
-        
-        console.log('>> #' + m + ':' + (s < 10 ? '0' : '') + s + ' / '
-                    + that.clientCount
-                    + ' Client(s) / ' + that.actorCount + ' Actor(s) / '
-                    + (Math.round(that.bytesSendSecond / 10 * 100 / 1024) / 100)
-                    +' kb/s');
-        
-        that.bytesSendSecond = 0;
-        
-    }, 10000);
+    setInterval(function(){that.status(false)}, 500);
     
     // Exit
     process.addListener('SIGINT', function () {
-        console.log('>> Shutting down...');
-        console.log('>> ' + (Math.round(that.bytesSend / 10 * 100 / 1024) / 100)
-                    +' kb send in total');
-        
+        that.log('>> Shutting down...');
+        that.status(true);
         that.$g.running = false;
         that.actorsDestroy();
         that.emit(that.msgGameShutdown, []);
         setTimeout(function() {
+            sys.print('\x1b[u\n');
             for(var c in that.clients) {
                 that.clients[c].close();
             }
@@ -154,6 +143,48 @@ Server.prototype.start = function() {
 Server.prototype.initGame = function(interval) {
     this.$g = new Game(this, interval);
     return this.$g;
+};
+
+Server.prototype.log = function(str) {
+    this.logs.push([this.getTime(), str]);
+    if (this.logs.length > 10) {
+        this.logs.shift();
+    }
+};
+
+Server.prototype.status = function(end) {
+    var that = this;
+    function toTime(time) {
+        var t = Math.round((time - that.startTime) / 1000);
+        var m = Math.floor(t / 60);
+        var s = t % 60;
+        return m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    function toSize(size) {
+        var t = 0;
+        while(size >= 1024 && t < 2) {
+            size = size / 1024;
+            t++;
+        }
+        return Math.round(size * 100) / 100 + [' bytes', ' kib', ' mib'][t];
+    }
+    
+    var stats = '    Running ' + toTime(this.time) + ' | '
+                + this.clientCount
+                + ' Client(s) | ' + this.actorCount + ' Actor(s) | '
+                + toSize(this.bytesSend)
+                + ' send | '
+                + toSize((this.bytesSend - this.lastBytesSend) * 2)
+                + '/s\n';
+    
+    this.lastBytesSend = this.bytesSend;
+    for(var i = this.logs.length - 1; i >= 0; i--) {
+        stats += '\n      ' + toTime(this.logs[i][0])
+                 + ' ' + this.logs[i][1];
+    }
+    sys.print('\x1b[H\x1b[J# NodeGame Server at port '
+              + this.port + '\n' + stats + '\n\x1b[s');
 };
 
 exports.Server = Server;
@@ -269,7 +300,6 @@ Server.prototype.send = function(conn, type, msg) {
     msg.unshift(type);
     var e = this.toJSON(msg);
     this.bytesSend += e.length;
-    this.bytesSendSecond += e.length;
     conn.write(e);
 };
 
@@ -277,7 +307,6 @@ Server.prototype.emit = function(type, msg) {
     msg.unshift(type);
     var e = this.toJSON(msg);
     this.bytesSend += e.length * this.clientCount;
-    this.bytesSendSecond += e.length * this.clientCount;
     this.$.broadcast(e);
 };
 
@@ -384,6 +413,10 @@ Game.prototype.getTime = function() {
     return this._time;
 };
 
+Game.prototype.log = function(str) {
+    this.$.log(str);
+};
+
 Game.prototype.timeDiff = function(time) {
     return this.$.timeDiff(time);
 };
@@ -447,6 +480,10 @@ Client.prototype.onRemove = function() {
 };
 
 // Stuff
+Client.prototype.log = function(str) {
+    this.$.log(str);
+};
+
 Client.prototype.getInfo = function() {
     return this.conn.id;
 }

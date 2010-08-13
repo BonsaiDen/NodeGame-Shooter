@@ -23,7 +23,7 @@
 var NodeGame = require(__dirname + '/server');
 
 // Init
-Server = new NodeGame.Server(28785);
+Server = new NodeGame.Server(Math.abs(process.argv[2]) || 28785);
 require(__dirname + '/clients');
 require(__dirname + '/actors');
 Server.run();
@@ -85,7 +85,7 @@ Shooter.onInit = function() {
 // Rounds ----------------------------------------------------------------------
 Shooter.startRound = function() {
     this.roundID++;
-    console.log('>> Round #' + this.roundID + ' started!');
+    this.log('## Round #' + this.roundID + ' started!');
     
     this.roundStart = this.getTime();
     this.roundTimeLeft = this.roundTime;
@@ -114,7 +114,7 @@ Shooter.startRound = function() {
 };
 
 Shooter.endRound = function() {
-    console.log('>> Round #' + this.roundID + ' finished!');
+    this.log('## Round #' + this.roundID + ' finished!');
     
     // Reset
     this.roundStart = this.getTime();
