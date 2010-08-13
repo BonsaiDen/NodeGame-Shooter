@@ -307,6 +307,10 @@ Actor.prototype.destroy = function(x, y) {
     this.$s.actorTypes[this.clas].destroy.call(this);
 };
 
+Actor.prototype.getTime = function() {
+    return new Date().getTime();
+};
+
 // Exports
 window.NodeGame = Client;
 })();

@@ -41,6 +41,8 @@ ActorPlayer.create = function(data) {
     
     // Syncing
     this.sync = 10;
+    this.needSync = false;
+    this.realSync = 10;
     this.mxOld = this.mx;
     this.myOld = this.my;
     this.mrOld = this.mr;
@@ -151,24 +153,33 @@ ActorPlayer.update = function() {
 
 ActorPlayer.syncData = function() {
     this.sync++;
-    if (this.boost != this.boostOld || this.shield != this.shieldOld
-        || this.thrust != this.thrustOld || this.mr != 0
-        || this.mr != this.mrOld || this.mx != this.mxOld
-        || this.my != this.myOld || this.sync > 8) {
-        
+    if (this.thrust != this.thrustOld || this.mr != 0 || this.sync > 4) {
+        this.needSync = true;
         this.sync = 0;
+        this.thrustOld = this.thrust;
+    }
+    
+    this.realSync++;
+    if (this.boost != this.boostOld || this.mr != this.mrOld
+        || this.shield != this.shieldOld
+        || this.mx != this.mxOld
+        || this.my != this.myOld
+        || (this.needSync && this.realSync > 1)) {
+        
+        this.shieldOld = this.shield;
+        this.boostOld = this.boost;
+        this.mrOld = this.mr;
+        this.mxOld = this.mx;
+        this.myOld = this.my;
+        
+        this.realSync = 0;
+        this.needSync = false;
         if (this.camu == 2) {
             this.updated = [this.client.id];
         
         } else {
             this.updated = true;
         }
-        this.mxOld = this.mx;
-        this.myOld = this.my;
-        this.mrOld = this.mr;
-        this.shieldOld = this.shield;
-        this.thrustOld = this.thrust;
-        this.boostOld = this.boost;
     }
 }
 
