@@ -144,7 +144,7 @@ Server.prototype.initGame = function(interval) {
 
 Server.prototype.log = function(str) {
     this.logs.push([this.getTime(), str]);
-    if (this.logs.length > 15) {
+    if (this.logs.length > 18) {
         this.logs.shift();
     }
 };
@@ -172,16 +172,16 @@ Server.prototype.status = function(end) {
                 + ' Client(s) | ' + this.actorCount + ' Actor(s) | '
                 + toSize(this.bytesSend)
                 + ' send | '
-                + toSize((this.bytesSend - this.lastBytesSend) * 2)
+                + toSize((this.bytesSend - this.bytesSendLast) * 2)
                 + '/s\n';
     
-    this.lastBytesSend = this.bytesSend;
+    this.bytesSendLast = this.bytesSend;
     for(var i = this.logs.length - 1; i >= 0; i--) {
         stats += '\n      ' + toTime(this.logs[i][0])
                  + ' ' + this.logs[i][1];
     }
     sys.print('\x1b[H\x1b[J# NodeGame Server at port '
-              + this.port + '\n' + stats + '\n\x1b[s');
+              + this.port + '\n' + stats + '\n\x1b[s\x1b[H');
               
     if (!end) {
         var that = this;
@@ -545,8 +545,8 @@ Actor.prototype.toMessage = function(full) {
         this.id,
         Math.round(this.x * 100) / 100,
         Math.round(this.y * 100) / 100,
-        Math.round(this.mx * 1000) / 1000,
-        Math.round(this.my * 1000) / 1000
+        Math.round(this.mx * 100) / 100,
+        Math.round(this.my * 100) / 100
     ];
     if (full) {
         raw.push(this.clas);
