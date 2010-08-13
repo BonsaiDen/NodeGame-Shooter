@@ -207,7 +207,7 @@ Client.prototype.quit = function() {
     }
 };
 
-Client.prototype.initGame = function(fps) {
+Client.prototype.Game = function(fps) {
     this.fpsTime = Math.round(1000 / fps);
     this.$ = new Game(this);
     return this.$;

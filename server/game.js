@@ -20,7 +20,7 @@
   
 */
 
-var NodeGame = require(__dirname + '/server');
+var NodeGame = require(__dirname + '/nodegame');
 
 // Init
 Server = new NodeGame.Server(Math.abs(process.argv[2]) || 28785);
@@ -43,7 +43,7 @@ Shooter.onInit = function() {
     this.$.setField('o', {}); // colors
     
     // Rounds
-    this.roundTime = 10000;
+    this.roundTime = 180000;
     this.roundWait = 15000;
     
     this.roundID = 0;
@@ -76,7 +76,7 @@ Shooter.onInit = function() {
     this.initPowerUp('boost',   2, 20, 15);
     this.initPowerUp('defense', 1, 35, 30);
     this.initPowerUp('bomb',    1, 70, 35);
-    this.initPowerUp('camu',    1, 0, 2);
+    this.initPowerUp('camu',    1, 47, 20);
     
     // Start Game
     this.startRound();

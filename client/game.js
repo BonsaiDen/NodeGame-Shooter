@@ -28,7 +28,7 @@ window.onload = function() {
 
 // Game ------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-var Shooter = Client.initGame(30);
+var Shooter = Client.Game(30);
 
 Shooter.onConnect = function(success) {
     var that = this;
