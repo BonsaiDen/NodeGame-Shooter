@@ -162,7 +162,7 @@ Server.prototype.timeDiff = function(time) {
 
 Server.prototype.log = function(str) {
     this.logs.push([this.getTime(), str]);
-    if (this.logs.length > 20) {
+    if (this.logs.length > 18) {
         this.logs.shift();
     }
 };
@@ -559,7 +559,7 @@ Actor.prototype.$emit = function(type) {
                 }
                 c.$actors.splice(index, 1);
                 c.$destroyMessages.push([this.id, Math.round(this.x),
-                                                 Math.round(this.y)]);
+                                                  Math.round(this.y)]);
             
             // Update AND init
             } else if (type == MSG_ACTORS_UPDATE) {

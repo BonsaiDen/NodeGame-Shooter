@@ -105,9 +105,9 @@ Client.prototype.connect = function(host, port) {
         that.$.onConnect(true);
     };
     
-    this.conn.onmessage = function(msg){
+    this.conn.onmessage = function(msg) {
         that.onMessage(msg);
-    }
+    };
     
     this.conn.onclose = function(e) {
         if (that.connected) {
