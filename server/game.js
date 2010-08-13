@@ -24,14 +24,14 @@ var NodeGame = require(__dirname + '/nodegame');
 
 // Init
 Server = new NodeGame.Server(Math.abs(process.argv[2]) || 28785);
-require(__dirname + '/clients');
-require(__dirname + '/actors');
 Server.run();
 
+require(__dirname + '/clients');
+require(__dirname + '/actors');
 
 // Game ------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-var Shooter = Server.Game(50);
+var Shooter = Server.Game(20);
 
 Shooter.onInit = function() {
     this.width = 480;

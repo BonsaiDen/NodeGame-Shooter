@@ -125,6 +125,7 @@ Server.prototype.start = function() {
 Server.prototype.shutdown = function() {
     this.log('>> Shutting down...');
     this.status(true);
+    this.$g.onShutdown();
     this.$g.$running = false;
     this.destroyActors();
     this.emit(MSG_GAME_SHUTDOWN, []);
@@ -161,7 +162,7 @@ Server.prototype.timeDiff = function(time) {
 
 Server.prototype.log = function(str) {
     this.logs.push([this.getTime(), str]);
-    if (this.logs.length > 18) {
+    if (this.logs.length > 20) {
         this.logs.shift();
     }
 };
@@ -393,7 +394,7 @@ Server.prototype.emitFields = function(mode) {
 // -----------------------------------------------------------------------------
 function Game(srv, interval) {
     this.$ = srv;
-    this.$interval = interval;
+    this.$interval = 1000 / interval;
 }
 
 Game.prototype.start = function() {
@@ -423,6 +424,9 @@ Game.prototype.onInit = function() {
 };
 
 Game.prototype.onUpdate = function() {
+};
+
+Game.prototype.onShutdown = function() {
 };
 
 // Helpers
