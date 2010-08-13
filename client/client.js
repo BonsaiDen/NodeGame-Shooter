@@ -294,8 +294,19 @@ function Actor(game, data) {
 
 Actor.prototype.update = function(data) {
     var d = data[0];
-    this.x = d[1];
-    this.y = d[2];
+    var dx = this.x - d[1];
+    var dy = this.y - d[2];
+    
+    var r = Math.atan2(dx, dy);
+    var dist = Math.sqrt(dx * dx + dy * dy) * 0.5;
+    if (dist < 2) {
+        this.x = this.x - Math.sin(r) * dist;
+        this.y = this.y - Math.cos(r) * dist;
+    
+    } else {
+        this.x = d[1];
+        this.y = d[2];
+    }
     this.mx = d[3];
     this.my = d[4];
     this.$s.actorTypes[this.clas].update.call(this, data[1]);
