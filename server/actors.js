@@ -121,7 +121,7 @@ ActorPlayer.update = function() {
             this.camu = 2;
             this.camuTime = this.getTime();
             this.camuFade = -2;
-            this.updated = [this.client.id];
+            this.clients = [this.client.id];
         }
     
     // faded
@@ -129,26 +129,21 @@ ActorPlayer.update = function() {
         if (this.timeDiff(this.camuTime) > 15000) {
             this.camu = 3;
             this.camuFade = 0;
-            this.updated = true;
-            
-        } else {
-            this.syncData();
+            this.clients = [];
         }
     
     // fade in
     } else if (this.camu == 3) {
         if (this.camuFade <= 100) {
             this.camuFade += 5;
+            this.updated = true;
         
         } else {
             this.camuFade = -1;
             this.camu = 0;
-        }
-        this.updated = true;
-        
-    } else {
-        this.syncData();
+        }        
     }
+    this.syncData();
 };
 
 ActorPlayer.syncData = function() {
@@ -162,8 +157,8 @@ ActorPlayer.syncData = function() {
     this.realSync++;
     if (this.boost != this.boostOld || this.mr != this.mrOld
         || this.shield != this.shieldOld
-        || this.mx != this.mxOld
-        || this.my != this.myOld
+        || Math.abs(this.mx - this.mxOld) > 0.025
+        || Math.abs(this.my - this.myOld) > 0.025
         || (this.needSync && this.realSync > 1)) {
         
         this.shieldOld = this.shield;
@@ -184,6 +179,7 @@ ActorPlayer.syncData = function() {
 }
 
 ActorPlayer.destroy = function() {
+    this.clients = [];
     this.defender = null;
     this.hp = 0;
     var players_defs = this.$.getActors('player_def');

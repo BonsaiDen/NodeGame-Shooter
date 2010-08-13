@@ -157,7 +157,7 @@ Shooter.onError = function(e) {
 
 
 // Renderimg -------------------------------------------------------------------
-Shooter.onRender = function() {
+Shooter.onDraw = function() {
     
     // Clear
     this.fill('#000000');

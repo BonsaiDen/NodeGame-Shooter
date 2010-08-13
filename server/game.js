@@ -31,7 +31,8 @@ Server.run();
 
 // Game ------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-var Shooter = Server.initGame(50);
+var Shooter = Server.Game(50);
+
 Shooter.onInit = function() {
     this.width = 480;
     this.height = 480;
@@ -42,7 +43,7 @@ Shooter.onInit = function() {
     this.$.setField('o', {}); // colors
     
     // Rounds
-    this.roundTime = 180000;
+    this.roundTime = 10000;
     this.roundWait = 15000;
     
     this.roundID = 0;
@@ -75,7 +76,7 @@ Shooter.onInit = function() {
     this.initPowerUp('boost',   2, 20, 15);
     this.initPowerUp('defense', 1, 35, 30);
     this.initPowerUp('bomb',    1, 70, 35);
-    this.initPowerUp('camu',    1, 47, 20);
+    this.initPowerUp('camu',    1, 0, 2);
     
     // Start Game
     this.startRound();
@@ -121,7 +122,7 @@ Shooter.endRound = function() {
     this.roundFinished = true;
     this.roundStart = this.getTime();
     this.roundTimeLeft = this.roundWait;
-    this.$.actorsDestroy();
+    this.$.destroyActors();
     
     // Stats
     var sorted = [];

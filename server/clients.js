@@ -20,20 +20,19 @@
   
 */
 
-var gs = require(__dirname + '/server');
-var Client = gs.Client;
-
 
 // Client handlers -------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Client.prototype.onInit = function() {
+var Client = Server.Client();
+
+Client.onInit = function() {
     this.playerName = '';
     this.playerColor = -1;
     this.log('++ [' + this.getInfo() + '] connected');
     this.$.emitFields();
 };
 
-Client.prototype.init = function(init) {
+Client.init = function(init) {
     if (this.playerName && !this.$g.roundFinished) {
         
         // Get free color
@@ -70,7 +69,7 @@ Client.prototype.init = function(init) {
     }
 };
 
-Client.prototype.kill = function() {
+Client.kill = function() {
     if (this.player && !this.$g.roundFinished) {
         this.bomb = null;
         this.addScore(this.player.camu == 2 ? -10 : -5);
@@ -89,12 +88,12 @@ Client.prototype.kill = function() {
     }
 };
 
-Client.prototype.addScore = function(add) {
+Client.addScore = function(add) {
     this.score += add;
     this.$.setFieldItem('c', this.id, this.score); // scores
 };
 
-Client.prototype.onMessage = function(msg) {
+Client.onMessage = function(msg) {
     // Controls
     if (this.playerName != '' && msg.keys && msg.keys.length == 5) {
         var k = msg.keys;
@@ -118,7 +117,7 @@ Client.prototype.onMessage = function(msg) {
     }
 };
 
-Client.prototype.onUpdate = function() {
+Client.onUpdate = function() {
     if (this.$g.roundFinished || !this.playerName) {
         return;
     }
@@ -207,12 +206,12 @@ Client.prototype.onUpdate = function() {
     }
 };
 
-Client.prototype.onRemove = function() {
+Client.onRemove = function() {
     this.leave();
     this.log('-- [' + this.getInfo() + '] quit');
 };
 
-Client.prototype.leave = function() {
+Client.leave = function() {
     if (this.playerName != '') {
         this.$g.playerColors[this.playerColor] = -1;
         this.$g.playerCount -= 1;

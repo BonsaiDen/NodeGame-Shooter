@@ -22,6 +22,17 @@
 
 (function() {
 
+var MSG_GAME_START = 1;
+var MSG_GAME_FIELDS = 2;
+var MSG_GAME_SHUTDOWN = 3;
+
+var MSG_ACTORS_INIT = 4;
+var MSG_ACTORS_CREATE = 5;
+var MSG_ACTORS_UPDATE = 6;
+var MSG_ACTORS_REMOVE = 7;
+var MSG_ACTORS_DESTROY = 8;
+
+
 // Game ------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 function Game(client) {
@@ -79,16 +90,6 @@ function Client(fps) {
     
     this.actors = {};
     this.actorTypes = {};
-    
-    this.msgGameStart = 1;
-    this.msgGameFields = 2;
-    this.msgGameShutdown = 3;
-    
-    this.msgActorsCreate = 4;
-    this.msgActorsInit = 5;
-    this.msgActorsUpdate = 6;
-    this.msgActorsEvent = 7;
-    this.msgActorsDestroy = 8;
 };
 
 Client.prototype.connect = function(host, port) {
@@ -148,33 +149,34 @@ Client.prototype.onMessage = function(msg) {
     }
     
     // Game
-    if (type == this.msgGameStart) {
+    if (type == MSG_GAME_START) {
         this.$.id = data[0];
         this.lastFrame = this.lastRender = this.getTime();
         this.intervalSteps = data[1] / 10;
-        
         this.running = true;
-        this.loop();
-        
+        this.update();
         this.$.onInit(data[2]);
     
-    } else if (type == this.msgGameFields) {
+    } else if (type == MSG_GAME_FIELDS) {
         this.$.onUpdate(data[0]);
     
-    } else if (type == this.msgGameShutdown) {
+    } else if (type == MSG_GAME_SHUTDOWN) {
         this.$.onShutdown(data);
-        
-    // Actors
-    } else if (type == this.msgActorsCreate) {
-        this.actors[data[0][0]] = new Actor(this, data);
     
-    } else if (type == this.msgActorsInit) {
+    // Actors
+    } else if (type == MSG_ACTORS_INIT) {
         for(var i = 0, l = data.length; i < l; i++) {
             var a = data[i];
-            this.actors[a[0][0]] = new Actor(this, a);
+            this.actors[a[0][0]] = new Actor(this, a, false);
         }
     
-    } else if (type == this.msgActorsUpdate) {
+    } else if (type == MSG_ACTORS_CREATE) {
+        for(var i = 0, l = data.length; i < l; i++) {
+            var a = data[i];
+            this.actors[a[0][0]] = new Actor(this, a, true);
+        }
+    
+    } else if (type == MSG_ACTORS_UPDATE) {
         for(var i = 0, l = data.length; i < l; i++) {
             var a = data[i];
             if (this.actors[a[0][0]]) {
@@ -182,12 +184,19 @@ Client.prototype.onMessage = function(msg) {
             }
         }
     
-    } else if (type == this.msgActorsEvent) {
-        this.actors[data[0]].event(data[1], data.length > 2 ? data[2] : null);
+    } else if (type == MSG_ACTORS_REMOVE) {
+        for(var i = 0, l = data.length; i < l; i++) {
+            var a = data[i];
+            this.actors[a[0]].remove();
+            delete this.actors[a[0]];
+        }
     
-    } else if (type == this.msgActorsDestroy) {
-        this.actors[data[0]].destroy(data[1], data[2]);
-        delete this.actors[data[0]];
+    } else if (type == MSG_ACTORS_DESTROY) {
+        for(var i = 0, l = data.length; i < l; i++) {
+            var a = data[i];
+            this.actors[a[0]].destroy(a[1], a[2]);
+            delete this.actors[a[0]];
+        }
     }
 };
 
@@ -206,11 +215,6 @@ Client.prototype.initGame = function(fps) {
 
 
 // Mainloop --------------------------------------------------------------------
-Client.prototype.loop = function() {
-    var that = this;
-    setTimeout(function() {that.update()}, 5);
-};
-
 Client.prototype.update = function() {
     if (this.running) {
         var currentFrame = this.getTime();
@@ -218,7 +222,8 @@ Client.prototype.update = function() {
             this.render();
             this.lastFrame += 10;
         }
-        this.loop();
+        var that = this;
+        setTimeout(function() {that.update()}, 5);
     }
 };
 
@@ -231,7 +236,7 @@ Client.prototype.render = function() {
             this.conn.send(msg);
             this.lastState = msg;
         }
-        this.$.onRender();
+        this.$.onDraw();
     }
     
     for(var c in this.actors) {
@@ -240,13 +245,14 @@ Client.prototype.render = function() {
         a.y += a.my / this.intervalSteps;
         a.interleave();
         if (render) {
-            a.render();
+            a.draw();
         }
     }
 };
 
 Client.prototype.createActorType = function(id) {
     function ActorType() {
+        this.init = function(data) {};
         this.create = function(data) {};
         this.update = function(data) {};
         this.interleave = function() {};
@@ -270,7 +276,7 @@ Client.prototype.getTime = function() {
 
 // Actors ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-function Actor(game, data) {
+function Actor(game, data, create) {
     this.$s = game;
     this.$ = game.$;
     
@@ -284,11 +290,11 @@ function Actor(game, data) {
     this.clas = d[5];
     
     for(var m in this.$s.actorTypes[this.clas]) {
-        if (m != 'update' && m != 'destroy') {
+        if (m != 'update' && m != 'destroy' && m != 'remove') {
             this[m] = this.$s.actorTypes[this.clas][m];
         }
     }
-    this.create(data[1]);
+    this.init(data[1], create);
 }
 
 Actor.prototype.update = function(data) {
@@ -314,7 +320,11 @@ Actor.prototype.update = function(data) {
 Actor.prototype.destroy = function(x, y) {
     this.x = x;
     this.y = y;
-    this.$s.actorTypes[this.clas].destroy.call(this);
+    this.$s.actorTypes[this.clas].remove.call(this, true);
+};
+
+Actor.prototype.remove = function() {
+    this.$s.actorTypes[this.clas].remove.call(this, false);
 };
 
 Actor.prototype.getTime = function() {

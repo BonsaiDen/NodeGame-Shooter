@@ -20,73 +20,39 @@
   
 */
 
-// Server ----------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 var ws = require(__dirname + '/lib/ws');
 var sys = require('sys');
 
+// Message types
+var MSG_GAME_START = 1;
+var MSG_GAME_FIELDS = 2;
+var MSG_GAME_SHUTDOWN = 3;
+
+var MSG_ACTORS_INIT = 4;
+var MSG_ACTORS_CREATE = 5;
+var MSG_ACTORS_UPDATE = 6;
+var MSG_ACTORS_REMOVE = 7;
+var MSG_ACTORS_DESTROY = 8;
+
+
+// Server ----------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 function Server(port, maxClients, maxChars) {
     this.maxChars = maxChars || 128;
     this.maxClients = maxClients || 64;
     this.port = port;
     
-    // these could be global but... meh...
-    this.msgGameStart = 1;
-    this.msgGameFields = 2;
-    this.msgGameShutdown = 3;
+    // Server
+    this.fields = {};
+    this.fieldsChanged = false;
+    this.logs = []; 
     
-    this.msgActorsCreate = 4;
-    this.msgActorsInit = 5;
-    this.msgActorsUpdate = 6;
-    this.msgActorsEvent = 7;
-    this.msgActorsDestroy = 8;
-    
-    // Server setup
+    // Client
+    this.client = {};
     this.clientCount = 0;
     this.clients = {};
     this.clientID = 0;
-    
-    this.fields = {};
-    this.fieldsChanged = false;
-    this.logs = [];
-    
-    this.bytesSend = 0;
-    this.bytesSendLast = 0;
-    
-    this.$ = ws.createServer();   
-    
-    var that = this;
-    this.$.addListener('connection', function(conn) {
-        if (this.clientCount >= this.maxClients) {
-            conn.close();
-            return;
-        }
-        
-        var id = that.clientAdd(conn);
-        conn.addListener('message', function(msg) {
-        
-            // a little bit paranoid...
-            if (msg.length > that.maxChars) {
-                that.log('Message longer than ' + that.maxChars
-                            + ' chars');
-                
-                conn.close();
-            
-            } else {
-                try {
-                    that.clientState(id, JSON.parse(msg));
-                
-                } catch (e) {
-                    that.log('Error: ' + e);
-                    conn.close();
-                }
-            }
-        });
-        
-        conn.addListener('close', function(conn) {
-            that.clientRemove(id);
-        });
-    });
     
     // Actors
     this.actorCount = 0;
@@ -94,12 +60,47 @@ function Server(port, maxClients, maxChars) {
     this.actorTypes = {};
     this.actors = {};
     
+    this.bytesSend = 0;
+    this.bytesSendLast = 0;
+    
+    // Socket
+    var that = this;
+    this.$ = ws.createServer();   
+    this.$.addListener('connection', function(conn) {
+        if (this.clientCount >= this.maxClients) {
+            conn.close();
+            return;
+        }
+        
+        var id = that.addClient(conn);
+        conn.addListener('message', function(msg) {
+            if (msg.length > that.maxChars) {
+                that.log('!! Message longer than ' + that.maxChars + ' chars');
+                conn.close();
+            
+            } else {
+                try {
+                    that.clients[id].onMessage(JSON.parse(msg));
+                
+                } catch (e) {
+                    that.log('!! Error: ' + e);
+                    conn.close();
+                }
+            }
+        });
+        
+        conn.addListener('close', function(conn) {
+            that.removeClient(id);
+        });
+    });
+    
     // Hey Listen!
     this.$.listen(this.port);
 }
+exports.Server = Server;
 
 
-// Start -----------------------------------------------------------------------
+// General ---------------------------------------------------------------------
 Server.prototype.run = function() {
     var that = this;
     process.nextTick(function() {
@@ -112,34 +113,50 @@ Server.prototype.start = function() {
     for(var i in this.actorTypes) {
         this.actors[i] = []; 
     }
-    
-    // Mainloop
     this.startTime = new Date().getTime();
     this.time = new Date().getTime();
     this.log('>> Server started');
     this.$g.start();
     this.status();
-    
-    // Exit
-    process.addListener('SIGINT', function () {
-        that.log('>> Shutting down...');
-        that.status(true);
-        that.$g.running = false;
-        that.actorsDestroy();
-        that.emit(that.msgGameShutdown, []);
-        setTimeout(function() {
-            sys.print('\x1b[u\n');
-            for(var c in that.clients) {
-                that.clients[c].close();
-            }
-            process.exit(0);
-        }, 100);
-    });
+    process.addListener('SIGINT', function(){that.shutdown()});
 };
 
-Server.prototype.initGame = function(interval) {
+
+Server.prototype.shutdown = function() {
+    this.log('>> Shutting down...');
+    this.status(true);
+    this.$g.running = false;
+    this.destroyActors();
+    this.emit(MSG_GAME_SHUTDOWN, []);
+    
+    var that = this;
+    setTimeout(function() {
+        sys.print('\x1b[u\n');
+        
+        for(var c in that.clients) {
+            that.clients[c].close();
+        }
+        process.exit(0);
+    }, 100);
+};
+
+Server.prototype.Game = function(interval) {
     this.$g = new Game(this, interval);
     return this.$g;
+};
+
+Server.prototype.Client = function() {
+    return this.client;
+};
+
+
+// Helpers ---------------------------------------------------------------------
+Server.prototype.getTime = function() {
+    return this.time;
+};
+
+Server.prototype.timeDiff = function(time) {
+    return this.time - time;
 };
 
 Server.prototype.log = function(str) {
@@ -155,9 +172,9 @@ Server.prototype.status = function(end) {
         var t = Math.round((time - that.startTime) / 1000);
         var m = Math.floor(t / 60);
         var s = t % 60;
-        return m + ':' + (s < 10 ? '0' : '') + s;
+        return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
     }
-
+    
     function toSize(size) {
         var t = 0;
         while(size >= 1024 && t < 2) {
@@ -182,31 +199,22 @@ Server.prototype.status = function(end) {
     }
     sys.print('\x1b[H\x1b[J# NodeGame Server at port '
               + this.port + '\n' + stats + '\n\x1b[s\x1b[H');
-              
+    
     if (!end) {
-        var that = this;
         setTimeout(function() {that.status(false)}, 500);
     }
 };
 
-exports.Server = Server;
-
 
 // Clients ---------------------------------------------------------------------
-Server.prototype.clientAdd = function(conn) {
+Server.prototype.addClient = function(conn) {
     this.clientID += 1;
-    var c = this.clients[this.clientID] = new Client(this, conn, this.clientID);
+    this.clients[this.clientID] = new Client(this, conn);
     this.clientCount++;
-    c._init();
-    c.onInit(); 
     return this.clientID;
 };
 
-Server.prototype.clientState = function(id, msg) {
-    this.clients[id].onMessage(msg);
-};
-
-Server.prototype.clientRemove = function(id) {
+Server.prototype.removeClient = function(id) {
     if (this.clients[id]) {
         this.clientCount--;
         this.clients[id].onRemove();
@@ -214,10 +222,34 @@ Server.prototype.clientRemove = function(id) {
     }
 };
 
-Server.prototype.clientsUpdate = function() {
+Server.prototype.updateClients = function() {
     for(var c in this.clients) {
         this.clients[c].onUpdate();
     }
+};
+
+
+// Messaging -------------------------------------------------------------------
+Server.prototype.send = function(conn, type, msg) {
+    msg.unshift(type);
+    
+    var e = this.toJSON(msg);
+    conn.write(e);
+    this.bytesSend += e.length;
+};
+
+Server.prototype.emit = function(type, msg) {
+    msg.unshift(type);
+    
+    var e = this.toJSON(msg);
+    this.$.broadcast(e);
+    this.bytesSend += e.length * this.clientCount;
+};
+
+Server.prototype.toJSON = function(data) {
+    var msg = JSON.stringify(data);
+    msg = msg.substring(1).substring(0, msg.length - 2);
+    return msg.replace(/\"([a-z0-9]+)\"\:/gi, '$1:');;
 };
 
 
@@ -243,13 +275,7 @@ Server.prototype.getActors = function(clas) {
     return this.actors[clas];
 };
 
-Server.prototype.actorsUpdate = function() {
-    var allUpdates = [];
-    var clientUpdates = {};
-    for(var i in this.clients) {
-        clientUpdates[i] = [];
-    }
-    
+Server.prototype.updateActors = function() {
     this.actorCount = 0;
     for(var t in this.actors) {
         var alive_actors = [];
@@ -259,14 +285,12 @@ Server.prototype.actorsUpdate = function() {
                 a.update();
             }
             if (a.alive) {
-                if (a.updated === true) {
+                if (a.updated) {
+                    a.emit(MSG_ACTORS_UPDATE);
                     a.updated = false;
-                    allUpdates.push(a.toMessage(false));
                 
-                } else if(typeof a.updated === 'object') {
-                    for(var e = 0; e < a.updated.length; e++) {
-                        clientUpdates[a.updated[e]].push(a.toMessage(false));
-                    }
+                } else {
+                    a.emit(MSG_ACTORS_INIT);
                 }
                 alive_actors.push(a);
             }
@@ -275,20 +299,37 @@ Server.prototype.actorsUpdate = function() {
         this.actorCount += this.actors[t].length;
     }
     
-    // Emit updates
-    if (allUpdates.length > 0) {
-        this.emit(this.msgActorsUpdate, allUpdates);
-    }
-    
+    // Send messages
     for(var i in this.clients) {
-        if (clientUpdates[i].length > 0) {
-            this.send(this.clients[i].conn, this.msgActorsUpdate,
-                                            clientUpdates[i]);
+        var c = this.clients[i];
+        if (c.initMessages.length > 0) {
+            c.send(MSG_ACTORS_INIT, c.initMessages);
+            c.initMessages = [];
+        }
+        
+        if (c.createMessages.length > 0) {
+            c.send(MSG_ACTORS_CREATE, c.createMessages);
+            c.createMessages = [];
+        }
+        
+        if (c.updatesMessages.length > 0) {
+            c.send(MSG_ACTORS_UPDATE, c.updatesMessages);
+            c.updatesMessages = [];
+        }
+        
+        if (c.removeMessages.length > 0) {
+            c.send(MSG_ACTORS_REMOVE, c.removeMessages);
+            c.removeMessages = [];
+        }  
+        
+        if (c.destroyMessages.length > 0) {
+            c.send(MSG_ACTORS_DESTROY, c.destroyMessages);
+            c.destroyMessages = [];
         }
     }
 };
 
-Server.prototype.actorsDestroy = function() {
+Server.prototype.destroyActors = function() {
     for(var t in this.actors) {
         for(var i = 0, l = this.actors[t].length; i < l; i++) {
             this.actors[t][i].destroy();
@@ -297,38 +338,7 @@ Server.prototype.actorsDestroy = function() {
 };
 
 
-// Messaging -------------------------------------------------------------------
-Server.prototype.send = function(conn, type, msg) {
-    msg.unshift(type);
-    var e = this.toJSON(msg);
-    this.bytesSend += e.length;
-    conn.write(e);
-};
-
-Server.prototype.emit = function(type, msg) {
-    msg.unshift(type);
-    var e = this.toJSON(msg);
-    this.bytesSend += e.length * this.clientCount;
-    this.$.broadcast(e);
-};
-
-Server.prototype.toJSON = function(data) {
-    var msg = JSON.stringify(data);
-    msg = msg.substring(1).substring(0, msg.length - 2);
-    msg = msg.replace(/\"([a-z0-9]+)\"\:/gi, '$1:');
-    return msg;
-};
-
-
-// Helpers ---------------------------------------------------------------------
-Server.prototype.getTime = function() {
-    return this.time;
-};
-
-Server.prototype.timeDiff = function(time) {
-    return this.time - time;
-};
-
+// Fields ----------------------------------------------------------------------
 Server.prototype.setField = function(key, value, send) {
     this.fields[key] = value;
     if (send !== false) {
@@ -366,18 +376,18 @@ Server.prototype.updateFields = function(mode) {
         this.fieldsChanged = true;
     
     } else if (this.fieldsChanged) {
-        this.emit(this.msgGameFields, [this.fields]);
+        this.emit(MSG_GAME_FIELDS, [this.fields]);
         this.fieldsChanged = false;
     }
 };
 
 Server.prototype.emitFields = function(mode) {
-    this.emit(this.msgGameFields, [this.fields]);
+    this.emit(MSG_GAME_FIELDS, [this.fields]);
     this.fieldsChanged = false;
 };
 
 
-// Gane ------------------------------------------------------------------------
+// Game ------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 function Game(srv, interval) {
     this.$ = srv;
@@ -385,34 +395,37 @@ function Game(srv, interval) {
 }
 
 Game.prototype.start = function() {
-    this._time = this.$.time;
-    this._lastTime = this._time;
+    this._lastTime = this.$.time;
     this.running = true;
     this.onInit();
-    this.loop();
-};
-
-Game.prototype.loop = function() {
-    var that = this;
-    setTimeout(function(){that.run();}, 5);
+    this.run();
 };
 
 Game.prototype.run = function() {
     if (this.running) {
         this.$.updateFields(false);
-        this._time = this.$.time = new Date().getTime();
-        while(this._lastTime <= this._time) {
-            this.$.clientsUpdate();
-            this.$.actorsUpdate();
+        this.$.time = new Date().getTime();
+        while(this._lastTime <= this.$.time) {
+            this.$.updateClients();
+            this.$.updateActors();
             this.onUpdate(); 
             this._lastTime += this.interval;
         }
-        this.loop();
+        
+        var that = this;
+        setTimeout(function(){that.run();}, 5);
     }
 };
 
+Game.prototype.onInit = function() {
+};
+
+Game.prototype.onUpdate = function() {
+};
+
+// Helpers
 Game.prototype.getTime = function() {
-    return this._time;
+    return this.$.time;
 };
 
 Game.prototype.log = function(str) {
@@ -431,43 +444,43 @@ Game.prototype.createActor = function(clas, data) {
     this.$.createActor(clas, data);
 };
 
-Game.prototype.onInit = function() {
-    return 50;
-};
-
-Game.prototype.onUpdate = function() {
-};
-
 
 // Clients ---------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-function Client(srv, conn, id) {
+function Client(srv, conn) {
     this.$ = srv;
     this.$g = srv.$g;
     this.conn = conn;
-    this.id = id;
-}
-
-Client.prototype._init = function() {
-    var actors = [];
+    this.id = this.$.clientID;
+    this.actors = [];
+    
+    this.initMessages = [];
+    this.createMessages = [];
+    this.updatesMessages = [];
+    this.removeMessages = [];
+    this.destroyMessages = [];
+    
+    this.send(MSG_GAME_START, [this.id, this.$g.interval, this.$.fields]);
     for(var t in this.$.actors) {
         for(var i = 0, l = this.$.actors[t].length; i < l; i++) {
-            var a = this.$.actors[t][i];
-            if (a.alive) {
-                actors.push(a.toMessage(true));
-            }
+            this.$.actors[t][i].emit(MSG_ACTORS_INIT);
         }
     }
     
-    this.send(this.$.msgGameStart, [
-        this.id,
-        this.$g.interval,
-        this.$.fields
-    ]);
-    
-    this.send(this.$.msgActorsInit, actors);
+    // Extend
+    for(var m in this.$.client) {
+        this[m] = this.$.client[m];
+    }
+    this.onInit();
+}
+
+Client.prototype.send = function(type, msg) {
+    this.$.send(this.conn, type, msg);
 };
-exports.Client = Client;
+
+Client.prototype.close = function() {
+    this.conn.close();
+};
 
 Client.prototype.onInit = function() {
 };
@@ -481,7 +494,8 @@ Client.prototype.onUpdate = function() {
 Client.prototype.onRemove = function() {
 };
 
-// Stuff
+
+// Helpers
 Client.prototype.log = function(str) {
     this.$.log(str);
 };
@@ -498,55 +512,101 @@ Client.prototype.timeDiff = function(time) {
     return this.$.timeDiff(time);
 };
 
-Client.prototype.send = function(type, msg) {
-    this.$.send(this.conn, type, msg);
-};
-
-Client.prototype.close = function() {
-    this.conn.close();
-};
-
 
 // Actors ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 function Actor(srv, clas, data) {
     this.$ = srv;
     this.$g = srv.$g;
-    this.id = this.$.actorID;
-    this.$.actorID += 1;
+    this.id = ++this.$.actorID;
     this.clas = clas;
     this.x = 0;
     this.y = 0;
     this.mx = 0;
     this.my = 0;
     
+    this.clients = [];
     this.alive = true;
     this.updated = false;
     
+    // Extend
     for(var m in this.$.actorTypes[this.clas]) {
         if (m != 'destroy') {
             this[m] = this.$.actorTypes[this.clas][m];
         }
     }
-    this.create(data); 
-    this.$.emit(this.$.msgActorsCreate, this.toMessage(true));
+    this.create(data);
+    this.emit(MSG_ACTORS_CREATE);
 }
+
+Actor.prototype.emit = function(type) {
+    for(var i in this.$.clients) {
+        var c = this.$.clients[i];
+        var index = c.actors.indexOf(this.id);
+        
+        if (this.clients.length == 0 || this.clients.indexOf(c.id) != -1) {
+            
+            // Destroy
+            if (type == MSG_ACTORS_DESTROY) {
+                if (index == -1) {
+                    c.actors.push(this.id);
+                    c.initMessages.push(this.toMessage(true));
+                    this.updated = true;
+                }
+                c.actors.splice(index, 1);
+                c.destroyMessages.push([this.id, Math.round(this.x),
+                                                 Math.round(this.y)]);
+            
+            // Update AND init
+            } else if (type == MSG_ACTORS_UPDATE) {
+                if (index == -1) {
+                    c.actors.push(this.id);
+                    c.initMessages.push(this.toMessage(true));
+                }
+                c.updatesMessages.push(this.toMessage(false));
+            
+            // Create
+            } else if (type == MSG_ACTORS_CREATE && index == -1) {
+                c.actors.push(this.id);
+                c.createMessages.push(this.toMessage(true));
+                this.updated = true;
+            
+            // Init
+            } else if (type == MSG_ACTORS_INIT && index == -1) {
+                c.actors.push(this.id);
+                c.initMessages.push(this.toMessage(true));
+                this.updated = true;
+            }
+        
+        // Remove
+        } else if (this.clients.indexOf(c.id) == -1 && index != -1) {
+            c.actors.splice(index, 1);
+            c.removeMessages.push([this.id]);
+        }
+    }
+};
+
 Actor.prototype.destroy = function() {
     if (this.alive) {
         this.alive = false;
         this.$.actorTypes[this.clas].destroy.call(this);
-        this.$.emit(this.$.msgActorsDestroy, [this.id, Math.round(this.x),
-                                                       Math.round(this.y)]);
+        this.emit(MSG_ACTORS_DESTROY);
     }
+};
+
+Actor.prototype.event = function(type, data) {
+    var msg = [this.id, type];
+    if (data) {
+        msg.push(data);
+    }
+    this.$.emit(MSG_ACTORS_EVENT, msg);
 };
 
 Actor.prototype.toMessage = function(full) {
     var raw = [
         this.id,
-        Math.round(this.x * 100) / 100,
-        Math.round(this.y * 100) / 100,
-        Math.round(this.mx * 100) / 100,
-        Math.round(this.my * 100) / 100
+        Math.round(this.x * 100) / 100,  Math.round(this.y * 100) / 100,
+        Math.round(this.mx * 100) / 100, Math.round(this.my * 100) / 100
     ];
     if (full) {
         raw.push(this.clas);
@@ -560,12 +620,9 @@ Actor.prototype.toMessage = function(full) {
     return msg;
 };
 
-Actor.prototype.event = function(type, data) {
-    var msg = [this.id, type];
-    if (data != null) {
-        msg.push(data);
-    }
-    this.$.emit(this.$.msgActorsEvent, msg);
+// Helpers
+Actor.prototype.log = function(str) {
+    return this.$.log(str);
 };
 
 Actor.prototype.getTime = function() {

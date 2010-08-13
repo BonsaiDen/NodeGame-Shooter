@@ -24,7 +24,7 @@
 // Actors ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 var ActorPlayer = Client.createActorType('player');
-ActorPlayer.create = function(data) {
+ActorPlayer.init = function(data, create) {
     this.r = data[0];
     this.mr = data[1]; 
     this.defense = data[2];
@@ -60,17 +60,19 @@ ActorPlayer.interleave = function() {
     this.r = this.$.wrapAngle(nr);
 };
 
-ActorPlayer.destroy = function() {
-    var col = this.$.colorCodes[this.$.playerColors[this.id]];
-    this.$.effectExplosion(this.x, this.y, 20, 1.5, 1.5, col);
-    this.$.effectArea(this.x, this.y, 20, 0.5, col);
-    
-    if (this.shield) {
-        this.$.effectRing(this.x, this.y, 20, 42, 0.6, 4.0, col, 1);
+ActorPlayer.remove = function(destroy) {
+    if (destroy) {
+        var col = this.$.colorCodes[this.$.playerColors[this.id]];
+        this.$.effectExplosion(this.x, this.y, 20, 1.5, 1.5, col);
+        this.$.effectArea(this.x, this.y, 20, 0.5, col);
+        
+        if (this.shield) {
+            this.$.effectRing(this.x, this.y, 20, 42, 0.6, 4.0, col, 1);
+        }
     }
 };
 
-ActorPlayer.render = function() {
+ActorPlayer.draw = function() {
     // Color
     var col = this.$.playerColor(this.id);
     var colFaded = this.$.playerColorFaded(this.id);
@@ -156,7 +158,7 @@ ActorPlayer.render = function() {
     }
     
     // Name
-    if (this.fade == -1 || this.id == this.$.id) {
+    if (this.fade > 0 || this.fade == -1 || this.id == this.$.id) {
         this.$.fill(colFaded);
         this.$.text(this.x, this.y - 27, this.$.playerNames[this.id] + '('
                      + this.$.playerScores[this.id] + ')', 'center', 'middle'); 
@@ -167,41 +169,44 @@ ActorPlayer.render = function() {
 
 // Bullet ----------------------------------------------------------------------
 var ActorBullet = Client.createActorType('bullet');
-ActorBullet.create = function(data) {
+ActorBullet.init = function(data, create) {
     this.id = data[0];
 };
 
-ActorBullet.destroy = function() {
-    var col = this.$.playerColor(this.id);
-    this.$.effectExplosion(this.x, this.y, 4, 0.35, 1, col);
-    this.$.effectArea(this.x, this.y, 3.5, 0.35, col);  
+ActorBullet.remove = function(destroy) {
+    if (destroy) {
+        var col = this.$.playerColor(this.id);
+        this.$.effectExplosion(this.x, this.y, 4, 0.35, 1, col);
+        this.$.effectArea(this.x, this.y, 3.5, 0.35, col);
+    }
 };
 
-ActorBullet.render = function() {
+ActorBullet.draw = function() {
     this.$.strokeCircle(this.x, this.y, 1.25, 3, this.$.playerColor(this.id));
 };
 
 
 // Bomb ------------------------------------------------------------------------
 var ActorBomb = Client.createActorType('bomb');
-ActorBomb.create = function(data) {
+ActorBomb.init = function(data, create) {
     this.id = data[0];
     this.radius = data[1];
 };
 
-ActorBomb.destroy = function() {
-    var col = this.$.playerColor(this.id);
-    this.$.effectArea(this.x, this.y, this.radius, 1.0, col);
-    this.$.effectRing(this.x, this.y, this.radius / 2 * 0.975, 75, 1, 1.25,
-                       col, 1);
-    
-    this.$.effectArea(this.x, this.y, this.radius / 2, 1.5, col);
-    this.$.effectRing(this.x, this.y, this.radius * 0.975, 125, 1, 1.25,
-                       col, 1);
-    
+ActorBomb.remove = function(destroy) {
+    if (destroy) {
+        var col = this.$.playerColor(this.id);
+        this.$.effectArea(this.x, this.y, this.radius, 1.0, col);
+        this.$.effectRing(this.x, this.y, this.radius / 2 * 0.975, 75, 1, 1.25,
+                           col, 1);
+        
+        this.$.effectArea(this.x, this.y, this.radius / 2, 1.5, col);
+        this.$.effectRing(this.x, this.y, this.radius * 0.975, 125, 1, 1.25,
+                           col, 1);
+    }
 };
 
-ActorBomb.render = function() {
+ActorBomb.draw = function() {
     var col = this.$.playerColor(this.id);
     this.$.fillCircle(this.x, this.y, 3, col);
     this.$.strokeCircle(this.x, this.y, 6, 1.5, col);
@@ -220,21 +225,27 @@ ActorBomb.render = function() {
 
 // PowerUP ---------------------------------------------------------------------
 var ActorPowerUp = Client.createActorType('powerup');
-ActorPowerUp.create = function(data) {
+ActorPowerUp.init = function(data, create) {
     this.type = data[0];
-    this.createTime = this.$.getTime();
+    if (create) {
+        this.createTime = this.$.getTime();
+        var col = this.$.powerUpColors[this.type];
+        this.$.effectExplosion(this.x, this.y, 8, 1, 0.5, col); 
     
-    var col = this.$.powerUpColors[this.type];
-    this.$.effectExplosion(this.x, this.y, 8, 1, 0.5, col);
+    } else {
+        this.createTime = this.$.getTime() - 1000;
+    }
 };
 
-ActorPowerUp.destroy = function() {
-    var col = this.$.powerUpColors[this.type];
-    this.$.effectExplosion(this.x, this.y, 8, 1, 0.5, col);
-    this.$.effectArea(this.x, this.y, 8, 0.3, col);
+ActorPowerUp.remove = function(destroy) {
+    if (destroy) {
+        var col = this.$.powerUpColors[this.type];
+        this.$.effectExplosion(this.x, this.y, 8, 1, 0.5, col);
+        this.$.effectArea(this.x, this.y, 8, 0.3, col);
+    }
 };
 
-ActorPowerUp.render = function() {
+ActorPowerUp.draw = function() {
     this.$.bg.save();
     this.$.bg.translate(this.x, this.y);
     var scale = this.$.timeScale(this.createTime, 1000);
@@ -256,23 +267,27 @@ ActorPowerUp.render = function() {
 
 // Player Defender -------------------------------------------------------------
 var ActorPlayerDef = Client.createActorType('player_def');
-ActorPlayerDef.create = function(data) {
+ActorPlayerDef.init = function(data, create) {
     this.id = data[0];
     this.r = data[1];
     this.x = data[2];
     this.y = data[3];
-    
     this.wrap();
-    this.$.effectExplosion(this.dx, this.dy, 4, 0.25, 1,
-                            this.$.playerColor(this.id));
+    
+    if (create) {
+        this.$.effectExplosion(this.dx, this.dy, 4, 0.25, 1,
+                                this.$.playerColor(this.id));
+    }
 };
 
-ActorPlayerDef.destroy = function() {
-    this.$.effectExplosion(this.dx, this.dy, 6, 0.5, 1,
-                            this.$.playerColor(this.id));
+ActorPlayerDef.remove = function(destroy) {
+    if (destroy) {
+        this.$.effectExplosion(this.dx, this.dy, 6, 0.5, 1,
+                                this.$.playerColor(this.id));
+    }
 };
 
-ActorPlayerDef.render = function() {
+ActorPlayerDef.draw = function() {
     this.$.fillCircle(this.dx, this.dy, 5, this.$.playerColor(this.id));
 };
 
