@@ -132,16 +132,15 @@ Client.prototype.connect = function(host, port) {
 
 Client.prototype.onMessage = function(msg) {
     var that = this;
+    var data = msg.data.replace(/([a-z0-9]+)\:/gi, '"$1":'), type = 0;
     try {
-        var data = JSON.parse('[' +
-                              msg.data.replace(/([a-z0-9]+)\:/gi, '"$1":')
-                              + ']');
-        
-        var type = data.shift();
+        data = JSON.parse('[' + data + ']');
+        type = data.shift();
     
     } catch(e) {
         try {
             console.log('JSON Error:', msg);
+        
         } catch(e) {
             
         }
@@ -184,7 +183,7 @@ Client.prototype.onMessage = function(msg) {
         }
     
     } else if (type == this.msgActorsEvent) {
-        this.actors[data[0]].event(data[1], data.length > 2 ? data[2] : {});
+        this.actors[data[0]].event(data[1], data.length > 2 ? data[2] : null);
     
     } else if (type == this.msgActorsDestroy) {
         this.actors[data[0]].destroy(data[1], data[2]);
