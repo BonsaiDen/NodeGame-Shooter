@@ -551,13 +551,11 @@ Actor.prototype.$emit = function(type) {
         var index = c.$actors.indexOf(this.id);
         
         if (this.$clients.length == 0 || this.$clients.indexOf(c.id) != -1) {
-            
             // Destroy
             if (type == MSG_ACTORS_DESTROY) {
                 if (index == -1) {
                     c.$actors.push(this.id);
                     c.$initMessages.push(this.toMessage(true));
-                    this.$updated = true;
                 }
                 c.$actors.splice(index, 1);
                 c.$destroyMessages.push([this.id, Math.round(this.x),
@@ -616,6 +614,10 @@ Actor.prototype.update = function() {
 
 Actor.prototype.alive = function() {
     return this.$alive;
+};
+
+Actor.prototype.clients = function(clients) {
+    this.$clients = clients || [];
 };
 
 Actor.prototype.destroy = function() {

@@ -119,7 +119,7 @@ ActorPlayer.onUpdate = function() {
             this.camu = 2;
             this.camuTime = this.getTime();
             this.camuFade = -2;
-            this.clients = [this.client.id];
+            this.clients([this.client.id]);
         }
     
     // faded
@@ -127,8 +127,12 @@ ActorPlayer.onUpdate = function() {
         if (this.timeDiff(this.camuTime) > 15000) {
             this.camu = 3;
             this.camuFade = 0;
-            this.clients = [];
+            this.clients();
+            
+        } else {
+            this.update();
         }
+        
     
     // fade in
     } else if (this.camu == 3) {
@@ -177,7 +181,7 @@ ActorPlayer.syncData = function() {
 }
 
 ActorPlayer.onDestroy = function() {
-    this.clients = [];
+    this.clients();
     this.defender = null;
     this.hp = 0;
     var players_defs = this.$.getActors('player_def');
