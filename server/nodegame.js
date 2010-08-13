@@ -111,7 +111,7 @@ Server.prototype.run = function() {
 Server.prototype.start = function() {
     var that = this;
     for(var i in this.actorTypes) {
-        this.actors[i] = []; 
+        this.actors[i] = [];
     }
     this.startTime = new Date().getTime();
     this.time = new Date().getTime();
@@ -250,7 +250,7 @@ Server.prototype.emit = function(type, msg) {
 Server.prototype.toJSON = function(data) {
     var msg = JSON.stringify(data);
     msg = msg.substring(1).substring(0, msg.length - 2);
-    return msg.replace(/\"([a-z0-9]+)\"\:/gi, '$1:');;
+    return msg.replace(/\"([a-z0-9]+)\"\:/gi, '$1:');
 };
 
 
@@ -394,7 +394,7 @@ Server.prototype.emitFields = function(mode) {
 // -----------------------------------------------------------------------------
 function Game(srv, interval) {
     this.$ = srv;
-    this.$interval = 1000 / interval;
+    this.$interval = Math.round(1000 / interval);
 }
 
 Game.prototype.start = function() {
