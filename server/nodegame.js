@@ -278,7 +278,6 @@ Server.prototype.getActors = function(clas) {
 Server.prototype.updateActors = function() {
     this.actorCount = 0;
     for(var t in this.actors) {
-        var alive_actors = [];
         for(var i = 0, l = this.actors[t].length; i < l; i++) {
             var a = this.actors[t][i];
             if (a.alive) {
@@ -292,10 +291,13 @@ Server.prototype.updateActors = function() {
                 } else {
                     a.emit(MSG_ACTORS_INIT);
                 }
-                alive_actors.push(a);
+            
+            } else {
+                this.actors[t].splice(i, 1);
+                i--;
+                l--;
             }
         }
-        this.actors[t] = alive_actors;
         this.actorCount += this.actors[t].length;
     }
     
