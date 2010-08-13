@@ -125,7 +125,7 @@ Server.prototype.start = function() {
 Server.prototype.shutdown = function() {
     this.log('>> Shutting down...');
     this.status(true);
-    this.$g.running = false;
+    this.$g.$running = false;
     this.destroyActors();
     this.emit(MSG_GAME_SHUTDOWN, []);
     
@@ -262,10 +262,10 @@ Server.prototype.createActor = function(clas, data) {
 
 Server.prototype.createActorType = function(id) {
     function ActorType() {
-        this.create = function(data) {};
-        this.update = function() {};
-        this.destroy = function() {};
-        this.msg = function(full) {return {};};
+        this.onCreate = function(data) {};
+        this.onUpdate = function() {};
+        this.onDestroy = function() {};
+        this.onMessage = function(full) {return [];};
     }
     this.actorTypes[id] = new ActorType();
     return this.actorTypes[id];
@@ -280,16 +280,16 @@ Server.prototype.updateActors = function() {
     for(var t in this.actors) {
         for(var i = 0, l = this.actors[t].length; i < l; i++) {
             var a = this.actors[t][i];
-            if (a.alive) {
-                a.update();
+            if (a.$alive) {
+                a.onUpdate();
             }
-            if (a.alive) {
-                if (a.updated) {
-                    a.emit(MSG_ACTORS_UPDATE);
-                    a.updated = false;
+            if (a.$alive) {
+                if (a.$updated) {
+                    a.$emit(MSG_ACTORS_UPDATE);
+                    a.$updated = false;
                 
                 } else {
-                    a.emit(MSG_ACTORS_INIT);
+                    a.$emit(MSG_ACTORS_INIT);
                 }
             
             } else {
@@ -304,29 +304,29 @@ Server.prototype.updateActors = function() {
     // Send messages
     for(var i in this.clients) {
         var c = this.clients[i];
-        if (c.initMessages.length > 0) {
-            c.send(MSG_ACTORS_INIT, c.initMessages);
-            c.initMessages = [];
+        if (c.$initMessages.length > 0) {
+            c.send(MSG_ACTORS_INIT, c.$initMessages);
+            c.$initMessages = [];
         }
         
-        if (c.createMessages.length > 0) {
-            c.send(MSG_ACTORS_CREATE, c.createMessages);
-            c.createMessages = [];
+        if (c.$createMessages.length > 0) {
+            c.send(MSG_ACTORS_CREATE, c.$createMessages);
+            c.$createMessages = [];
         }
         
-        if (c.updatesMessages.length > 0) {
-            c.send(MSG_ACTORS_UPDATE, c.updatesMessages);
-            c.updatesMessages = [];
+        if (c.$updatesMessages.length > 0) {
+            c.send(MSG_ACTORS_UPDATE, c.$updatesMessages);
+            c.$updatesMessages = [];
         }
         
-        if (c.removeMessages.length > 0) {
-            c.send(MSG_ACTORS_REMOVE, c.removeMessages);
-            c.removeMessages = [];
+        if (c.$removeMessages.length > 0) {
+            c.send(MSG_ACTORS_REMOVE, c.$removeMessages);
+            c.$removeMessages = [];
         }  
         
-        if (c.destroyMessages.length > 0) {
-            c.send(MSG_ACTORS_DESTROY, c.destroyMessages);
-            c.destroyMessages = [];
+        if (c.$destroyMessages.length > 0) {
+            c.send(MSG_ACTORS_DESTROY, c.$destroyMessages);
+            c.$destroyMessages = [];
         }
     }
 };
@@ -393,25 +393,25 @@ Server.prototype.emitFields = function(mode) {
 // -----------------------------------------------------------------------------
 function Game(srv, interval) {
     this.$ = srv;
-    this.interval = interval;
+    this.$interval = interval;
 }
 
 Game.prototype.start = function() {
-    this._lastTime = this.$.time;
-    this.running = true;
+    this.$lastTime = this.$.time;
+    this.$running = true;
     this.onInit();
     this.run();
 };
 
 Game.prototype.run = function() {
-    if (this.running) {
+    if (this.$running) {
         this.$.updateFields(false);
         this.$.time = new Date().getTime();
-        while(this._lastTime <= this.$.time) {
+        while(this.$lastTime <= this.$.time) {
             this.$.updateClients();
             this.$.updateActors();
             this.onUpdate(); 
-            this._lastTime += this.interval;
+            this.$lastTime += this.$interval;
         }
         
         var that = this;
@@ -452,20 +452,20 @@ Game.prototype.createActor = function(clas, data) {
 function Client(srv, conn) {
     this.$ = srv;
     this.$g = srv.$g;
-    this.conn = conn;
+    this.$conn = conn;
     this.id = this.$.clientID;
-    this.actors = [];
+    this.$actors = [];
     
-    this.initMessages = [];
-    this.createMessages = [];
-    this.updatesMessages = [];
-    this.removeMessages = [];
-    this.destroyMessages = [];
+    this.$initMessages = [];
+    this.$createMessages = [];
+    this.$updatesMessages = [];
+    this.$removeMessages = [];
+    this.$destroyMessages = [];
     
-    this.send(MSG_GAME_START, [this.id, this.$g.interval, this.$.fields]);
+    this.send(MSG_GAME_START, [this.id, this.$g.$interval, this.$.fields]);
     for(var t in this.$.actors) {
         for(var i = 0, l = this.$.actors[t].length; i < l; i++) {
-            this.$.actors[t][i].emit(MSG_ACTORS_INIT);
+            this.$.actors[t][i].$emit(MSG_ACTORS_INIT);
         }
     }
     
@@ -477,20 +477,20 @@ function Client(srv, conn) {
 }
 
 Client.prototype.send = function(type, msg) {
-    this.$.send(this.conn, type, msg);
+    this.$.send(this.$conn, type, msg);
 };
 
 Client.prototype.close = function() {
-    this.conn.close();
+    this.$conn.close();
 };
 
 Client.prototype.onInit = function() {
 };
 
-Client.prototype.onMessage = function(msg) {
+Client.prototype.onUpdate = function() {
 };
 
-Client.prototype.onUpdate = function() {
+Client.prototype.onMessage = function(msg) {
 };
 
 Client.prototype.onRemove = function() {
@@ -503,7 +503,7 @@ Client.prototype.log = function(str) {
 };
 
 Client.prototype.getInfo = function() {
-    return this.conn.id;
+    return this.$conn.id;
 }
 
 Client.prototype.getTime = function() {
@@ -521,87 +521,71 @@ function Actor(srv, clas, data) {
     this.$ = srv;
     this.$g = srv.$g;
     this.id = ++this.$.actorID;
-    this.clas = clas;
+    this.$clas = clas;
     this.x = 0;
     this.y = 0;
     this.mx = 0;
     this.my = 0;
     
-    this.clients = [];
-    this.alive = true;
-    this.updated = false;
+    this.$clients = [];
+    this.$alive = true;
+    this.$updated = false;
     
     // Extend
-    for(var m in this.$.actorTypes[this.clas]) {
-        if (m != 'destroy') {
-            this[m] = this.$.actorTypes[this.clas][m];
+    for(var m in this.$.actorTypes[this.$clas]) {
+        if (m != 'destroy' && m != 'update' && m != 'alive') {
+            this[m] = this.$.actorTypes[this.$clas][m];
         }
     }
-    this.create(data);
-    this.emit(MSG_ACTORS_CREATE);
+    this.onCreate(data);
+    this.$emit(MSG_ACTORS_CREATE);
 }
 
-Actor.prototype.emit = function(type) {
+Actor.prototype.$emit = function(type) {
     for(var i in this.$.clients) {
         var c = this.$.clients[i];
-        var index = c.actors.indexOf(this.id);
+        var index = c.$actors.indexOf(this.id);
         
-        if (this.clients.length == 0 || this.clients.indexOf(c.id) != -1) {
+        if (this.$clients.length == 0 || this.$clients.indexOf(c.id) != -1) {
             
             // Destroy
             if (type == MSG_ACTORS_DESTROY) {
                 if (index == -1) {
-                    c.actors.push(this.id);
-                    c.initMessages.push(this.toMessage(true));
-                    this.updated = true;
+                    c.$actors.push(this.id);
+                    c.$initMessages.push(this.toMessage(true));
+                    this.$updated = true;
                 }
-                c.actors.splice(index, 1);
-                c.destroyMessages.push([this.id, Math.round(this.x),
+                c.$actors.splice(index, 1);
+                c.$destroyMessages.push([this.id, Math.round(this.x),
                                                  Math.round(this.y)]);
             
             // Update AND init
             } else if (type == MSG_ACTORS_UPDATE) {
                 if (index == -1) {
-                    c.actors.push(this.id);
-                    c.initMessages.push(this.toMessage(true));
+                    c.$actors.push(this.id);
+                    c.$initMessages.push(this.toMessage(true));
                 }
-                c.updatesMessages.push(this.toMessage(false));
+                c.$updatesMessages.push(this.toMessage(false));
             
             // Create
             } else if (type == MSG_ACTORS_CREATE && index == -1) {
-                c.actors.push(this.id);
-                c.createMessages.push(this.toMessage(true));
-                this.updated = true;
+                c.$actors.push(this.id);
+                c.$createMessages.push(this.toMessage(true));
+            //    this.$updated = true;
             
             // Init
             } else if (type == MSG_ACTORS_INIT && index == -1) {
-                c.actors.push(this.id);
-                c.initMessages.push(this.toMessage(true));
-                this.updated = true;
+                c.$actors.push(this.id);
+                c.$initMessages.push(this.toMessage(true));
+             //   this.$updated = true;
             }
         
         // Remove
-        } else if (this.clients.indexOf(c.id) == -1 && index != -1) {
-            c.actors.splice(index, 1);
-            c.removeMessages.push([this.id]);
+        } else if (this.$clients.indexOf(c.id) == -1 && index != -1) {
+            c.$actors.splice(index, 1);
+            c.$removeMessages.push([this.id]);
         }
     }
-};
-
-Actor.prototype.destroy = function() {
-    if (this.alive) {
-        this.alive = false;
-        this.$.actorTypes[this.clas].destroy.call(this);
-        this.emit(MSG_ACTORS_DESTROY);
-    }
-};
-
-Actor.prototype.event = function(type, data) {
-    var msg = [this.id, type];
-    if (data) {
-        msg.push(data);
-    }
-    this.$.emit(MSG_ACTORS_EVENT, msg);
 };
 
 Actor.prototype.toMessage = function(full) {
@@ -611,15 +595,31 @@ Actor.prototype.toMessage = function(full) {
         Math.round(this.mx * 100) / 100, Math.round(this.my * 100) / 100
     ];
     if (full) {
-        raw.push(this.clas);
+        raw.push(this.$clas);
     }
     
     var msg = [raw];
-    var d = this.msg(full);
+    var d = this.onMessage(full);
     if (d.length > 0) {
         msg.push(d);
     }
     return msg;
+};
+
+Actor.prototype.update = function() {
+    this.$updated = true;
+};
+
+Actor.prototype.alive = function() {
+    return this.$alive;
+};
+
+Actor.prototype.destroy = function() {
+    if (this.$alive) {
+        this.$alive = false;
+        this.onDestroy();
+        this.$emit(MSG_ACTORS_DESTROY);
+    }
 };
 
 // Helpers

@@ -24,7 +24,7 @@
 // Actors ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 var ActorPlayer = Server.createActorType('player');
-ActorPlayer.create = function(data) {
+ActorPlayer.onCreate = function(data) {
     this.client = data.client;
     this.hp = 15;
     this.r = (Math.random() * Math.PI * 2) - Math.PI;
@@ -66,7 +66,7 @@ ActorPlayer.create = function(data) {
     this.camuTime = 0;
 };
 
-ActorPlayer.update = function() {
+ActorPlayer.onUpdate = function() {
     this.r = this.$g.wrapAngle(this.r + this.mr);
     var maxSpeed = this.boost ? 4.5 : 3;
     var r = Math.atan2(this.mx, this.my);
@@ -89,7 +89,7 @@ ActorPlayer.update = function() {
     // Invincibility
     if (this.timeDiff(this.defenseTime) > 100 && this.defense > 0) {
         this.defense -= 100;
-        this.updated = true;
+        this.update();
         this.defenseTime = this.getTime();
     }
     
@@ -113,7 +113,7 @@ ActorPlayer.update = function() {
         // Fade out
         if (this.camuFade >= 0) {
             this.camuFade -= 5;
-            this.updated = true;
+            this.update();
         
         } else {
             this.camu = 2;
@@ -134,7 +134,7 @@ ActorPlayer.update = function() {
     } else if (this.camu == 3) {
         if (this.camuFade <= 100) {
             this.camuFade += 5;
-            this.updated = true;
+            this.update();
         
         } else {
             this.camuFade = -1;
@@ -171,12 +171,12 @@ ActorPlayer.syncData = function() {
             this.updated = [this.client.id];
         
         } else {
-            this.updated = true;
+            this.update();
         }
     }
 }
 
-ActorPlayer.destroy = function() {
+ActorPlayer.onDestroy = function() {
     this.clients = [];
     this.defender = null;
     this.hp = 0;
@@ -189,7 +189,7 @@ ActorPlayer.destroy = function() {
     }
 };
 
-ActorPlayer.msg = function(full) {
+ActorPlayer.onMessage = function(full) {
     var msg = [
         Math.round(this.r * 10) / 10,
         this.mr,
@@ -209,7 +209,7 @@ ActorPlayer.msg = function(full) {
 
 // Bullet ----------------------------------------------------------------------
 var ActorBullet = Server.createActorType('bullet');
-ActorBullet.create = function(data) {
+ActorBullet.onCreate = function(data) {
     this.time = this.getTime();
     this.player = data.player;
     this.sync = 10;
@@ -238,7 +238,7 @@ ActorBullet.create = function(data) {
     this.time = this.getTime();
 };
         
-ActorBullet.update = function() {
+ActorBullet.onUpdate = function() {
     this.x += this.mx;
     this.y += this.my;
     
@@ -252,20 +252,20 @@ ActorBullet.update = function() {
     } else {
         this.sync++;
         if (this.sync > 10) {
-            this.updated = true;
+            this.update();
             this.sync = 0;
         }
     }
 };
 
-ActorBullet.msg = function(full) {
+ActorBullet.onMessage = function(full) {
     return full ? [this.player.client.id]: [];
 };
 
 
 // Bomb ------------------------------------------------------------------------
 var ActorBomb = Server.createActorType('bomb');
-ActorBomb.create = function(data) {
+ActorBomb.onCreate = function(data) {
     this.time = this.getTime();
     this.player = data.player;
     this.range = 120;
@@ -295,7 +295,7 @@ ActorBomb.create = function(data) {
     this.time = this.getTime();       
 };
 
-ActorBomb.update = function() {
+ActorBomb.onUpdate = function() {
     this.x += this.mx;
     this.y += this.my;
     
@@ -309,44 +309,44 @@ ActorBomb.update = function() {
     } else {
         this.sync++;
         if (this.sync > 8) {
-            this.updated = true;
+            this.update();
             this.sync = 0;
         }
     }
 };
 
-ActorBomb.destroy = function() {
+ActorBomb.onDestroy = function() {
     this.$g.destroyBomb(this);
 };
 
-ActorBomb.msg = function(full) {
+ActorBomb.onMessage = function(full) {
     return full ? [this.player.client.id, this.range] : [];
 };
 
 
 // PowerUp ---------------------------------------------------------------------
 var ActorPowerUp = Server.createActorType('powerup');
-ActorPowerUp.create = function(data) {
+ActorPowerUp.onCreate = function(data) {
     this.$g.randomPosition(this, this.$g.sizePowerUp);
     this.type = data.type;
     this.time = this.getTime() + 15000 + Math.ceil(Math.random() * 5000);
 };
 
-ActorPowerUp.update = function() {
+ActorPowerUp.onUpdate = function() {
     if (this.getTime() > this.time) {
         this.$g.removePowerUp(this.type);
         this.destroy();
     }
 };
 
-ActorPowerUp.msg = function(full) {
+ActorPowerUp.onMessage = function(full) {
     return full ? [this.type] : [];
 };
 
 
 // Player Defender -------------------------------------------------------------
 var ActorPlayerDef = Server.createActorType('player_def');
-ActorPlayerDef.create = function(data) {
+ActorPlayerDef.onCreate = function(data) {
     this.player = data.player;
     this.player.defender = this;
     this.level = 1;
@@ -359,7 +359,7 @@ ActorPlayerDef.create = function(data) {
     this.sync = 10;
 };
 
-ActorPlayerDef.update = function() {
+ActorPlayerDef.onUpdate = function() {
     this.x = this.player.x + Math.sin(this.r) * 35;
     this.y = this.player.y + Math.cos(this.r) * 35;
     this.$g.wrapPosition(this);
@@ -387,16 +387,16 @@ ActorPlayerDef.update = function() {
     if (this.sync > 8 || this.mx != this.mxOld || this.my != this.myOld) {
         this.mxOld = this.mx;
         this.myOld = this.my;
-        this.updated = true;
+        this.update();
         this.sync = 0;
     }
 };
 
-ActorPlayerDef.destroy = function() {
+ActorPlayerDef.onDestroy = function() {
     this.player.defender = null;
 };
 
-ActorPlayerDef.msg = function(full) {
+ActorPlayerDef.onMessage = function(full) {
     return full ? [this.player.client.id, this.r,
                    Math.round(this.player.x * 100) / 100,
                    Math.round(this.player.y * 100) / 100]

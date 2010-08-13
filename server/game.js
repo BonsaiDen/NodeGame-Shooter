@@ -345,12 +345,12 @@ Shooter.onUpdate = function() {
     // Player Defends
     for(var i = 0, dl = players_defs.length; i < dl; i++) {
         var pd = players_defs[i];
-        if (pd.alive && pd.player.hp > 0) {
+        if (pd.alive() && pd.player.hp > 0) {
         
             // PowerUp collision
             for(var f = 0, lf = powerups.length; f < lf; f++) {
                 var o = powerups[f];
-                if (o.alive && this.circleCollision(pd, o,
+                if (o.alive() && this.circleCollision(pd, o,
                                                     this.sizeDefend,
                                                     this.sizePowerUp)) {
                     
@@ -361,7 +361,7 @@ Shooter.onUpdate = function() {
             // Player Bomb
             for(var e = 0, dl = bombs.length; e < dl; e++) {
                 var bo = bombs[e];
-                if (bo.alive && this.circleCollision(pd, bo,
+                if (bo.alive() && this.circleCollision(pd, bo,
                                                      this.sizeDefend,
                                                      this.sizeBomb)) {
                     
@@ -372,12 +372,12 @@ Shooter.onUpdate = function() {
             }
             
             // Other defs
-            if (!pd.alive) {
+            if (!pd.alive()) {
                 continue;
             }
             for(var e = i + 1, dl = players_defs.length; e < dl; e++) {
                 var pdd = players_defs[e];
-                if (pdd.alive && this.circleCollision(pdd, pd,
+                if (pdd.alive() && this.circleCollision(pdd, pd,
                                                       this.sizeDefend,
                                                       this.sizeDefend)) {
                     
@@ -409,7 +409,7 @@ Shooter.collidePlayer = function(p, i, l) {
     // Player / Player Defend collision
     for(var e = 0, dl = players_defs.length; e < dl; e++) {
         var pd = players_defs[e];
-        if (pd.alive && this.circleCollision(p, pd,
+        if (pd.alive() && this.circleCollision(p, pd,
                                              this.sizePlayer,
                                              this.sizeDefend)) {
             
@@ -430,7 +430,7 @@ Shooter.collidePlayer = function(p, i, l) {
     // Player / Bomb
     for(var e = 0, dl = bombs.length; e < dl; e++) {
         var bo = bombs[e];
-        if (bo.alive && this.circleCollision(p, bo, this.sizePlayer,
+        if (bo.alive() && this.circleCollision(p, bo, this.sizePlayer,
                                                     this.sizeBomb)) {
             
             bo.destroy();
@@ -458,7 +458,7 @@ Shooter.collidePlayer = function(p, i, l) {
         // PowerUPs
         for(var f = 0, lf = powerups.length; f < lf; f++) {
             var o = powerups[f];
-            if (o.alive && this.circleCollision(p, o, this.sizePlayer,
+            if (o.alive() && this.circleCollision(p, o, this.sizePlayer,
                                                       this.sizePowerUp)) {
                 
                 this.collidePowerUps(o, p);
@@ -468,7 +468,7 @@ Shooter.collidePlayer = function(p, i, l) {
         // Bullets
         for(var f = 0, lf = bullets.length; f < lf; f++) {
             var b = bullets[f];
-            if (b.alive) {
+            if (b.alive()) {
                 
                 // Hit on ship
                 if (!p.shield && this.circleCollision(p, b, this.sizePlayer,
@@ -507,7 +507,7 @@ Shooter.destroyBomb = function(b) {
     var bombs = this.getActors('bomb');
     for(var i = 0, l = bombs.length; i < l; i++) {
         var e = bombs[i];
-        if (e.alive && this.circleCollision(b, e, b.range, this.sizeBomb)) {
+        if (e.alive() && this.circleCollision(b, e, b.range, this.sizeBomb)) {
             e.destroy();
         }
     }
@@ -516,7 +516,7 @@ Shooter.destroyBomb = function(b) {
     var players_defs = this.getActors('player_def');
     for(var i = 0, l = players_defs.length; i < l; i++) {
         var e = players_defs[i];
-        if (e.alive && this.circleCollision(b, e, b.range, this.sizeDefend)) {
+        if (e.alive() && this.circleCollision(b, e, b.range, this.sizeDefend)) {
             e.destroy();
         }
     }
@@ -525,7 +525,7 @@ Shooter.destroyBomb = function(b) {
     var players = this.getActors('player');
     for(var i = 0, l = players.length; i < l; i++) {
         var e = players[i];
-        if (e.alive && this.circleCollision(b, e, b.range, this.sizePlayer)) {
+        if (e.alive() && this.circleCollision(b, e, b.range, this.sizePlayer)) {
             e.client.kill();
             if (b.player && b.player.client.bombLaunched) {
                 if (e != b.player) {
@@ -545,7 +545,7 @@ Shooter.destroyBomb = function(b) {
     var powerups = this.getActors('powerup');
     for(var i = 0, l = powerups.length; i < l; i++) {
         var e = powerups[i];
-        if (e.alive && this.circleCollision(b, e, b.range, this.sizePowerUp)) {
+        if (e.alive() && this.circleCollision(b, e, b.range, this.sizePowerUp)) {
             e.destroy();
             this.removePowerUp(e.type);
         }
@@ -555,7 +555,7 @@ Shooter.destroyBomb = function(b) {
     var bullets = this.getActors('bullet');
     for(var i = 0, l = bullets.length; i < l; i++) {
         var e = bullets[i];
-        if (e.alive && this.circleCollision(b, e, b.range, this.sizeBullet)) {
+        if (e.alive() && this.circleCollision(b, e, b.range, this.sizeBullet)) {
             e.destroy();
         }
     }
