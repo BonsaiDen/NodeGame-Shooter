@@ -33,7 +33,7 @@ Client.prototype.onInit = function() {
     this.$.emitFields();
 };
 
-Client.prototype.init = function() {
+Client.prototype.init = function(init) {
     if (this.playerName && !this.$g.roundFinished) {
         
         // Get free color
@@ -46,8 +46,10 @@ Client.prototype.init = function() {
                 }
             }
         }
-        this.log('++ [' + this.getInfo() + '] ' + this.playerName
-                 + ' has joined, color ' + this.playerColor);
+        if (init) {
+            this.log('++ [' + this.getInfo() + '] ' + this.playerName
+                     + ' has joined');
+        }
         
         this.$.setFieldItem('o', this.id, this.playerColor); // colors
         this.$.setFieldItem('p', this.id, this.playerName); // players
@@ -107,7 +109,7 @@ Client.prototype.onMessage = function(msg) {
             
             this.playerName = msg.join;
             this.$g.playerCount += 1;
-            this.init();
+            this.init(true);
         }
     
     // Leave the game

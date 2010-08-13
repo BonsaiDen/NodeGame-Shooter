@@ -105,7 +105,7 @@ Shooter.startRound = function() {
     // Reset player stats
     this.roundFinished = false;
     for(var c in this.$.clients) {
-        this.$.clients[c].init();
+        this.$.clients[c].init(false);
         this.addPlayerStats(c);
     }
     

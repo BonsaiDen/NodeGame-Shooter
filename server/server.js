@@ -118,10 +118,7 @@ Server.prototype.start = function() {
     this.time = new Date().getTime();
     this.log('>> Server started');
     this.$g.start();
-    that.status();
-    
-    // Status
-    setInterval(function(){that.status(false)}, 500);
+    this.status();
     
     // Exit
     process.addListener('SIGINT', function () {
@@ -147,7 +144,7 @@ Server.prototype.initGame = function(interval) {
 
 Server.prototype.log = function(str) {
     this.logs.push([this.getTime(), str]);
-    if (this.logs.length > 10) {
+    if (this.logs.length > 15) {
         this.logs.shift();
     }
 };
@@ -185,6 +182,11 @@ Server.prototype.status = function(end) {
     }
     sys.print('\x1b[H\x1b[J# NodeGame Server at port '
               + this.port + '\n' + stats + '\n\x1b[s');
+              
+    if (!end) {
+        var that = this;
+        setTimeout(function() {that.status(false)}, 500);
+    }
 };
 
 exports.Server = Server;
