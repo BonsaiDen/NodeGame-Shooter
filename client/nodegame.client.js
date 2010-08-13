@@ -43,16 +43,13 @@ function Game(client) {
 Game.prototype.onConnect = function(success) {
 };
 
-Game.prototype.onWebSocketError = function() {
-};
-
 Game.prototype.onInit = function(data) {
 };
 
 Game.prototype.onUpdate = function(data) {
 };
 
-Game.prototype.onRender = function() {
+Game.prototype.onDraw = function() {
 };
 
 Game.prototype.onShutdown = function(clean) {
@@ -62,6 +59,9 @@ Game.prototype.onClose = function() {
 };
 
 Game.prototype.onError = function(e) {
+};
+
+Game.prototype.onWebSocketError = function() {
 };
 
 Game.prototype.getTime = function() {
@@ -243,22 +243,20 @@ Client.prototype.render = function() {
         var a = this.actors[c];
         a.x += a.mx / this.intervalSteps;
         a.y += a.my / this.intervalSteps;
-        a.interleave();
+        a.onInterleave();
         if (render) {
-            a.draw();
+            a.onDraw();
         }
     }
 };
 
 Client.prototype.createActorType = function(id) {
     function ActorType() {
-        this.init = function(data) {};
-        this.create = function(data) {};
-        this.update = function(data) {};
-        this.interleave = function() {};
-        this.draw = function() {};
-        this.remove = function() {};
-        return this;
+        this.onCreate = function(data, complete) {};
+        this.onUpdate = function(data) {};
+        this.onInterleave = function() {};
+        this.onDraw = function() {};
+        this.onDestroy = function(complete) {};
     }
     this.actorTypes[id] = new ActorType();
     return this.actorTypes[id];
@@ -286,14 +284,13 @@ function Actor(game, data, create) {
     this.y = d[2];
     this.mx = d[3];
     this.my = d[4];
-    this.clas = d[5];
     
-    for(var m in this.$s.actorTypes[this.clas]) {
+    for(var m in this.$s.actorTypes[d[5]]) {
         if (m != 'update' && m != 'destroy' && m != 'remove') {
-            this[m] = this.$s.actorTypes[this.clas][m];
+            this[m] = this.$s.actorTypes[d[5]][m];
         }
     }
-    this.init(data[1], create);
+    this.onCreate(data[1], create);
 }
 
 Actor.prototype.update = function(data) {
@@ -313,17 +310,17 @@ Actor.prototype.update = function(data) {
     }
     this.mx = d[3];
     this.my = d[4];
-    this.$s.actorTypes[this.clas].update.call(this, data[1]);
+    this.onUpdate(data[1]);
 };
 
 Actor.prototype.destroy = function(x, y) {
     this.x = x;
     this.y = y;
-    this.$s.actorTypes[this.clas].remove.call(this, true);
+    this.onDestroy(true);
 };
 
 Actor.prototype.remove = function() {
-    this.$s.actorTypes[this.clas].remove.call(this, false);
+    this.onDestroy(false);
 };
 
 Actor.prototype.getTime = function() {

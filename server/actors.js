@@ -193,7 +193,7 @@ ActorPlayer.onDestroy = function() {
     }
 };
 
-ActorPlayer.onMessage = function(full) {
+ActorPlayer.onMessage = function(once) {
     var msg = [
         Math.round(this.r * 10) / 10,
         this.mr,
@@ -204,7 +204,7 @@ ActorPlayer.onMessage = function(full) {
         this.camuFade
     ];
     
-    if (full) {
+    if (once) {
         msg.push(this.client.id);
     }
     return msg;
@@ -262,8 +262,8 @@ ActorBullet.onUpdate = function() {
     }
 };
 
-ActorBullet.onMessage = function(full) {
-    return full ? [this.player.client.id]: [];
+ActorBullet.onMessage = function(once) {
+    return once ? [this.player.client.id]: [];
 };
 
 
@@ -323,8 +323,8 @@ ActorBomb.onDestroy = function() {
     this.$g.destroyBomb(this);
 };
 
-ActorBomb.onMessage = function(full) {
-    return full ? [this.player.client.id, this.range] : [];
+ActorBomb.onMessage = function(once) {
+    return once ? [this.player.client.id, this.range] : [];
 };
 
 
@@ -343,8 +343,8 @@ ActorPowerUp.onUpdate = function() {
     }
 };
 
-ActorPowerUp.onMessage = function(full) {
-    return full ? [this.type] : [];
+ActorPowerUp.onMessage = function(once) {
+    return once ? [this.type] : [];
 };
 
 
@@ -400,8 +400,8 @@ ActorPlayerDef.onDestroy = function() {
     this.player.defender = null;
 };
 
-ActorPlayerDef.onMessage = function(full) {
-    return full ? [this.player.client.id, this.r,
+ActorPlayerDef.onMessage = function(once) {
+    return once ? [this.player.client.id, this.r,
                    Math.round(this.player.x * 100) / 100,
                    Math.round(this.player.y * 100) / 100]
                    : [this.r, Math.round(this.player.x * 100) / 100,

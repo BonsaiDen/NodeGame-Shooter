@@ -266,7 +266,7 @@ Server.prototype.createActorType = function(id) {
         this.onCreate = function(data) {};
         this.onUpdate = function() {};
         this.onDestroy = function() {};
-        this.onMessage = function(full) {return [];};
+        this.onMessage = function(once) {return [];};
     }
     this.actorTypes[id] = new ActorType();
     return this.actorTypes[id];
@@ -590,18 +590,18 @@ Actor.prototype.$emit = function(type) {
     }
 };
 
-Actor.prototype.toMessage = function(full) {
+Actor.prototype.toMessage = function(once) {
     var raw = [
         this.id,
         Math.round(this.x * 100) / 100,  Math.round(this.y * 100) / 100,
         Math.round(this.mx * 100) / 100, Math.round(this.my * 100) / 100
     ];
-    if (full) {
+    if (once) {
         raw.push(this.$clas);
     }
     
     var msg = [raw];
-    var d = this.onMessage(full);
+    var d = this.onMessage(once);
     if (d.length > 0) {
         msg.push(d);
     }
