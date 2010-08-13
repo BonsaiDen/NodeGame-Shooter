@@ -256,9 +256,8 @@ Client.prototype.createActorType = function(id) {
         this.create = function(data) {};
         this.update = function(data) {};
         this.interleave = function() {};
-        this.render = function() {};
-        this.event = function(type, data) {};
-        this.destroy = function() {};
+        this.draw = function() {};
+        this.remove = function() {};
         return this;
     }
     this.actorTypes[id] = new ActorType();
