@@ -130,13 +130,12 @@ Server.prototype.shutdown = function() {
     
     var that = this;
     setTimeout(function() {
-        sys.print('\x1b[u\n');
-        
         for(var c in that.clients) {
             that.clients[c].close();
         }
         that.log('>> Shutting down...');
         that.status(true);
+        sys.print('\x1b[u\n');
         process.exit(0);
     }, 100);
 };
