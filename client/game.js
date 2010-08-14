@@ -148,11 +148,11 @@ Shooter.onWebSocketError = function() {
 
 
 Shooter.onClose = function() {
-    document.location.href = document.location.href.split('#')[0].split('?')[0];
+    document.location.reload();
 };
 
 Shooter.onError = function(e) {
-    document.location.href = document.location.href.split('#')[0].split('?')[0];
+    document.location.reload();
 };
 
 
