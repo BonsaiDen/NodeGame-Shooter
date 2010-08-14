@@ -124,8 +124,6 @@ Server.prototype.start = function() {
 
 Server.prototype.shutdown = function() {
     this.$g.onShutdown();
-    this.log('>> Shutting down...');
-    this.status(true);
     this.$g.$running = false;
     this.destroyActors();
     this.emit(MSG_GAME_SHUTDOWN, []);
@@ -137,6 +135,8 @@ Server.prototype.shutdown = function() {
         for(var c in that.clients) {
             that.clients[c].close();
         }
+        that.log('>> Shutting down...');
+        that.status(true);
         process.exit(0);
     }, 100);
 };
