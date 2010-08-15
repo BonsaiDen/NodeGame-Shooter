@@ -55,7 +55,7 @@ Game.prototype.onInput = function() {
 Game.prototype.onDraw = function() {
 };
 
-Game.prototype.onShutdown = function(clean) {
+Game.prototype.onShutdown = function(data) {
 };
 
 Game.prototype.onClose = function() {

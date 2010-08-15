@@ -123,10 +123,9 @@ Server.prototype.start = function() {
 
 
 Server.prototype.shutdown = function() {
-    this.$g.onShutdown();
     this.$g.$running = false;
+    this.emit(MSG_GAME_SHUTDOWN, this.$g.onShutdown());
     this.destroyActors();
-    this.emit(MSG_GAME_SHUTDOWN, []);
     
     var that = this;
     setTimeout(function() {
@@ -426,6 +425,7 @@ Game.prototype.onUpdate = function() {
 };
 
 Game.prototype.onShutdown = function() {
+    return [];
 };
 
 // Helpers
