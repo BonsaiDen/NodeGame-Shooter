@@ -124,7 +124,7 @@ Shooter.onUpdate = function(data) {
     this.checkPlayers(data);
 };
 
-Shooter.onControl = function(data) {
+Shooter.onInput = function() {
     var keys = {'keys': [
         this.keys[87] || this.keys[38] || 0,
         this.keys[68] || this.keys[39] || 0,

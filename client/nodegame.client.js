@@ -49,6 +49,9 @@ Game.prototype.onInit = function(data) {
 Game.prototype.onUpdate = function(data) {
 };
 
+Game.prototype.onInput = function() {
+};
+
 Game.prototype.onDraw = function() {
 };
 
@@ -231,7 +234,7 @@ Client.prototype.render = function() {
     var render = this.getTime() - this.lastRender > this.fpsTime;
     if (render) {
         this.lastRender = this.getTime();
-        var msg = JSON.stringify(this.$.onControl());
+        var msg = JSON.stringify(this.$.onInput());
         if (msg != this.lastState) {
             this.conn.send(msg);
             this.lastState = msg;
