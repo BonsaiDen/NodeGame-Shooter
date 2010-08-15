@@ -33,6 +33,8 @@ ActorPlayer.onCreate = function(data, complete) {
     this.shield = data[5];
     this.fade = data[6];
     this.id = data[7];
+    
+    this.alpha = 1.0;
 };
 
 ActorPlayer.onUpdate = function(data) {
@@ -45,18 +47,26 @@ ActorPlayer.onUpdate = function(data) {
     this.fade = data[6];
     
     // Shield
+    if (this.fade != -1) {
+        this.alpha = this.id == this.$.id ? 0.20 + (this.fade / 100 * 0.8)
+                                          : this.fade / 100;
+    
+    } else {
+        this.alpha = 1.0;
+    }
+    
     var col = this.$.colorCodes[this.$.playerColors[this.id]];
     if (this.shield && !data[5]) {
-        this.$.effectRing(this.x, this.y, 20, 30, 0.5, 3.0, col, 1);
+        this.$.effectRing(this.x, this.y, 20, 30, 0.5, 3.0, col, this.alpha);
     
     } else if (!this.shield && data.s) {
-        this.$.effectRing(this.x, this.y, 30, 30, 0.20, -3.0, col, 1);
+        this.$.effectRing(this.x, this.y, 30, 30, 0.20, -3.0, col, this.alpha);
     }
     this.shield = data[5];
 };
 
 ActorPlayer.onInterleave = function() {
-    this.r = this.$.wrapAngle(this.r + (this.mr) / (this.$.getInterval() * 1.1));
+    this.r = this.$.wrapAngle(this.r + this.mr / (this.$.getInterval() * 1.1));
 };
 
 ActorPlayer.onDestroy = function(complete) {
@@ -66,7 +76,7 @@ ActorPlayer.onDestroy = function(complete) {
         this.$.effectArea(this.x, this.y, 20, 0.5, col);
         
         if (this.shield) {
-            this.$.effectRing(this.x, this.y, 20, 42, 0.6, 4.0, col, 1);
+            this.$.effectRing(this.x, this.y, 20, 42, 0.6, 4.0, col, this.alpha);
         }
     }
 };
@@ -75,14 +85,7 @@ ActorPlayer.onDraw = function() {
     // Color
     var col = this.$.playerColor(this.id);
     var colFaded = this.$.playerColorFaded(this.id);
-    var alpha = 1.0;
-    if (this.fade != -1) {
-        alpha = this.id == this.$.id ? 0.20+ (this.fade / 100 * 0.8)
-                                     : this.fade / 100;
-        
-        this.$.alpha(alpha);
-    }
-    
+    this.$.alpha(this.alpha);
     
     // Draw Ship base
     if (this.fade > 0 || this.fade == -1 || this.id == this.$.id) {
@@ -115,7 +118,7 @@ ActorPlayer.onDraw = function() {
                                   this.$.wrapAngle(r - 0.8 + Math.random()
                                                      * 1.60),
                                    
-                                  2, 0.2 + (this.boost ? 0.1 : 0), col, alpha);
+                                  2, 0.2 + (this.boost ? 0.1 : 0), col, this.alpha);
             
             if (this.boost) {
                 this.$.effectParticle(ox, oy,
@@ -123,7 +126,7 @@ ActorPlayer.onDraw = function() {
                                                          * 1.60),
                                        
                                       2, 0.2 + (this.boost ? 0.1 : 0), col,
-                                      alpha);
+                                      this.alpha);
             }
         }
         
@@ -140,7 +143,7 @@ ActorPlayer.onDraw = function() {
             r = this.$.wrapAngle(r - Math.PI * 2.47 * d - 0.4 + Math.random()
                                  * 0.80);
             
-            this.$.effectParticle(ox, oy, r, 2, 0.13, col, alpha);
+            this.$.effectParticle(ox, oy, r, 2, 0.13, col, this.alpha);
         }
         
         // Shield ring
@@ -149,7 +152,7 @@ ActorPlayer.onDraw = function() {
             this.$.effectRing(this.x, this.y, 20, 22 * (Math.random() + 0.5),
                               this.$.extreeeeeeme ? 0.02 : 0.04,
                               this.$.extreeeeeeme ? 0.125 : 0.25,
-                              col, alpha);
+                              col, this.alpha);
         }
     
     } else {
