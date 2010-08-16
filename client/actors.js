@@ -23,7 +23,7 @@
 
 // Actors ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-var ActorPlayer = Client.createActorType('player');
+var ActorPlayer = Client.createActorType('player', 2);
 ActorPlayer.onCreate = function(data, complete) {
     this.r = data[0];
     this.mr = data[1]; 
@@ -40,7 +40,6 @@ ActorPlayer.onCreate = function(data, complete) {
 ActorPlayer.onUpdate = function(data) {
     this.r = data[0];
     this.mr = data[1]; 
-    this.nr = this.r + this.mr;
     this.defense = data[2];
     this.thrust = data[3];
     this.boost = data[4];
@@ -66,7 +65,7 @@ ActorPlayer.onUpdate = function(data) {
 };
 
 ActorPlayer.onInterleave = function() {
-    this.r = this.$.wrapAngle(this.r + this.mr / (this.$.getInterval() * 1.1));
+    this.r = this.$.wrapAngle(this.r + this.interleave(this.mr));
 };
 
 ActorPlayer.onDestroy = function(complete) {
@@ -132,7 +131,7 @@ ActorPlayer.onDraw = function() {
         
         // Rotate
         if (this.mr != 0) {
-            var d = (this.mr * 10);
+            var d = this.mr > 0 ? 1 : -1; 
             var r = this.$.wrapAngle(this.r - Math.PI);
             var ox = this.x + Math.sin(this.$.wrapAngle(r - Math.PI * 2.22 * d)
                                        ) * 14;
@@ -170,7 +169,7 @@ ActorPlayer.onDraw = function() {
 
 
 // Bullet ----------------------------------------------------------------------
-var ActorBullet = Client.createActorType('bullet');
+var ActorBullet = Client.createActorType('bullet', 10);
 ActorBullet.onCreate = function(data, complete) {
     this.id = data[0];
 };
@@ -189,7 +188,7 @@ ActorBullet.onDraw = function() {
 
 
 // Bomb ------------------------------------------------------------------------
-var ActorBomb = Client.createActorType('bomb');
+var ActorBomb = Client.createActorType('bomb', 8);
 ActorBomb.onCreate = function(data, complete) {
     this.id = data[0];
     this.radius = data[1];
@@ -226,7 +225,7 @@ ActorBomb.onDraw = function() {
 };
 
 // PowerUP ---------------------------------------------------------------------
-var ActorPowerUp = Client.createActorType('powerup');
+var ActorPowerUp = Client.createActorType('powerup', 0);
 ActorPowerUp.onCreate = function(data, complete) {
     this.type = data[0];
     if (complete) {
@@ -268,12 +267,13 @@ ActorPowerUp.onDraw = function() {
 
 
 // Player Defender -------------------------------------------------------------
-var ActorPlayerDef = Client.createActorType('player_def');
+var ActorPlayerDef = Client.createActorType('player_def', 8);
 ActorPlayerDef.onCreate = function(data, complete) {
     this.id = data[0];
     this.r = data[1];
-    this.x = data[2];
-    this.y = data[3];
+    this.mr = data[2];
+    this.x = data[3];
+    this.y = data[4];
     this.wrap();
     
     if (complete) {
@@ -300,7 +300,7 @@ ActorPlayerDef.onUpdate = function(data) {
 };
 
 ActorPlayerDef.onInterleave = function() {
-    this.r = this.$.wrapAngle(this.r + 0.20 / this.$.getInterval());
+    this.r = this.$.wrapAngle(this.r + this.interleave(this.mr));
     this.wrap();
 };
 

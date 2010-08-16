@@ -71,8 +71,8 @@ Game.prototype.getTime = function() {
     return this.$s.getTime();
 };
 
-Game.prototype.getInterval = function() {
-    return this.$s.intervalSteps;
+Game.prototype.getinterleave = function() {
+    return this.$s.interleaveSteps;
 };
 
 Game.prototype.send = function(msg) {
@@ -88,7 +88,7 @@ function Client(fps) {
     this.lastState = '';
     this.lastFrame = 0;
     this.lastRender = 0;
-    this.intervalSteps = 0;
+    this.interleaveSteps = 0;
     this.running = false;
     
     this.actors = {};
@@ -155,7 +155,7 @@ Client.prototype.onMessage = function(msg) {
     if (type == MSG_GAME_START) {
         this.$.id = data[0];
         this.lastFrame = this.lastRender = this.getTime();
-        this.intervalSteps = data[1] / 10;
+        this.interleaveSteps = data[1] / 10;
         this.running = true;
         this.update();
         this.$.onInit(data[2]);
@@ -244,24 +244,35 @@ Client.prototype.render = function() {
     
     for(var c in this.actors) {
         var a = this.actors[c];
-        a.x += a.mx / this.intervalSteps;
-        a.y += a.my / this.intervalSteps;
-        a.onInterleave();
+        if (a.$updateRate > 0) {
+            if (a.$updateCount < a.$updateRate * this.interleaveSteps) {
+                a.x += a.interleave(a.mx);
+                a.y += a.interleave(a.my); 
+                a.onInterleave();
+                a.$updateCount++;
+            
+            } else {
+                a.x = a.$nx;
+                a.y = a.$ny;
+            }
+        }
+        
         if (render) {
             a.onDraw();
         }
     }
 };
 
-Client.prototype.createActorType = function(id) {
-    function ActorType() {
+Client.prototype.createActorType = function(id, rate) {
+    function ActorType(rate) {
+        this.updateRate = rate;
         this.onCreate = function(data, complete) {};
         this.onUpdate = function(data) {};
         this.onInterleave = function() {};
         this.onDraw = function() {};
         this.onDestroy = function(complete) {};
     }
-    this.actorTypes[id] = new ActorType();
+    this.actorTypes[id] = new ActorType(rate);
     return this.actorTypes[id];
 };
 
@@ -276,21 +287,31 @@ Client.prototype.getTime = function() {
 
 // Actors ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-function Actor(game, data, create) {
-    this.$s = game;
-    this.$ = game.$;
+function Actor(client, data, create) {
+    this.$c = client;
+    this.$ = client.$;
     
     var d = data[0]
     this.id = d[0];
-    
     this.x = d[1];
     this.y = d[2];
-    this.mx = d[3];
-    this.my = d[4];
     
-    for(var m in this.$s.actorTypes[d[5]]) {
+    this.$updateRate = this.$c.actorTypes[d[5]].updateRate;
+    this.$updateCount = 0;
+    if (this.$updateRate > 0) {
+        this.mx = d[3] - this.x;
+        this.my = d[4] - this.y;
+    
+    } else {
+        this.mx = 0;
+        this.my = 0;
+    }
+    this.$nx = d[3];
+    this.$ny = d[4]; 
+    
+    for(var m in this.$c.actorTypes[d[5]]) {
         if (m != 'update' && m != 'destroy' && m != 'remove') {
-            this[m] = this.$s.actorTypes[d[5]][m];
+            this[m] = this.$c.actorTypes[d[5]][m];
         }
     }
     this.onCreate(data[1], create);
@@ -302,18 +323,27 @@ Actor.prototype.update = function(data) {
     var dy = this.y - d[2];
     
     var r = Math.atan2(dx, dy);
-    var dist = Math.sqrt(dx * dx + dy * dy) * 0.5;
-    if (dist < 2) {
-        this.x = this.x - Math.sin(r) * dist;
-        this.y = this.y - Math.cos(r) * dist;
+    var dist = Math.sqrt(dx * dx + dy * dy);;
+    if (dist < 1.5) {
+        this.x = this.x - Math.sin(r) * dist * 0.5;
+        this.y = this.y - Math.cos(r) * dist * 0.5;
     
     } else {
         this.x = d[1];
         this.y = d[2];
     }
-    this.mx = d[3];
-    this.my = d[4];
+    this.$updateCount = 0;
+    if (this.$updateRate > 0) {
+        this.mx = d[3] - this.x;
+        this.my = d[4] - this.y;
+    }
+    this.$nx = d[3];
+    this.$ny = d[4];
     this.onUpdate(data[1]);
+};
+
+Actor.prototype.interleave = function(value) {
+    return value / this.$updateRate  / this.$c.interleaveSteps;
 };
 
 Actor.prototype.destroy = function(x, y) {

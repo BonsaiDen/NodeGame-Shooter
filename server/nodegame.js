@@ -259,14 +259,15 @@ Server.prototype.createActor = function(clas, data) {
     return a;
 };
 
-Server.prototype.createActorType = function(id) {
-    function ActorType() {
+Server.prototype.createActorType = function(id, rate) {
+    function ActorType(rate) {
+        this.updateRate = rate;
         this.onCreate = function(data) {};
         this.onUpdate = function() {};
         this.onDestroy = function() {};
         this.onMessage = function(once) {return [];};
     }
-    this.actorTypes[id] = new ActorType();
+    this.actorTypes[id] = new ActorType(rate);
     return this.actorTypes[id];
 };
 
@@ -281,6 +282,13 @@ Server.prototype.updateActors = function() {
             var a = this.actors[t][i];
             if (a.$alive) {
                 a.onUpdate();
+                if (a.$updateRate > 0) {
+                    a.$updateCount++;
+                    if (a.$updateCount >= a.$updateRate) {
+                        a.$updated = true;
+                        a.$updateCount = 0;
+                    }
+                }
             }
             if (a.$alive) {
                 if (a.$updated) {
@@ -410,6 +418,7 @@ Game.prototype.run = function() {
             this.$.updateClients();
             this.$.updateActors();
             this.onUpdate(); 
+            
             this.$lastTime += this.$interval;
         }
         
@@ -533,6 +542,8 @@ function Actor(srv, clas, data) {
     this.$clients = [];
     this.$alive = true;
     this.$updated = false;
+    this.$updateRate = this.$.actorTypes[this.$clas].updateRate;
+    this.$updateCount = this.$updateRate;
     
     // Extend
     for(var m in this.$.actorTypes[this.$clas]) {
@@ -572,13 +583,11 @@ Actor.prototype.$emit = function(type) {
             } else if (type == MSG_ACTORS_CREATE && index == -1) {
                 c.$actors.push(this.id);
                 c.$createMessages.push(this.toMessage(true));
-            //    this.$updated = true;
             
             // Init
             } else if (type == MSG_ACTORS_INIT && index == -1) {
                 c.$actors.push(this.id);
                 c.$initMessages.push(this.toMessage(true));
-             //   this.$updated = true;
             }
         
         // Remove
@@ -590,11 +599,12 @@ Actor.prototype.$emit = function(type) {
 };
 
 Actor.prototype.toMessage = function(once) {
-    var raw = [
-        this.id,
-        Math.round(this.x * 100) / 100,  Math.round(this.y * 100) / 100,
-        Math.round(this.mx * 100) / 100, Math.round(this.my * 100) / 100
-    ];
+    var x = Math.round(this.x * 100) / 100;
+    var y = Math.round(this.y * 100) / 100;
+    var nx = Math.round((x + this.interleave(this.mx)) * 100) / 100;
+    var ny = Math.round((y + this.interleave(this.my)) * 100) / 100;
+    
+    var raw = [this.id, x, y, nx, ny];
     if (once) {
         raw.push(this.$clas);
     }
@@ -605,6 +615,10 @@ Actor.prototype.toMessage = function(once) {
         msg.push(d);
     }
     return msg;
+};
+
+Actor.prototype.interleave = function(value) {
+    return value * this.$updateRate;
 };
 
 Actor.prototype.update = function() {

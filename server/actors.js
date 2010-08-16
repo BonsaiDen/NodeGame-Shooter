@@ -23,7 +23,7 @@
 
 // Actors ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-var ActorPlayer = Server.createActorType('player');
+var ActorPlayer = Server.createActorType('player', 2);
 ActorPlayer.onCreate = function(data) {
     this.client = data.client;
     this.hp = 15;
@@ -37,16 +37,7 @@ ActorPlayer.onCreate = function(data) {
     this.defenseTime = this.getTime();
     this.defMode = true;
     
-    // Syncing
-    this.sync = 10;
-    this.needSync = false;
-    this.realSync = 10;
-    this.mxOld = this.mx;
-    this.myOld = this.my;
-    this.mrOld = this.mr;
-    this.thrustOld = false;
-    this.shieldOld = false;
-    this.boostOld = false;
+    this.oldMr = 0;
     
     // PowerUPS
     this.boost = false;
@@ -110,11 +101,10 @@ ActorPlayer.onUpdate = function() {
     
     // Camouflage
     if (this.camu == 1) {
-        // Fade out
         if (this.camuFade >= 0) {
             this.camuFade -= 5;
             this.update();
-        
+            
         } else {
             this.camu = 2;
             this.camuTime = this.getTime();
@@ -128,12 +118,8 @@ ActorPlayer.onUpdate = function() {
             this.camu = 3;
             this.camuFade = 0;
             this.clients();
-            
-        } else {
-            this.update();
         }
         
-    
     // fade in
     } else if (this.camu == 3) {
         if (this.camuFade <= 100) {
@@ -143,42 +129,14 @@ ActorPlayer.onUpdate = function() {
         } else {
             this.camuFade = -1;
             this.camu = 0;
-        }        
-    }
-    this.syncData();
-};
-
-ActorPlayer.syncData = function() {
-    this.sync++;
-    if (this.thrust != this.thrustOld || this.mr != 0 || this.sync > 4) {
-        this.needSync = true;
-        this.sync = 0;
-        this.thrustOld = this.thrust;
-    }
-    
-    this.realSync++;
-    if (this.boost != this.boostOld || this.mr != this.mrOld
-        || this.shield != this.shieldOld
-        || Math.abs(this.mx - this.mxOld) > 0.025
-        || Math.abs(this.my - this.myOld) > 0.025
-        || (this.needSync && this.realSync > 1)) {
-        
-        this.shieldOld = this.shield;
-        this.boostOld = this.boost;
-        this.mrOld = this.mr;
-        this.mxOld = this.mx;
-        this.myOld = this.my;
-        
-        this.realSync = 0;
-        this.needSync = false;
-        if (this.camu == 2) {
-            this.updated = [this.client.id];
-        
-        } else {
-            this.update();
         }
     }
-}
+    
+    if (this.mr != this.oldMr) {
+        this.update();
+        this.oldMr = this.mr;
+    }
+};
 
 ActorPlayer.onDestroy = function() {
     this.clients();
@@ -196,7 +154,7 @@ ActorPlayer.onDestroy = function() {
 ActorPlayer.onMessage = function(once) {
     var msg = [
         Math.round(this.r * 10) / 10,
-        this.mr,
+        this.interleave(this.mr),
         (this.defense % 200) != 0 ? 1 : 0,
         this.thrust ? 1 : 0,
         this.boost ? 1 : 0,
@@ -212,11 +170,10 @@ ActorPlayer.onMessage = function(once) {
 
 
 // Bullet ----------------------------------------------------------------------
-var ActorBullet = Server.createActorType('bullet');
+var ActorBullet = Server.createActorType('bullet', 10);
 ActorBullet.onCreate = function(data) {
     this.time = this.getTime();
     this.player = data.player;
-    this.sync = 10;
     
     var r = data.r;
     this.x = this.player.x + Math.sin(r) * 12;
@@ -252,13 +209,6 @@ ActorBullet.onUpdate = function() {
     // Destroy
     if (this.timeDiff(this.time) > 3000) {
         this.destroy();
-    
-    } else {
-        this.sync++;
-        if (this.sync > 10) {
-            this.update();
-            this.sync = 0;
-        }
     }
 };
 
@@ -268,12 +218,11 @@ ActorBullet.onMessage = function(once) {
 
 
 // Bomb ------------------------------------------------------------------------
-var ActorBomb = Server.createActorType('bomb');
+var ActorBomb = Server.createActorType('bomb', 8);
 ActorBomb.onCreate = function(data) {
     this.time = this.getTime();
     this.player = data.player;
     this.range = 120;
-    this.sync = 10;
     
     var r = data.r;
     this.x = this.player.x + Math.sin(r) * 12;
@@ -309,13 +258,6 @@ ActorBomb.onUpdate = function() {
     // Destroy
     if (this.timeDiff(this.time) > 4000) {
         this.destroy();
-    
-    } else {
-        this.sync++;
-        if (this.sync > 8) {
-            this.update();
-            this.sync = 0;
-        }
     }
 };
 
@@ -329,7 +271,7 @@ ActorBomb.onMessage = function(once) {
 
 
 // PowerUp ---------------------------------------------------------------------
-var ActorPowerUp = Server.createActorType('powerup');
+var ActorPowerUp = Server.createActorType('powerup', 0);
 ActorPowerUp.onCreate = function(data) {
     this.$g.randomPosition(this, this.$g.sizePowerUp);
     this.type = data.type;
@@ -349,18 +291,18 @@ ActorPowerUp.onMessage = function(once) {
 
 
 // Player Defender -------------------------------------------------------------
-var ActorPlayerDef = Server.createActorType('player_def');
+var ActorPlayerDef = Server.createActorType('player_def', 8);
 ActorPlayerDef.onCreate = function(data) {
     this.player = data.player;
     this.player.defender = this;
     this.level = 1;
     this.r = (Math.random() * (Math.PI * 2)) - Math.PI;
+    this.mr = 0.20;
     this.shotTime = this.getTime();
     this.initTime = this.getTime();
     
     this.mxOld = this.mx;
     this.myOld = this.my;
-    this.sync = 10;
 };
 
 ActorPlayerDef.onUpdate = function() {
@@ -385,14 +327,11 @@ ActorPlayerDef.onUpdate = function() {
             this.shotTime = this.getTime();
         }
     }
-    this.r = this.$g.wrapAngle(this.r + 0.20);
-    
-    this.sync++;
-    if (this.sync > 8 || this.mx != this.mxOld || this.my != this.myOld) {
+    this.r = this.$g.wrapAngle(this.r + this.mr);
+    if (this.mx != this.mxOld || this.my != this.myOld) {
         this.mxOld = this.mx;
         this.myOld = this.my;
         this.update();
-        this.sync = 0;
     }
 };
 
@@ -401,10 +340,10 @@ ActorPlayerDef.onDestroy = function() {
 };
 
 ActorPlayerDef.onMessage = function(once) {
-    return once ? [this.player.client.id, this.r,
+    return once ? [this.player.client.id, this.r, this.interleave(this.mr),
                    Math.round(this.player.x * 100) / 100,
                    Math.round(this.player.y * 100) / 100]
                    : [this.r, Math.round(this.player.x * 100) / 100,
-                      Math.round(this.player.y * 100) / 100];
+                              Math.round(this.player.y * 100) / 100];
 };
 
