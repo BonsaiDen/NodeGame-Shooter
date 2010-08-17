@@ -425,7 +425,7 @@ Shooter.initCanvas = function() {
     this.canvas.height = this.height * this.scale;
     this.bg = this.canvas.getContext('2d');
     this.bg.scale(this.scale, this.scale);
-    this.font((this.scale == 1 ? 11 : 17));
+    this.font((this.scale == 1 ? 12 : 17));
 };
 
 Shooter.font = function(size) {
