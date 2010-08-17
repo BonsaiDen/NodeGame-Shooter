@@ -240,6 +240,9 @@ Client.prototype.render = function() {
             this.lastState = msg;
         }
         this.$.onDraw();
+        for(var c in this.actors) {
+            this.actors[c].onDraw();
+        }   
     }
     
     for(var c in this.actors) {
@@ -255,10 +258,6 @@ Client.prototype.render = function() {
                 a.x = a.$nx;
                 a.y = a.$ny;
             }
-        }
-        
-        if (render) {
-            a.onDraw();
         }
     }
 };
