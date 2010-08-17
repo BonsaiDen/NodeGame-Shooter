@@ -64,8 +64,8 @@ ActorPlayer.onUpdate = function(data) {
     this.shield = data[5];
 };
 
-ActorPlayer.onInterleave = function() {
-    this.r = this.$.wrapAngle(this.r + this.interleave(this.mr));
+ActorPlayer.onInterleave = function(step) {
+    this.r = this.$.wrapAngle(this.r + this.mr / step);
 };
 
 ActorPlayer.onDestroy = function(complete) {
@@ -299,8 +299,8 @@ ActorPlayerDef.onUpdate = function(data) {
     this.y = data[2];
 };
 
-ActorPlayerDef.onInterleave = function() {
-    this.r = this.$.wrapAngle(this.r + this.interleave(this.mr));
+ActorPlayerDef.onInterleave = function(step) {
+    this.r = this.$.wrapAngle(this.r + this.mr / step);
     this.wrap();
 };
 

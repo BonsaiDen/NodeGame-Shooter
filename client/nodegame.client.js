@@ -221,44 +221,38 @@ Client.prototype.Game = function(fps) {
 Client.prototype.update = function() {
     if (this.running) {
         var currentFrame = this.getTime();
-        while(this.lastFrame < currentFrame) {
-            this.render();
-            this.lastFrame += 10;
-        }
-        var that = this;
-        setTimeout(function() {that.update()}, 5);
-    }
-};
-
-Client.prototype.render = function() {
-    var render = this.getTime() - this.lastRender > this.fpsTime;
-    if (render) {
-        this.lastRender = this.getTime();
-        var msg = JSON.stringify(this.$.onInput());
-        if (msg != this.lastState) {
-            this.conn.send(msg);
-            this.lastState = msg;
-        }
-        this.$.onDraw();
-        for(var c in this.actors) {
-            this.actors[c].onDraw();
-        }   
-    }
-    
-    for(var c in this.actors) {
-        var a = this.actors[c];
-        if (a.$updateRate > 0) {
-            if (a.$updateCount < a.$updateRate * this.interleaveSteps) {
-                a.x += a.interleave(a.mx);
-                a.y += a.interleave(a.my); 
-                a.onInterleave();
-                a.$updateCount++;
-            
-            } else {
-                a.x = a.$nx;
-                a.y = a.$ny;
+        
+        // Update
+        var diff = (currentFrame - this.lastFrame) / 10;
+        if (diff > 1.0) {
+            this.lastFrame = currentFrame;
+            for(var c in this.actors) {
+                var a = this.actors[c];
+                if (a.updateRate > 0) {
+                    var step = a.$updateRate * this.interleaveSteps / diff;
+                    a.x += a.mx / step;
+                    a.y += a.my / step; 
+                    a.onInterleave(step);
+                }
             }
         }
+        
+        // Render
+        if (currentFrame - this.lastRender > this.fpsTime) {
+            var msg = JSON.stringify(this.$.onInput());
+            if (msg != this.lastState) {
+                this.conn.send(msg);
+                this.lastState = msg;
+            }
+            this.$.onDraw();
+            for(var c in this.actors) {
+                this.actors[c].onDraw();
+            }
+            this.lastRender = currentFrame;
+        }
+        
+        var that = this;
+        setTimeout(function() {that.update()}, 5);
     }
 };
 
@@ -296,17 +290,8 @@ function Actor(client, data, create) {
     this.y = d[2];
     
     this.$updateRate = this.$c.actorTypes[d[5]].updateRate;
-    this.$updateCount = 0;
-    if (this.$updateRate > 0) {
-        this.mx = d[3] - this.x;
-        this.my = d[4] - this.y;
-    
-    } else {
-        this.mx = 0;
-        this.my = 0;
-    }
-    this.$nx = d[3];
-    this.$ny = d[4]; 
+    this.mx = d[3] - this.x;
+    this.my = d[4] - this.y;
     
     for(var m in this.$c.actorTypes[d[5]]) {
         if (m != 'update' && m != 'destroy' && m != 'remove') {
@@ -322,7 +307,7 @@ Actor.prototype.update = function(data) {
     var dy = this.y - d[2];
     
     var r = Math.atan2(dx, dy);
-    var dist = Math.sqrt(dx * dx + dy * dy);;
+    var dist = Math.sqrt(dx * dx + dy * dy);
     if (dist < 1.5) {
         this.x = this.x - Math.sin(r) * dist * 0.5;
         this.y = this.y - Math.cos(r) * dist * 0.5;
@@ -331,18 +316,9 @@ Actor.prototype.update = function(data) {
         this.x = d[1];
         this.y = d[2];
     }
-    this.$updateCount = 0;
-    if (this.$updateRate > 0) {
-        this.mx = d[3] - this.x;
-        this.my = d[4] - this.y;
-    }
-    this.$nx = d[3];
-    this.$ny = d[4];
+    this.mx = d[3] - this.x;
+    this.my = d[4] - this.y;
     this.onUpdate(data[1]);
-};
-
-Actor.prototype.interleave = function(value) {
-    return value / this.$updateRate  / this.$c.interleaveSteps;
 };
 
 Actor.prototype.destroy = function(x, y) {
