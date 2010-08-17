@@ -377,8 +377,10 @@ Parser.prototype.write = function(data){
         this.frameData.push(data[i]);
       }
     } else if(this.order == 1){
-      debug(this.client.id, "High Order packet handling is not yet implemented.");
-      this.order = 0;
+      // Uhhh hacky but closing the socket in firefox will work now.
+      if (data.length - i == 1 && data[i] == 0x00) {
+         this.client.close();
+      }
     }
   }
 };
