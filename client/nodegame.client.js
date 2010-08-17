@@ -206,7 +206,7 @@ Client.prototype.onMessage = function(msg) {
 Client.prototype.quit = function() {
     this.running = false;
     for(var i in this.actors) {
-        this.actors[i].destroy();
+        this.actors[i].remove();
     }
 };
 
@@ -228,7 +228,7 @@ Client.prototype.update = function() {
             this.lastFrame = currentFrame;
             for(var c in this.actors) {
                 var a = this.actors[c];
-                if (a.updateRate > 0) {
+                if (a.$updateRate > 0) {
                     var step = a.$updateRate * this.interleaveSteps / diff;
                     a.x += a.mx / step;
                     a.y += a.my / step; 
@@ -248,7 +248,9 @@ Client.prototype.update = function() {
             for(var c in this.actors) {
                 this.actors[c].onDraw();
             }
-            this.lastRender = currentFrame;
+            
+            var diff = (currentFrame - this.lastRender) - this.fpsTime;
+            this.lastRender = currentFrame - diff;
         }
         
         var that = this;
@@ -311,7 +313,7 @@ Actor.prototype.update = function(data) {
     if (dist < 1.5) {
         this.x = this.x - Math.sin(r) * dist * 0.5;
         this.y = this.y - Math.cos(r) * dist * 0.5;
-    
+        
     } else {
         this.x = d[1];
         this.y = d[2];
