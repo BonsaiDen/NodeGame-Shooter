@@ -234,7 +234,7 @@ Server.prototype.send = function(conn, type, msg) {
     
     var e = this.toJSON(msg);
     conn.write(e);
-    this.bytesSend += e.length;
+    this.bytesSend += e.length + 2;
 };
 
 Server.prototype.emit = function(type, msg) {
@@ -242,7 +242,7 @@ Server.prototype.emit = function(type, msg) {
     
     var e = this.toJSON(msg);
     this.$.broadcast(e);
-    this.bytesSend += e.length * this.clientCount;
+    this.bytesSend += (e.length + 2) * this.clientCount;
 };
 
 Server.prototype.toJSON = function(data) {
