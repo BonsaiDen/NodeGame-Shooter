@@ -56,10 +56,10 @@ ActorPlayer.onUpdate = function(data) {
     
     var col = this.$.colorCodes[this.$.playerColors[this.id]];
     if (this.shield && !data[5]) {
-        this.$.effectRing(this.x, this.y, 20, 30, 0.5, 3.0, col, this.alpha);
+        this.$.effectRing(this.x, this.y, 20, 30, 0.5, 2.75, col, this.alpha);
     
-    } else if (!this.shield && data.s) {
-        this.$.effectRing(this.x, this.y, 30, 30, 0.20, -3.0, col, this.alpha);
+    } else if (!this.shield && data[5]) {
+        this.$.effectRing(this.x, this.y, 35, 30, 0.20, -2.75, col, this.alpha);
     }
     this.shield = data[5];
 };
@@ -75,7 +75,7 @@ ActorPlayer.onDestroy = function(complete) {
         this.$.effectArea(this.x, this.y, 20, 0.5, col);
         
         if (this.shield) {
-            this.$.effectRing(this.x, this.y, 20, 42, 0.6, 4.0, col, this.alpha);
+            this.$.effectRing(this.x, this.y, 20, 42, 0.6, 3.25, col, this.alpha);
         }
     }
 };
@@ -147,11 +147,16 @@ ActorPlayer.onDraw = function() {
         
         // Shield ring
         if (this.shield) {
-            this.$.strokeCircle(this.x, this.y, 20, 2.5, col);
-            this.$.effectRing(this.x, this.y, 20, 22 * (Math.random() + 0.5),
-                              this.$.extreeeeeeme ? 0.02 : 0.04,
-                              this.$.extreeeeeeme ? 0.125 : 0.25,
-                              col, this.alpha);
+            var x = this.x - this.mx / 2;
+            var y = this.y - this.my / 2;
+            this.$.alpha(0.25 * this.alpha);
+            this.$.strokeCircle(x, y, 20 + (Math.random() + 0.5), 1.5, col);
+            this.$.alpha((Math.random() / 4 + 0.25) * this.alpha );
+            this.$.strokeCircle(x, y, 20 + (Math.random() + 0.5), 3.5 + Math.random() * 2, col);
+            
+            this.$.effectRing(this.x, this.y, 19 + (Math.random() + 0.5), 22 * (Math.random() + 0.5),
+                              0.02, 0.125,
+                              col, this.alpha * 0.5);
         }
     
     } else {
@@ -160,6 +165,7 @@ ActorPlayer.onDraw = function() {
     
     // Name
     if (this.fade > 0 || this.fade == -1 || this.id == this.$.id) {
+        this.$.alpha(this.alpha);
         this.$.fill(colFaded);
         this.$.text(this.x, this.y - 27, this.$.playerNames[this.id] + '('
                     + this.$.playerScores[this.id] + ')', 'center', 'middle'); 

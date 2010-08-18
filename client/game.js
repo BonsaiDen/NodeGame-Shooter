@@ -47,15 +47,15 @@ Shooter.onConnect = function(success) {
     
     window.onbeforeunload = function() {
         localStorage.setItem('small', that.small);
-        localStorage.setItem('extreme', that.extreeeeeeme);
+    //    localStorage.setItem('extreme', that.extreme);
     };
     
     // Canvas
     this.particles = [];
     this.small = localStorage.getItem('small') == 'true' || false;
     this.scale = this.small ? 0.5 : 1;
-    this.extreeeeeeme = !(localStorage.getItem('extreme') == 'true' || false);
-    this.onExtreme();
+    this.extreme = false;//!(localStorage.getItem('extreme') == 'true' || false);
+   // this.onExtreme();
     
     // Stuff
     this.playerNames = {};
@@ -100,6 +100,9 @@ Shooter.onConnect = function(success) {
             }
         }
     };
+    window.onblur = function(e) {
+        that.keys = {};
+    };
 };
 
 
@@ -112,7 +115,6 @@ Shooter.onInit = function(data) {
     this.playerColors = data.o;
     this.checkRound(data);
     this.checkPlayers(data);
-    
     this.initCanvas();
 };
 
@@ -247,11 +249,13 @@ Shooter.renderParticles = function() {
             this.fill(p.col || '#ffffff');
             var scale = this.timeScale(p.time, p.d);
             if (!p.size) {
-                this.alpha(Math.round((0 - scale) * p.a * 100) / 100);
+                var a = Math.round((0 - scale) * p.a * 100) / 100;
+                this.alpha(Math.min(a * 2, 1.0));
                 this.bg.fillRect(p.x - 2, p.y - 2, 4, 4);
-                
+            
             } else {
-                this.alpha(Math.round(((0 - scale) * 0.5) * 100) / 100);
+                var a = Math.round(((0 - scale) * 0.5) * 100) / 100;
+                this.alpha(Math.min(a * 1.25, 1.0));
                 this.fillCircle(p.x, p.y, p.size, p.col || '#ffffff');
                 
                 // Overlap
@@ -301,10 +305,10 @@ Shooter.onResize = function(data) {
 };
 
 Shooter.onExtreme = function(data) {
-    this.extreeeeeeme = !this.extreeeeeeme;
-    document.getElementById('extreme').innerHTML = (this.extreeeeeeme
-                                                    ? 'DEACTIVATE'
-                                                    : 'ACTIVATE')
+ //   this.extreme = !this.extreme;
+ //   document.getElementById('extreme').innerHTML = (this.extreme
+  ///                                                  ? 'DEACTIVATE'
+ //                                                   : 'ACTIVATE')
                                                     + ' EXTREEEEME';
 };
 
@@ -369,37 +373,31 @@ Shooter.playerColorFaded = function(id) {
 
 // Effects ---------------------------------------------------------------------
 Shooter.effectArea = function(x, y, size, d, col) {
-    d = d * 1000;
-    d = this.extreeeeeeme ? d * 2 : d;
     this.particles.push({
         'x': x, 'y': y,
         'size': size,
-        'time': this.getTime() + d,
-        'd': d,
+        'time': this.getTime() + d * 1500,
+        'd': d * 1500,
         'col': col
     });
 };
 
 Shooter.effectParticle = function(x, y, r, speed, d, col, a) {
-    d = this.extreeeeeeme ? d * 2 : d;
-    for(var i = 0; i < (this.extreeeeeeme ? 2 : 1); i++) {
-        this.particles.push({
-            'x': x + Math.random(10) * i, 'y': y + Math.random(10) * i,
-            'r': this.wrapAngle(r),
-            'speed': speed,
-            'time': this.getTime() + d * 1000,
-            'd': d * 1000,
-            'col': col,
-            'a': a
-        });
-    }
+    this.particles.push({
+        'x': x , 'y': y,
+        'r': this.wrapAngle(r),
+        'speed': speed,
+        'time': this.getTime() + d * 1500,
+        'd': d * 1500,
+        'col': col,
+        'a': a
+    });
 };
 
 Shooter.effectExplosion = function(x, y, count, d, speed, col) {
-    count = this.extreeeeeeme ? count * 2 : count;
     var r = (Math.PI * 2 * Math.random());
-    var rs = Math.PI * 2 / count;
-    for(var i = 0; i < count; i++) {
+    var rs = Math.PI * 2 / (count * 2);
+    for(var i = 0; i < count * 2; i++) {
         this.effectParticle(x, y, (r + rs * i) - Math.PI,
                             0.35 + Math.random() * speed,
                             (1 * d) + Math.random() * (0.5 * d), col, 1);
@@ -409,7 +407,6 @@ Shooter.effectExplosion = function(x, y, count, d, speed, col) {
 Shooter.effectRing = function(x, y, size, count, d, speed, col, a) {
     for(var i = 0; i < count; i++) {
         var r = (Math.PI * 2 / count * i) - Math.PI;
-        
         var e = Math.random() / 2 + 0.5;
         var ox = x + Math.sin(r) * size;
         var oy = y + Math.cos(r) * size;
