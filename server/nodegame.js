@@ -462,6 +462,10 @@ Game.prototype.createActor = function(clas, data) {
 // Clients ---------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 function Client(srv, conn) {
+    var e = conn.id.split(':');
+    this.ip = e[0];
+    this.port = Math.abs(e[1]);
+
     this.$ = srv;
     this.$g = srv.$g;
     this.$conn = conn;
@@ -513,10 +517,6 @@ Client.prototype.onRemove = function() {
 Client.prototype.log = function(str) {
     this.$.log(str);
 };
-
-Client.prototype.getInfo = function() {
-    return this.$conn.id;
-}
 
 Client.prototype.getTime = function() {
     return this.$.getTime();

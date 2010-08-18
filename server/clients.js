@@ -30,6 +30,7 @@ Client.onInit = function() {
     this.playerColor = -1;
     this.log('++ [' + this.getInfo() + '] connected');
     this.$.emitFields();
+    this.local = this.ip == '127.0.0.1'
 };
 
 Client.init = function(init) {
@@ -196,7 +197,7 @@ Client.onUpdate = function() {
     if (moved) {
         this.moveTime = this.getTime();
     }
-    if (this.timeDiff(this.moveTime) > 30000) {
+    if (this.timeDiff(this.moveTime) > 30000 && !this.local) {
         this.log('++ [' + this.getInfo() + '] ' + this.playerName
                  + ' kicked for idleing');
         
@@ -226,5 +227,9 @@ Client.leave = function() {
             this.player.destroy();
         }
     }
+};
+
+Client.getInfo = function() {
+    return this.ip + ':' + this.port;
 };
 
