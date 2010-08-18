@@ -71,10 +71,6 @@ Game.prototype.getTime = function() {
     return this.$s.getTime();
 };
 
-Game.prototype.getinterleave = function() {
-    return this.$s.interleaveSteps;
-};
-
 Game.prototype.send = function(msg) {
     this.$s.send(msg);
 };
@@ -283,7 +279,6 @@ Client.prototype.getTime = function() {
 // Actors ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 function Actor(client, data, create) {
-    this.$c = client;
     this.$ = client.$;
     
     var d = data[0]
@@ -291,13 +286,13 @@ function Actor(client, data, create) {
     this.x = d[1];
     this.y = d[2];
     
-    this.$updateRate = this.$c.actorTypes[d[5]].updateRate;
+    this.$updateRate = client.actorTypes[d[5]].updateRate;
     this.mx = d[3] - this.x;
     this.my = d[4] - this.y;
     
-    for(var m in this.$c.actorTypes[d[5]]) {
+    for(var m in client.actorTypes[d[5]]) {
         if (m != 'update' && m != 'destroy' && m != 'remove') {
-            this[m] = this.$c.actorTypes[d[5]][m];
+            this[m] = client.actorTypes[d[5]][m];
         }
     }
     this.onCreate(data[1], create);
