@@ -100,13 +100,13 @@ Client.onMessage = function(msg) {
         this.keys = [!!k[0], !!k[1], !!k[2], !!k[3], !!k[4]];
     
     // Set name and init player
-    } else if (msg.join) {
-        msg.join = msg.join.trim().replace(/\s+/g, '_');
-        if (msg.join && this.playerName == ''
-            && msg.join.length >= 2 && msg.join.length <= 12
+    } else if (msg.player) {
+        msg.player = msg.player.trim().replace(/\s+/g, '_');
+        if (msg.player && this.playerName == ''
+            && msg.player.length >= 2 && msg.player.length <= 12
             && this.$g.playerCount < this.$g.maxPlayers) {
             
-            this.playerName = msg.join;
+            this.playerName = msg.player;
             this.$g.playerCount += 1;
             this.init(true);
         }

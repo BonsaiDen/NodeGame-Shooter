@@ -316,7 +316,7 @@ Shooter.onLogin = function(e) {
         if (playerName.length >= 2 && playerName.length <= 12) {
             document.getElementById('box').style.display = 'none';
             e.preventDefault();
-            this.send({'join': playerName});
+            this.send({'player': playerName});
             this.playing = true;
         }
         return false;
