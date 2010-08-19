@@ -30,7 +30,7 @@ ActorPlayer.onCreate = function(data) {
     this.r = (Math.random() * Math.PI * 2) - Math.PI;
     this.mr = 0;
     
-    this.$g.randomPosition(this, this.$g.sizePlayer);
+    this.$$.randomPosition(this, this.$$.sizePlayer);
     
     this.thrust = false;
     this.defense = 1400;
@@ -58,7 +58,7 @@ ActorPlayer.onCreate = function(data) {
 };
 
 ActorPlayer.onUpdate = function() {
-    this.r = this.$g.wrapAngle(this.r + this.mr);
+    this.r = this.$$.wrapAngle(this.r + this.mr);
     var maxSpeed = this.boost ? 4.5 : 3;
     var r = Math.atan2(this.mx, this.my);
     
@@ -75,7 +75,7 @@ ActorPlayer.onUpdate = function() {
     this.y += this.my;
     
     // Wrap
-    this.$g.wrapPosition(this);
+    this.$$.wrapPosition(this);
     
     // Invincibility
     if (this.timeDiff(this.defenseTime) > 100 && this.defense > 0) {
@@ -194,8 +194,8 @@ ActorBullet.onCreate = function(data) {
     this.mx = Math.sin(r) * speed;
     this.my = Math.cos(r) * speed;
     
-    this.x = this.player.x + Math.sin(this.$g.wrapAngle(r)) * data.d;
-    this.y = this.player.y + Math.cos(this.$g.wrapAngle(r)) * data.d;
+    this.x = this.player.x + Math.sin(this.$$.wrapAngle(r)) * data.d;
+    this.y = this.player.y + Math.cos(this.$$.wrapAngle(r)) * data.d;
     this.time = this.getTime();
 };
         
@@ -204,7 +204,7 @@ ActorBullet.onUpdate = function() {
     this.y += this.my;
     
     // Wrap
-    this.$g.wrapPosition(this);
+    this.$$.wrapPosition(this);
     
     // Destroy
     if (this.timeDiff(this.time) > 3000) {
@@ -243,8 +243,8 @@ ActorBomb.onCreate = function(data) {
     this.mx = Math.sin(r) * speed;
     this.my = Math.cos(r) * speed;
     
-    this.x = this.player.x + Math.sin(this.$g.wrapAngle(r)) * data.d;
-    this.y = this.player.y + Math.cos(this.$g.wrapAngle(r)) * data.d;
+    this.x = this.player.x + Math.sin(this.$$.wrapAngle(r)) * data.d;
+    this.y = this.player.y + Math.cos(this.$$.wrapAngle(r)) * data.d;
     this.time = this.getTime();       
 };
 
@@ -253,7 +253,7 @@ ActorBomb.onUpdate = function() {
     this.y += this.my;
     
     // Wrap
-    this.$g.wrapPosition(this);
+    this.$$.wrapPosition(this);
     
     // Destroy
     if (this.timeDiff(this.time) > 4000) {
@@ -262,7 +262,7 @@ ActorBomb.onUpdate = function() {
 };
 
 ActorBomb.onDestroy = function() {
-    this.$g.destroyBomb(this);
+    this.$$.destroyBomb(this);
 };
 
 ActorBomb.onMessage = function(once) {
@@ -273,14 +273,14 @@ ActorBomb.onMessage = function(once) {
 // PowerUp ---------------------------------------------------------------------
 var ActorPowerUp = Server.createActorType('powerup', 0);
 ActorPowerUp.onCreate = function(data) {
-    this.$g.randomPosition(this, this.$g.sizePowerUp);
+    this.$$.randomPosition(this, this.$$.sizePowerUp);
     this.type = data.type;
     this.time = this.getTime() + 15000 + Math.ceil(Math.random() * 5000);
 };
 
 ActorPowerUp.onUpdate = function() {
     if (this.getTime() > this.time) {
-        this.$g.removePowerUp(this.type);
+        this.$$.removePowerUp(this.type);
         this.destroy();
     }
 };
@@ -308,7 +308,7 @@ ActorPlayerDef.onCreate = function(data) {
 ActorPlayerDef.onUpdate = function() {
     this.x = this.player.x + Math.sin(this.r) * 35;
     this.y = this.player.y + Math.cos(this.r) * 35;
-    this.$g.wrapPosition(this);
+    this.$$.wrapPosition(this);
     
     this.mx = this.player.mx;
     this.my = this.player.my;
@@ -327,7 +327,7 @@ ActorPlayerDef.onUpdate = function() {
             this.shotTime = this.getTime();
         }
     }
-    this.r = this.$g.wrapAngle(this.r + this.mr);
+    this.r = this.$$.wrapAngle(this.r + this.mr);
     if (this.mx != this.mxOld || this.my != this.myOld) {
         this.mxOld = this.mx;
         this.myOld = this.my;

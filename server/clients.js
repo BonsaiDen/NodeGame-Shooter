@@ -34,13 +34,13 @@ Client.onInit = function() {
 };
 
 Client.init = function(init) {
-    if (this.playerName && !this.$g.roundFinished) {
+    if (this.playerName && !this.$$.roundFinished) {
         
         // Get free color
         if (this.playerColor == -1) {
-            for(var i = 0; i < this.$g.maxPlayers; i++) {
-                if(this.$g.playerColors[i] == -1) {
-                    this.$g.playerColors[i] = this.id;
+            for(var i = 0; i < this.$$.maxPlayers; i++) {
+                if(this.$$.playerColors[i] == -1) {
+                    this.$$.playerColors[i] = this.id;
                     this.playerColor = i;
                     break;
                 }
@@ -57,7 +57,7 @@ Client.init = function(init) {
         
         this.score = 0;
         this.$.setFieldItem('c', this.id, this.score); // scores
-        this.$g.addPlayerStats(this.id);
+        this.$$.addPlayerStats(this.id);
         
         this.moveTime = this.getTime();
         this.keys = [0, 0, 0, 0, 0];
@@ -71,7 +71,7 @@ Client.init = function(init) {
 };
 
 Client.kill = function() {
-    if (this.player && !this.$g.roundFinished) {
+    if (this.player && !this.$$.roundFinished) {
         this.bomb = null;
         this.addScore(this.player.camu == 2 ? -10 : -5);
         this.reset = this.getTime();
@@ -105,10 +105,10 @@ Client.onMessage = function(msg) {
         msg.player = msg.player.trim().replace(/\s+/g, '_');
         if (msg.player && this.playerName == ''
             && msg.player.length >= 2 && msg.player.length <= 12
-            && this.$g.playerCount < this.$g.maxPlayers) {
+            && this.$$.playerCount < this.$$.maxPlayers) {
             
             this.playerName = msg.player;
-            this.$g.playerCount += 1;
+            this.$$.playerCount += 1;
             this.init(true);
         }
     
@@ -119,7 +119,7 @@ Client.onMessage = function(msg) {
 };
 
 Client.onUpdate = function() {
-    if (this.$g.roundFinished || !this.playerName) {
+    if (this.$$.roundFinished || !this.playerName) {
         return;
     }
     
@@ -159,7 +159,7 @@ Client.onUpdate = function() {
             
             } else {
                 this.bomb = this.$.createActor('bomb',{
-                    'r': this.$g.wrapAngle(this.player.r + this.player.mr),
+                    'r': this.$$.wrapAngle(this.player.r + this.player.mr),
                     'player': this.player,
                     'd': 14
                 });
@@ -187,7 +187,7 @@ Client.onUpdate = function() {
         moved = true;
         this.$.createActor('bullet', {
             'player': this.player,
-            'r': this.$g.wrapAngle(this.player.r + this.player.mr),
+            'r': this.$$.wrapAngle(this.player.r + this.player.mr),
             'd': 12
         });
         this.shotTime = this.getTime();
@@ -214,15 +214,15 @@ Client.onRemove = function() {
 
 Client.leave = function() {
     if (this.playerName != '') {
-        this.$g.playerColors[this.playerColor] = -1;
-        this.$g.playerCount -= 1;
+        this.$$.playerColors[this.playerColor] = -1;
+        this.$$.playerCount -= 1;
         this.log('-- [' + this.getInfo() + '] ' + this.playerName
                  + ' has left');
         
         this.playerName = '';
         this.$.delFieldItem('p', this.id); // players
         this.$.delFieldItem('c', this.id); // scores
-        this.$g.removePlayerStats(this.id);
+        this.$$.removePlayerStats(this.id);
         if (this.player) {
             this.player.destroy();
         }

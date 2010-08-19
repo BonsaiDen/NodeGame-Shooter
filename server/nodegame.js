@@ -116,15 +116,15 @@ Server.prototype.start = function() {
     this.startTime = new Date().getTime();
     this.time = new Date().getTime();
     this.log('>> Server started');
-    this.$g.start();
+    this.$$.start();
     this.status();
     process.addListener('SIGINT', function(){that.shutdown()});
 };
 
 
 Server.prototype.shutdown = function() {
-    this.$g.$running = false;
-    this.emit(MSG_GAME_SHUTDOWN, this.$g.onShutdown());
+    this.$$.$running = false;
+    this.emit(MSG_GAME_SHUTDOWN, this.$$.onShutdown());
     this.destroyActors();
     
     var that = this;
@@ -140,8 +140,8 @@ Server.prototype.shutdown = function() {
 };
 
 Server.prototype.Game = function(interval) {
-    this.$g = new Game(this, interval);
-    return this.$g;
+    this.$$ = new Game(this, interval);
+    return this.$$;
 };
 
 Server.prototype.Client = function() {
@@ -467,8 +467,9 @@ function Client(srv, conn) {
     this.port = Math.abs(e[1]);
 
     this.$ = srv;
-    this.$g = srv.$g;
+    this.$$ = srv.$$;
     this.$conn = conn;
+    this.$.time = srv.time;
     this.id = this.$.clientID;
     this.$actors = [];
     
@@ -478,7 +479,7 @@ function Client(srv, conn) {
     this.$removeMessages = [];
     this.$destroyMessages = [];
     
-    this.send(MSG_GAME_START, [this.id, this.$g.$interval, this.$.fields]);
+    this.send(MSG_GAME_START, [this.id, this.$$.$interval, this.$.fields]);
     for(var t in this.$.actors) {
         for(var i = 0, l = this.$.actors[t].length; i < l; i++) {
             this.$.actors[t][i].$emit(MSG_ACTORS_INIT);
@@ -522,6 +523,10 @@ Client.prototype.getTime = function() {
     return this.$.getTime();
 };
 
+Client.prototype.getTimeConnected = function() {
+    return this.$.getTime() - this.$time;
+};
+
 Client.prototype.timeDiff = function(time) {
     return this.$.timeDiff(time);
 };
@@ -531,7 +536,7 @@ Client.prototype.timeDiff = function(time) {
 // -----------------------------------------------------------------------------
 function Actor(srv, clas, data) {
     this.$ = srv;
-    this.$g = srv.$g;
+    this.$$ = srv.$$;
     this.id = ++this.$.actorID;
     this.$clas = clas;
     this.x = 0;
