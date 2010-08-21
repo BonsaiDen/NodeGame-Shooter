@@ -21,7 +21,7 @@
 */
 
 
-var ws = require(__dirname + '/lib/ws');
+var ws = require(__dirname + '/ws');
 var sys = require('sys');
 
 // Message types
@@ -65,34 +65,34 @@ function Server(port, maxClients, maxChars) {
     
     // Socket
     var that = this;
-    this.$ = ws.createServer();   
-    this.$.addListener('connection', function(conn) {
+    this.$ = new ws.Server();
+    this.$.onConnect = function(conn) {
         if (this.clientCount >= this.maxClients) {
             conn.close();
             return;
         }
+        conn.$clientID = that.addClient(conn);
+    };
+    
+    this.$.onMessage = function(conn, msg) {
+        if (msg.length > that.maxChars) {
+            that.log('!! Message longer than ' + that.maxChars + ' chars');
+            conn.close();
         
-        var id = that.addClient(conn);
-        conn.addListener('message', function(msg) {
-            if (msg.length > that.maxChars) {
-                that.log('!! Message longer than ' + that.maxChars + ' chars');
-                conn.close();
+        } else {
+            try {
+                that.clients[conn.$clientID].onMessage(JSON.parse(msg));
             
-            } else {
-                try {
-                    that.clients[id].onMessage(JSON.parse(msg));
-                
-                } catch (e) {
-                    that.log('!! Error: ' + e);
-                    conn.close();
-                }
+            } catch (e) {
+                that.log('!! Error: ' + e);
+                conn.close();
             }
-        });
-        
-        conn.addListener('close', function(conn) {
-            that.removeClient(id);
-        });
-    });
+        }
+    };
+    
+    this.$.onClose = function(conn) {     
+        that.removeClient(conn.$clientID);
+    };
     
     // Hey Listen!
     this.$.listen(this.port);
@@ -233,7 +233,7 @@ Server.prototype.send = function(conn, type, msg) {
     msg.unshift(type);
     
     var e = this.toJSON(msg);
-    conn.write(e);
+    conn.send(e);
     this.bytesSend += e.length + 2;
 };
 
