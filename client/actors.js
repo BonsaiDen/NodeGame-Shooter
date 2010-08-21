@@ -147,12 +147,10 @@ ActorPlayer.onDraw = function() {
         
         // Shield ring
         if (this.shield) {
-            var x = this.x - this.mx / 2;
-            var y = this.y - this.my / 2;
             this.$.alpha(0.25 * this.alpha);
-            this.$.strokeCircle(x, y, 20 + (Math.random() + 0.5), 1.5, col);
+            this.$.strokeCircle(this.x, this.y, 20 + (Math.random() + 0.5), 1.5, col);
             this.$.alpha((Math.random() / 4 + 0.25) * this.alpha );
-            this.$.strokeCircle(x, y, 20 + (Math.random() + 0.5), 3.5 + Math.random() * 2, col);
+            this.$.strokeCircle(this.x, this.y, 20 + (Math.random() + 0.5), 3.5 + Math.random() * 2, col);
             
             this.$.fill(colFaded);
             
@@ -161,8 +159,8 @@ ActorPlayer.onDraw = function() {
             for(var i = 0; i < count; i++) {
                 var r = (Math.PI * 2 / count * i) - Math.PI;
                 var e = Math.random() / 2 + 0.5;
-                var ox = x + Math.sin(r) * size;
-                var oy = y + Math.cos(r) * size;
+                var ox = this.x + Math.sin(r) * size;
+                var oy = this.y + Math.cos(r) * size;
                 
                 var a = (this.alpha * 0.5)
                 this.$.alpha(Math.min(a * 2, 1.0));
