@@ -105,16 +105,28 @@ function Connection($, req, socket, headers, upgradeHeader) {
         that.close();
     });
     
+    this.write = function(data) {
+        if (socket.writable) {
+            try {
+                socket.write('\x00', 'binary');
+                if (typeof data == 'string') {
+                    socket.write(data, 'utf8');
+                }
+                socket.write('\xff', 'binary'); 
+                socket.flush();
+            
+            } catch(e) {
+                
+            }
+        }
+    }
+    
     this.send = function(data) {
-        socket.write('\x00', 'binary');
-        socket.write(data, 'utf8');
-        socket.write('\xff', 'binary'); 
-        socket.flush();
+        that.write(data);
     };
     
     this.close = function() {
-        socket.write('\x00', 'binary');
-        socket.write('\xff', 'binary');
+        that.write(null);
         socket.end();
         socket.destroy();
         $.remove(that);
@@ -151,7 +163,6 @@ function Server() {
     this.add = function(conn) {
         connections[conn.id] = conn;
         that.onConnect(conn);
-        that.broadcast('Hello');
     };
     
     this.remove = function(conn) {
