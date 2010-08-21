@@ -154,9 +154,20 @@ ActorPlayer.onDraw = function() {
             this.$.alpha((Math.random() / 4 + 0.25) * this.alpha );
             this.$.strokeCircle(x, y, 20 + (Math.random() + 0.5), 3.5 + Math.random() * 2, col);
             
-            this.$.effectRing(this.x, this.y, 19 + (Math.random() + 0.5), 22 * (Math.random() + 0.5),
-                              0.02, 0.125,
-                              col, this.alpha * 0.5);
+            this.$.fill(colFaded);
+            
+            var count =  22 * (Math.random() / 2 + 0.75);
+            var size = 19 + (Math.random() + 0.5);
+            for(var i = 0; i < count; i++) {
+                var r = (Math.PI * 2 / count * i) - Math.PI;
+                var e = Math.random() / 2 + 0.5;
+                var ox = x + Math.sin(r) * size;
+                var oy = y + Math.cos(r) * size;
+                
+                var a = (this.alpha * 0.5)
+                this.$.alpha(Math.min(a * 2, 1.0));
+                this.$.bg.fillRect(ox - 2, oy - 2, 4, 4);
+            }
         }
     
     } else {
