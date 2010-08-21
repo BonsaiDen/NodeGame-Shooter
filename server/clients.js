@@ -203,7 +203,6 @@ Client.onUpdate = function() {
         
         this.player.bomb = false;
         this.close();
-        return;
     }
 };
 
