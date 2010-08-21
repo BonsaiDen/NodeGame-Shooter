@@ -36,7 +36,7 @@ var MSG_ACTORS_DESTROY = 8;
 // Game ------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 function Game(client) {
-    this.$c = client;
+    this.$ = client;
     this.id = -1; 
 };
 
@@ -68,11 +68,11 @@ Game.prototype.onWebSocketError = function() {
 };
 
 Game.prototype.getTime = function() {
-    return this.$c.getTime();
+    return this.$.getTime();
 };
 
 Game.prototype.send = function(msg) {
-    this.$c.send(msg);
+    this.$.send(msg);
 };
 
 
