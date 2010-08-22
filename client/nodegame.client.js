@@ -235,11 +235,6 @@ Client.prototype.update = function() {
         
         // Render
         if (currentFrame - this.lastRender > this.fpsTime) {
-            var msg = JSON.stringify(this.$.onInput());
-            if (msg != this.lastState) {
-                this.conn.send(msg);
-                this.lastState = msg;
-            }
             this.$.onDraw();
             for(var c in this.actors) {
                 this.actors[c].onDraw();
@@ -247,6 +242,12 @@ Client.prototype.update = function() {
             
             var diff = (currentFrame - this.lastRender) - this.fpsTime;
             this.lastRender = currentFrame - diff;
+            
+            var msg = JSON.stringify(this.$.onInput());
+            if (msg != this.lastState) {
+                this.conn.send(msg);
+                this.lastState = msg;
+            } 
         }
         
         var that = this;
