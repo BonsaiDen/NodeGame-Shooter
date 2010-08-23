@@ -14,18 +14,21 @@ function pack(num) {
            + String.fromCharCode(num >> 16 & 0xFF)
            + String.fromCharCode(num >> 8 & 0xFF)
            + String.fromCharCode(num & 0xFF);
-};
+}
 
 
 function Connection($, req, socket, headers, upgradeHeader) {
-    var data = 'HTTP/1.1 101 WebSocket Protocol Handshake\r\n'
-                + 'Upgrade: WebSocket\r\n'
-                + 'Connection: Upgrade\r\n'
-                + 'Sec-WebSocket-Origin: ' + headers.origin + '\r\n'
-                + 'Sec-WebSocket-Location: ws://' + headers.host + '/';
-    
+
     // Draft 76
     if ('sec-websocket-key1' in headers && 'sec-websocket-key2' in headers) {
+        var data = 'HTTP/1.1 101 WebSocket Protocol Handshake\r\n'
+                    + 'Upgrade: WebSocket\r\n'
+                    + 'Connection: Upgrade\r\n'
+                    + 'Sec-WebSocket-Origin: ' + headers.origin + '\r\n'
+                    + 'Sec-WebSocket-Location: ws://' + headers.host + '/';
+        
+    
+    
         var key1 = headers['sec-websocket-key1'];
         var key2 = headers['sec-websocket-key2'];
         
@@ -54,18 +57,24 @@ function Connection($, req, socket, headers, upgradeHeader) {
         }
     
     } else {
+        var data = 'HTTP/1.1 101 Web Socket Protocol Handshake\r\n'
+                    + 'Upgrade: WebSocket\r\n'
+                    + 'Connection: Upgrade\r\n'
+                    + 'WebSocket-Origin: ' + headers.origin + '\r\n'
+                    + 'WebSocket-Location: ws://' + headers.host + '/';
+         
         data += '\r\n\r\n';
         socket.write(data, 'ascii');
         socket.flush();
     }  
     
-    this.id = socket.remoteAddress + ':' + socket.remotePort;
+    // Internal Stuff
     var that = this;
+    this.id = socket.remoteAddress + ':' + socket.remotePort;
     
-    // Events
     var frame = [];
     var state = 0;
-    req.socket.addListener('data', function(data) {
+    function read(data) {
         for(var i = 0, l = data.length; i < l; i++) {
             var b = data[i];
             if (state == 0) {
@@ -95,17 +104,9 @@ function Connection($, req, socket, headers, upgradeHeader) {
                 }
             }
         }
-    });
-
-    req.socket.addListener('end', function() {
-        $.remove(that);
-    });
-
-    req.socket.addListener('error', function() {
-        that.close();
-    });
+    }
     
-    this.write = function(data) {
+    function write(data) {
         if (socket.writable) {
             try {
                 socket.write('\x00', 'binary');
@@ -121,16 +122,31 @@ function Connection($, req, socket, headers, upgradeHeader) {
         }
     }
     
+    // Methods
     this.send = function(data) {
-        that.write(data);
+        write(data);
     };
     
     this.close = function() {
-        that.write(null);
+        write(null);
         socket.end();
         socket.destroy();
         $.remove(that);
     };
+    
+    // Events
+    req.socket.addListener('data', function(data) {
+        read(data);
+    });
+
+    req.socket.addListener('end', function() {
+        $.remove(that);
+    });
+
+    req.socket.addListener('error', function() {
+        that.close();
+    });
+    
     $.add(this);
 };
 
