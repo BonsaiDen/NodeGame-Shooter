@@ -182,14 +182,24 @@ Client.onUpdate = function() {
     
     // Shoot
     if (this.keys[4]
-        && this.timeDiff(this.shotTime) > (this.player.laser ? 400 : 600)) {
+        && this.timeDiff(this.shotTime) > (this.player.missiles > 0 ? 400 : 600)) {
         
         moved = true;
-        this.$.createActor('bullet', {
-            'player': this.player,
-            'r': this.$$.wrapAngle(this.player.r + this.player.mr),
-            'd': 12
-        });
+        if (this.player.missiles > 0) {
+            this.$.createActor('missile', {
+                'player': this.player,
+                'r': this.$$.wrapAngle(this.player.r + this.player.mr),
+                'd': 13
+            });
+            this.player.missiles--;
+        
+        } else {
+            this.$.createActor('bullet', {
+                'player': this.player,
+                'r': this.$$.wrapAngle(this.player.r + this.player.mr),
+                'd': 12
+            });
+        }
         this.shotTime = this.getTime();
     }
     

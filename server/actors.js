@@ -46,15 +46,14 @@ ActorPlayer.onCreate = function(data) {
     this.shield = false;
     this.shieldTime = 0;
     
-    this.laser = false;
-    this.laserTime = 0;
-    
     this.bomb = false;
     this.defender = null;
     
     this.camu = 0;
     this.camuFade = -1;
     this.camuTime = 0;
+    
+    this.missiles = 0;
 };
 
 ActorPlayer.onUpdate = function() {
@@ -92,11 +91,6 @@ ActorPlayer.onUpdate = function() {
     // Speed
     if (this.boost && this.timeDiff(this.boostTime) > 10000) {
         this.boost = false;
-    }
-    
-    // Laser
-    if (this.laser && this.timeDiff(this.laserTime) > 7500) {
-        this.laser = false;
     }
     
     // Camouflage
@@ -159,13 +153,114 @@ ActorPlayer.onMessage = function(once) {
         this.thrust ? 1 : 0,
         this.boost ? 1 : 0,
         this.shield ? 1 : 0,
-        this.camuFade
+        this.camuFade,
+        this.missiles
     ];
     
     if (once) {
         msg.push(this.client.id);
     }
     return msg;
+};
+
+
+// Missile ---------------------------------------------------------------------
+var ActorMissile = Server.createActorType('missile', 2);
+ActorMissile.onCreate = function(data) {
+    this.time = this.getTime();
+    this.player = data.player;
+    
+    var r = data.r;
+    this.x = this.player.x + Math.sin(r) * 12;
+    this.y = this.player.y + Math.cos(r) * 12;
+    
+    this.mx = this.player.mx + Math.sin(r) * 4.0;
+    this.my = this.player.my + Math.cos(r) * 4.0;
+    
+    var speed = Math.sqrt(Math.pow(this.x - (this.x + this.mx), 2)
+                        + Math.pow(this.y - (this.y + this.my), 2));
+    
+    if (speed < 4) {
+        speed = 4;
+    
+    } else if (speed > 7) {
+        speed = 7;
+    }
+    this.mx = Math.sin(r) * speed;
+    this.my = Math.cos(r) * speed;
+    
+    this.x = this.player.x + Math.sin(this.$$.wrapAngle(r)) * data.d;
+    this.y = this.player.y + Math.cos(this.$$.wrapAngle(r)) * data.d;
+    this.r = r;
+    
+    this.time = this.getTime();
+    this.tick = this.getTime() - 500;
+    
+    this.speed = speed;
+    this.target = null;
+};
+        
+ActorMissile.onUpdate = function() {
+    if (this.speed > 5) {
+        this.speed /= 1.05;
+        if (this.speed < 5) {
+            this.speed = 5;
+        }  
+    }
+    if (this.speed < 5) {
+        this.speed *= 1.05;
+        if (this.speed > 5) {
+            this.speed = 5;
+        }  
+    }
+    
+    // Find target
+    if (this.timeDiff(this.tick) > 75) {
+        var players = this.$.getActors('player');
+        var max = 10000;
+        var target = this.target;
+        this.target = null;
+        for(var i = 0, l = players.length; i < l; i++) {
+            var p = players[i];
+            
+            var dx = this.x - p.x;
+            var dy = this.y - p.y;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 100 && dist < max
+                && (p != this.player || (this.timeDiff(this.time) > 2000 && !target))
+                && p.camu != 2) {
+                this.target = p;
+            }
+        }
+        this.tick = this.getTime();
+    }
+    
+    if (this.target) {
+        var dx = this.x - this.target.x;
+        var dy = this.y - this.target.y;
+        
+        var dr =  Math.atan2(dx, dy) + Math.PI;
+        dr = this.$$.wrapAngle(this.r - this.$$.wrapAngle(dr));
+        this.r -= dr / 12;
+        this.r = this.$$.wrapAngle(this.r);
+    }
+    
+    this.mx = Math.sin(this.r) * this.speed;
+    this.my = Math.cos(this.r) * this.speed;
+    this.x += this.mx;
+    this.y += this.my;
+    
+    // Wrap
+    this.$$.wrapPosition(this);
+    
+    // Destroy
+    if (this.timeDiff(this.time) > 5000) {
+        this.destroy();
+    }
+};
+
+ActorMissile.onMessage = function(once) {
+    return once ? [this.player.client.id, this.r]: [this.r];
 };
 
 

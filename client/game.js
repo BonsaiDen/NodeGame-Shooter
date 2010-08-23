@@ -79,7 +79,7 @@ Shooter.onConnect = function(success) {
     // Power UPs
     this.powerUpColors = {
         'shield':  '#0060cf', // blue
-        'laser':   '#d00000', // red
+        'missile': '#d00000', // red
         'life':    '#00b000', // green
         'boost':   '#f0c000', // yellow
         'defense': '#9c008c', // purple

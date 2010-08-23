@@ -32,8 +32,11 @@ ActorPlayer.onCreate = function(data, complete) {
     this.boost = data[4];
     this.shield = data[5];
     this.fade = data[6];
-    this.id = data[7];
+    this.missiles = data[7];
+    this.id = data[8];
     
+    this.mor = data[7];
+    this.mmr = 0;
     this.alpha = 1.0;
 };
 
@@ -62,6 +65,24 @@ ActorPlayer.onUpdate = function(data) {
         this.$.effectRing(this.x, this.y, 35, 30, 0.20, -2.75, col, this.alpha);
     }
     this.shield = data[5];
+    
+    // Missiles
+    if (data[7] > this.missiles) {
+        this.mmr = 0;
+        this.mor = data[7];
+        for(var i = 0; i < data[7]; i++) {
+            if (i >= this.missiles) {
+                var r = this.$.wrapAngle((Math.PI * 2 / this.mor * i) - Math.PI + this.mmr);
+                var size = 26 + Math.cos(this.mmr * 2);
+                var ox = this.x + Math.sin(r) * size;
+                var oy = this.y + Math.cos(r) * size;
+                
+                this.$.effectExplosion(ox, oy, 6, 0.25, 1, col);
+                this.$.effectArea(ox, oy, 3.5, 0.25, col);
+            }
+        }
+    }
+    this.missiles = data[7];
 };
 
 ActorPlayer.onInterleave = function(step) {
@@ -76,6 +97,15 @@ ActorPlayer.onDestroy = function(complete) {
         
         if (this.shield) {
             this.$.effectRing(this.x, this.y, 20, 42, 0.6, 3.25, col, this.alpha);
+        }
+        for(var i = 0; i < this.missiles; i++) {
+            var r = this.$.wrapAngle((Math.PI * 2 / this.mor * i) - Math.PI + this.mmr);
+            var size = 26 + Math.cos(this.mmr * 2);
+            var ox = this.x + Math.sin(r) * size;
+            var oy = this.y + Math.cos(r) * size;
+            
+            this.$.effectExplosion(ox, oy, 6, 0.45, 1, col);
+            this.$.effectArea(ox, oy, 8.5, 0.45, col);
         }
     }
 };
@@ -167,6 +197,29 @@ ActorPlayer.onDraw = function() {
                 this.$.bg.fillRect(ox - 2, oy - 2, 4, 4);
             }
         }
+        
+        // Missile Ring
+        if (this.missiles > 0) {
+            if (this.mor < this.missiles) {
+                this.mor += 0.05;
+            
+            } else if (this.mor > this.missiles) {
+                this.mor -= 0.05;
+            }
+            for(var i = 0; i < this.missiles; i++) {
+                var r = this.$.wrapAngle((Math.PI * 2 / this.mor * i) - Math.PI + this.mmr);
+                var size = 26 + Math.cos(this.mmr * 2);
+                var ox = this.x + Math.sin(r) * size;
+                var oy = this.y + Math.cos(r) * size;
+                
+                this.$.alpha(this.alpha * 0.5);
+                this.$.fillCircle(ox, oy, 5, col);
+                
+                this.$.alpha(this.alpha);
+                this.$.bg.fillRect(ox - 2, oy - 2, 4, 4);
+            }
+            this.mmr += 0.1;
+        }
     
     } else {
         this.shield = false;
@@ -199,6 +252,70 @@ ActorBullet.onDestroy = function(complete) {
 
 ActorBullet.onDraw = function() {
     this.$.strokeCircle(this.x, this.y, 1.25, 3, this.$.playerColor(this.id));
+};
+
+
+// Missile ---------------------------------------------------------------------
+var ActorMissile = Client.createActorType('missile', 2);
+ActorMissile.onCreate = function(data, complete) {
+    this.id = data[0];
+    this.r = data[1];
+    
+    if (complete) {
+        var col = this.$.playerColor(this.id);
+        this.$.effectExplosion(this.x, this.y, 4, 0.35, 1, col);
+        this.$.effectArea(this.x, this.y, 3.5, 0.35, col);
+    }
+};
+
+ActorMissile.onUpdate = function(data) {
+    this.r = data[0];
+};
+
+ActorMissile.onDestroy = function(complete) {
+    if (complete) {
+        var col = this.$.playerColor(this.id);
+        this.$.effectExplosion(this.x, this.y, 6, 0.45, 1, col);
+        this.$.effectArea(this.x, this.y, 8.5, 0.45, col);
+    }
+};
+
+ActorMissile.onDraw = function() {
+    var col = this.$.playerColor(this.id);
+    this.$.line(3);
+    this.$.fill(col);
+    
+    this.$.bg.save();
+    this.$.bg.translate(this.x, this.y);
+    this.$.bg.rotate(Math.PI - this.r);
+    
+    this.$.alpha(0.35);
+    this.$.bg.scale(0.7, 0.7);
+    this.$.bg.beginPath();
+    this.$.bg.moveTo(0, -12);
+    this.$.bg.lineTo(8 , 12);
+    this.$.bg.lineTo(-8, 12);
+    this.$.bg.lineTo(0, -12);
+    this.$.bg.closePath();
+    this.$.bg.fill();
+    
+    this.$.alpha(1.0);
+    this.$.bg.scale(0.7, 0.7);
+    this.$.bg.beginPath();
+    this.$.bg.moveTo(0, -12);
+    this.$.bg.lineTo(8 , 12);
+    this.$.bg.lineTo(-8, 12);
+    this.$.bg.lineTo(0, -12);
+    this.$.bg.closePath();
+    this.$.bg.fill();
+    
+    this.$.bg.restore();
+    
+    var r = this.$.wrapAngle(this.r - Math.PI);
+    var ox = this.x + Math.sin(r) * 4;
+    var oy = this.y + Math.cos(r) * 4;
+    
+    this.$.effectParticle(ox, oy, r, 0.15, 0.25, col, 0.5);
 };
 
 

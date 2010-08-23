@@ -64,6 +64,7 @@ Shooter.onInit = function() {
     this.sizeShield = 22;
     this.sizePowerUp = 10;
     this.sizeBullet = 2;
+    this.sizeMissile = 4;
     this.sizeDefend = 3;
     this.sizeBomb = 4;
     
@@ -72,7 +73,7 @@ Shooter.onInit = function() {
     this.powerUpCount = 0;
     this.powerUpsMax = 3;
     this.initPowerUp('shield',  2, 23, 10);
-    this.initPowerUp('laser',   1, 32, 15);
+    this.initPowerUp('missile', 2, 16, 15);
     this.initPowerUp('life',    2,  8,  8);
     this.initPowerUp('boost',   2, 20, 15);
     this.initPowerUp('defense', 1, 35, 30);
@@ -262,10 +263,12 @@ Shooter.collidePowerUps = function(o, p) {
         p.boost = true;
         p.boostTime = this.getTime();
     
-    // Laser
-    } else if (o.type == 'laser') {
-        p.laser = true;
-        p.laserTime = this.getTime();
+    // Missile
+    } else if (o.type == 'missile') {
+        p.missiles += 5;
+        if (p.missiles > 5) {
+            p.missiles = 5;
+        }
     
     // Bomb
     } else if (o.type == 'bomb') {
@@ -405,6 +408,7 @@ Shooter.collidePlayer = function(p, i, l) {
     var players_defs = this.getActors('player_def');
     var powerups     = this.getActors('powerup');
     var bullets      = this.getActors('bullet');
+    var missiles     = this.getActors('missile');
     var bombs        = this.getActors('bomb');
     
     // Player / Player Defend collision
@@ -460,7 +464,7 @@ Shooter.collidePlayer = function(p, i, l) {
         for(var f = 0, lf = powerups.length; f < lf; f++) {
             var o = powerups[f];
             if (o.alive() && this.circleCollision(p, o, this.sizePlayer,
-                                                      this.sizePowerUp)) {
+                                                        this.sizePowerUp)) {
                 
                 this.collidePowerUps(o, p);
             }
@@ -494,6 +498,35 @@ Shooter.collidePlayer = function(p, i, l) {
                 }
             }
         }
+        
+        // Missiles
+        for(var f = 0, lf = missiles.length; f < lf; f++) {
+            var m = missiles[f];
+            if (m.alive()) {
+                
+                // Hit on ship
+                if (!p.shield && this.circleCollision(p, m, this.sizePlayer,
+                                                            this.sizeMissile)) {
+                    
+                    m.destroy();
+                    p.hp -= 4;
+                    if (p.hp <= 0) {
+                        m.player.client.addScore(10);
+                        this.getPlayerStats(m.player.client.id).kills += 1;
+                        p.client.kill();
+                        break;
+                    }
+                
+                // Hit on Shield
+                } else if (p.shield
+                           && (m.player != p || this.timeDiff(m.time) > 225)
+                           && this.circleCollision(p, m, this.sizeShield,
+                                                         this.sizeMissile)) {
+                    
+                    m.destroy();
+                }
+            }
+        } 
     }
 };
 
@@ -560,6 +593,15 @@ Shooter.destroyBomb = function(b) {
             e.destroy();
         }
     }
+    
+    // Missiles
+    var missiles = this.getActors('missile');
+    for(var i = 0, l = missiles.length; i < l; i++) {
+        var e = missiles[i];
+        if (e.alive() && this.circleCollision(b, e, b.range, this.sizeMissile)) {
+            e.destroy();
+        }
+    } 
 }
 
 
