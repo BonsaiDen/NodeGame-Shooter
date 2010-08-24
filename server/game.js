@@ -694,20 +694,20 @@ Shooter.getDistance = function(a, b) {
 Shooter.getAngle = function(a, b) {
     var ax = a.x;
     var bx = b.x;
-    if (a.x < this.width / 4 && b.x > this.width / 4) {
-        ax += this.width + 32;
+    if (a.x < this.width / 4 && b.x > this.width - this.width / 4) {
+        ax += this.width;
     
-    } else if (a.x > this.width / 4 && b.x < this.width / 4) {
-        bx += this.width + 32;
+    } else if (a.x > this.width - this.width / 4 && b.x < this.width / 4) {
+        bx += this.width;
     }
     
     var ay = a.y;
     var by = b.y;
-    if (a.y < this.height / 4 && b.x > this.height / 4) {
-        ay += this.height + 32;
+    if (a.y < this.height / 4 && b.x > this.height - this.height / 4) {
+        ay += this.height;
     
-    } else if (a.y > this.height / 4 && b.y < this.height / 4) {
-        by += this.height + 32;
+    } else if (a.y > this.height - this.height / 4 && b.y < this.height / 4) {
+        by += this.height;
     }
     return this.wrapAngle(Math.atan2(ax - bx, ay - by) + Math.PI);
 };
