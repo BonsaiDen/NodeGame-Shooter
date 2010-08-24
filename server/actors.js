@@ -222,10 +222,7 @@ ActorMissile.onUpdate = function() {
         this.target = null;
         for(var i = 0, l = players.length; i < l; i++) {
             var p = players[i];
-            
-            var dx = this.x - p.x;
-            var dy = this.y - p.y;
-            var dist = Math.sqrt(dx * dx + dy * dy);
+            var dist = this.$$.getDistance(this, p);
             if (dist < 100 && dist < max
                 && (p != this.player || (this.timeDiff(this.time) > 2000 && !target))
                 && p.camu != 2) {
@@ -236,11 +233,8 @@ ActorMissile.onUpdate = function() {
     }
     
     if (this.target) {
-        var dx = this.x - this.target.x;
-        var dy = this.y - this.target.y;
-        
-        var dr =  Math.atan2(dx, dy) + Math.PI;
-        dr = this.$$.wrapAngle(this.r - this.$$.wrapAngle(dr));
+        var dr = this.$$.getAngle(this, this.target);
+        dr = this.$$.wrapAngle(this.r - dr);
         this.r -= dr / 12;
         this.r = this.$$.wrapAngle(this.r);
     }

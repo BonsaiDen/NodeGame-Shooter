@@ -266,8 +266,8 @@ Shooter.collidePowerUps = function(o, p) {
     // Missile
     } else if (o.type == 'missile') {
         p.missiles += 5;
-        if (p.missiles > 5) {
-            p.missiles = 5;
+        if (p.missiles > 10) {
+            p.missiles = 10;
         }
     
     // Bomb
@@ -668,5 +668,47 @@ Shooter.wrapPosition = function(obj) {
         obj.y -= this.height + 32;
         obj.updated = true;
     }
+};
+
+Shooter.getDistance = function(a, b) {
+    var ox = a.x - b.x;
+    if (a.x < this.width / 2) {
+        ox = (a.x + this.width) - b.x;
+        
+    } else if (b.x < this.width / 2) {
+        ox = a.x - (b.x + this.width);
+    }
+    
+    var oy = a.y - b.y;
+    if (a.y < this.height / 2) {
+        oy = (a.y + this.height) - b.y;
+        
+    } else if (b.y < this.height / 2) {
+        oy = a.y - (b.y + this.height);
+    }
+    var dx = Math.min(Math.abs(a.x - b.x), Math.abs(ox));
+    var dy = Math.min(Math.abs(a.y - b.y), Math.abs(oy));
+    return Math.sqrt(dx * dx + dy * dy);
+};
+
+Shooter.getAngle = function(a, b) {
+    var ax = a.x;
+    var bx = b.x;
+    if (a.x < this.width / 4 && b.x > this.width / 4) {
+        ax += this.width + 32;
+    
+    } else if (a.x > this.width / 4 && b.x < this.width / 4) {
+        bx += this.width + 32;
+    }
+    
+    var ay = a.y;
+    var by = b.y;
+    if (a.y < this.height / 4 && b.x > this.height / 4) {
+        ay += this.height + 32;
+    
+    } else if (a.y > this.height / 4 && b.y < this.height / 4) {
+        by += this.height + 32;
+    }
+    return this.wrapAngle(Math.atan2(ax - bx, ay - by) + Math.PI);
 };
 
