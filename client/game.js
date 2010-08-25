@@ -309,7 +309,7 @@ Shooter.onExtreme = function(data) {
  //   document.getElementById('extreme').innerHTML = (this.extreme
   ///                                                  ? 'DEACTIVATE'
  //                                                   : 'ACTIVATE')
-                                                    + ' EXTREEEEME';
+ //                                                   + ' EXTREEEEME';
 };
 
 Shooter.onLogin = function(e) {
