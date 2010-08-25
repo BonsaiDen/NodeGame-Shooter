@@ -251,7 +251,7 @@ ActorBullet.onDestroy = function(complete) {
 };
 
 ActorBullet.onDraw = function() {
-    this.$.strokeCircle(this.x, this.y, 1.25, 3, this.$.playerColor(this.id));
+    this.$.fillCircle(this.x, this.y, 2.9, this.$.playerColor(this.id));
 };
 
 

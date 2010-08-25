@@ -68,7 +68,7 @@ Game.prototype.onWebSocketError = function() {
 };
 
 Game.prototype.getTime = function() {
-    return this.$.getTime();
+    return this.$.time;
 };
 
 Game.prototype.send = function(msg) {
@@ -82,7 +82,8 @@ function Client(fps) {
     this.conn = null;
     this.connected = false;
     this.lastState = '';
-    this.lastFrame = 0;
+    this.time = new Date().getTime();
+    this.lastTime = 0;
     this.lastRender = 0;
     this.interleaveSteps = 0;
     this.running = false;
@@ -150,11 +151,11 @@ Client.prototype.onMessage = function(msg) {
     // Game
     if (type == MSG_GAME_START) {
         this.$.id = data[0];
-        this.lastFrame = this.lastRender = this.getTime();
+        this.lastTime = this.lastRender = this.getTime();
         this.interleaveSteps = data[1] / 10;
         this.running = true;
-        this.update();
         this.$.onInit(data[2]);
+        this.update();
     
     } else if (type == MSG_GAME_FIELDS) {
         this.$.onUpdate(data[0]);
@@ -216,12 +217,12 @@ Client.prototype.Game = function(fps) {
 // Mainloop --------------------------------------------------------------------
 Client.prototype.update = function() {
     if (this.running) {
-        var currentFrame = this.getTime();
+        this.time = new Date().getTime();
         
         // Update
-        var diff = (currentFrame - this.lastFrame) / 10;
+        var diff = (this.time - this.lastTime) / 10;
         if (diff > 1.0) {
-            this.lastFrame = currentFrame;
+            this.lastTime = this.time;
             for(var c in this.actors) {
                 var a = this.actors[c];
                 if (a.$updateRate > 0) {
@@ -234,14 +235,14 @@ Client.prototype.update = function() {
         }
         
         // Render
-        if (currentFrame - this.lastRender > this.fpsTime) {
+        if (this.time - this.lastRender > this.fpsTime) {
             this.$.onDraw();
             for(var c in this.actors) {
                 this.actors[c].onDraw();
             }
             
-            var diff = (currentFrame - this.lastRender) - this.fpsTime;
-            this.lastRender = currentFrame - diff;
+            var diff = (this.time - this.lastRender) - this.fpsTime;
+            this.lastRender = this.time - diff;
             
             var msg = JSON.stringify(this.$.onInput());
             if (msg != this.lastState) {
@@ -273,7 +274,7 @@ Client.prototype.send = function(msg) {
 };
 
 Client.prototype.getTime = function() {
-    return new Date().getTime();
+    return this.time;
 };
 
 
