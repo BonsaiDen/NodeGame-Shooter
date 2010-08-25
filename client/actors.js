@@ -143,11 +143,10 @@ ActorPlayer.onDraw = function() {
             var r = this.$.wrapAngle(this.r - Math.PI);
             var ox = this.x + Math.sin(r) * 12;
             var oy = this.y + Math.cos(r) * 12;
-            this.$.effectParticle(ox, oy,
-                                  this.$.wrapAngle(r - 0.8 + Math.random()
-                                                     * 1.60),
-                                   
-                                  2, 0.2 + (this.boost ? 0.1 : 0), col, this.alpha);
+            this.$.effectParticle(
+                            ox, oy,
+                            this.$.wrapAngle(r - 0.8 + Math.random() * 1.60),
+                            2, 0.2 + (this.boost ? 0.1 : 0), col, this.alpha);
             
             if (this.boost) {
                 this.$.effectParticle(ox, oy,
@@ -163,14 +162,14 @@ ActorPlayer.onDraw = function() {
         if (this.mr != 0) {
             var d = this.mr > 0 ? 1 : -1; 
             var r = this.$.wrapAngle(this.r - Math.PI);
-            var ox = this.x + Math.sin(this.$.wrapAngle(r - Math.PI * 2.22 * d)
-                                       ) * 14;
+            var ox = this.x + Math.sin(this.$.wrapAngle(r - Math.PI * 2.22 * d))
+                              * 14;
             
-            var oy = this.y + Math.cos(this.$.wrapAngle(r - Math.PI * 2.22 * d)
-                                       ) * 14;
+            var oy = this.y + Math.cos(this.$.wrapAngle(r - Math.PI * 2.22 * d))
+                              * 14;
             
-            r = this.$.wrapAngle(r - Math.PI * 2.47 * d - 0.4 + Math.random()
-                                 * 0.80);
+            r = r - Math.PI * 2.47 * d - 0.4 + Math.random() * 0.80;
+            r = this.$.wrapAngle(r);
             
             this.$.effectParticle(ox, oy, r, 2, 0.13, col, this.alpha);
         }
@@ -178,9 +177,12 @@ ActorPlayer.onDraw = function() {
         // Shield ring
         if (this.shield) {
             this.$.alpha(0.25 * this.alpha);
-            this.$.strokeCircle(this.x, this.y, 20 + (Math.random() + 0.5), 1.5, col);
+            this.$.strokeCircle(this.x, this.y, 20 + (Math.random() + 0.5),
+                                1.5, col);
+            
             this.$.alpha((Math.random() / 4 + 0.25) * this.alpha );
-            this.$.strokeCircle(this.x, this.y, 20 + (Math.random() + 0.5), 3.5 + Math.random() * 2, col);
+            this.$.strokeCircle(this.x, this.y, 20 + (Math.random() + 0.5),
+                                3.5 + Math.random() * 2, col);
             
             this.$.fill(colFaded);
             
@@ -207,7 +209,9 @@ ActorPlayer.onDraw = function() {
                 this.mor -= 0.05;
             }
             for(var i = 0; i < this.missiles; i++) {
-                var r = this.$.wrapAngle((Math.PI * 2 / this.mor * i) - Math.PI + this.mmr);
+                var r = (Math.PI * 2 / this.mor * i) - Math.PI + this.mmr;
+                r = this.$.wrapAngle(r);
+                
                 var size = 26 + Math.cos(this.mmr * 2);
                 var ox = this.x + Math.sin(r) * size;
                 var oy = this.y + Math.cos(r) * size;
