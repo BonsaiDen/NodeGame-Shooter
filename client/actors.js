@@ -92,7 +92,7 @@ ActorPlayer.onInterleave = function(step) {
 ActorPlayer.onDestroy = function(complete) {
     if (complete) {
         var col = this.$.colorCodes[this.$.playerColors[this.id]];
-        this.$.effectExplosion(this.x, this.y, 20, 1.5, 1.5, col);
+        this.$.effectExplosion(this.x, this.y, 20, 0.9, 1.4, col);
         this.$.effectArea(this.x, this.y, 20, 0.5, col);
         
         if (this.shield) {
@@ -227,10 +227,14 @@ ActorPlayer.onDraw = function() {
     
     // Name
     if (this.fade > 0 || this.fade == -1 || this.id == this.$.id) {
-        this.$.alpha(this.alpha);
-        this.$.fill(colFaded);
-        this.$.text(this.x, this.y - 27, this.$.playerNames[this.id] + '('
-                    + this.$.playerScores[this.id] + ')', 'center', 'middle'); 
+        if (this.$.playerNames[this.id]) {
+            this.$.alpha(this.alpha);
+            this.$.fill(colFaded);
+            this.$.text(this.x, this.y - 27,
+                        this.$.playerNames[this.id] + '('
+                        + this.$.playerScores[this.id] + ')',
+                        'center', 'middle');
+        }
     }
     this.$.alpha(1.0);
 };

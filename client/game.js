@@ -99,6 +99,10 @@ Shooter.onConnect = function(success) {
                 that.keys[key] = 2;
             }
         }
+        if (that.playing) {
+            e.preventDefault();
+            return false;
+        }
     };
     window.onblur = function(e) {
         that.keys = {};
@@ -218,7 +222,6 @@ Shooter.renderRound = function() {
 };
 
 Shooter.renderParticles = function() {
-    var remove = [];
     for(var i = 0, l = this.particles.length; i < l; i++) {
         var p = this.particles[i];
         
@@ -243,7 +246,9 @@ Shooter.renderParticles = function() {
         
         // Kill
         if (this.getTime() > p.time) {
-            remove.push(i);
+            this.particles.splice(i, 1);
+            l--;
+            i--;
         
         } else {
             this.fill(p.col || '#ffffff');
@@ -287,10 +292,6 @@ Shooter.renderParticles = function() {
                 }
             }
         }
-    }
-    
-    for(var i = 0, l = remove.length; i < l; i++) {
-        this.particles.splice(remove[i] - i, 1);
     }
     this.alpha(1.0);
 };
