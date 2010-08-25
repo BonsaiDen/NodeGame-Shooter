@@ -235,7 +235,12 @@ ActorMissile.onUpdate = function() {
     if (this.target) {
         var dr = this.$$.getAngle(this, this.target);
         dr = this.$$.wrapAngle(this.r - dr);
-        this.r -= dr / 12;
+        if (dr < 0) {
+            this.r -= Math.max(dr / 12, -0.3);
+        
+        } else {
+            this.r -= Math.min(dr / 12, 0.3);
+        }
         this.r = this.$$.wrapAngle(this.r);
     }
     
