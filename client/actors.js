@@ -87,6 +87,7 @@ ActorPlayer.onUpdate = function(data) {
 
 ActorPlayer.onInterleave = function(step) {
     this.r = this.$.wrapAngle(this.r + this.mr / step);
+    this.$.wrapPosition(this);
 };
 
 ActorPlayer.onDestroy = function(complete) {
@@ -258,6 +259,10 @@ ActorBullet.onDestroy = function(complete) {
     }
 };
 
+ActorBullet.onInterleave = function(diff) {
+    this.$.wrapPosition(this);
+};
+
 ActorBullet.onDraw = function() {
     this.$.fillCircle(this.x, this.y, 2.9, this.$.playerColor(this.id));
 };
@@ -286,6 +291,10 @@ ActorMissile.onDestroy = function(complete) {
         this.$.effectExplosion(this.x, this.y, 6, 0.45, 1, col);
         this.$.effectArea(this.x, this.y, 8.5, 0.45, col);
     }
+};
+
+ActorMissile.onInterleave = function(diff) {
+    this.$.wrapPosition(this);
 };
 
 ActorMissile.onDraw = function() {
@@ -345,6 +354,10 @@ ActorBomb.onDestroy = function(complete) {
         this.$.effectRing(this.x, this.y, this.radius * 0.975, 125, 1, 1.25,
                           col, 1);
     }
+};
+
+ActorBomb.onInterleave = function(diff) {
+    this.$.wrapPosition(this);
 };
 
 ActorBomb.onDraw = function() {

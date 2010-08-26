@@ -98,10 +98,10 @@ Shooter.onConnect = function(success) {
             } else {
                 that.keys[key] = 2;
             }
-        }
-        if (that.playing) {
-            e.preventDefault();
-            return false;
+            if (that.playing) {
+                e.preventDefault();
+                return false;
+            }
         }
     };
     window.onblur = function(e) {
@@ -484,5 +484,25 @@ Shooter.wrapAngle = function(r) {
         r += Math.PI * 2;
     }
     return r;
+};
+
+Shooter.wrapPosition = function(obj) {
+    if (obj.x < -16) {
+        obj.x += this.width + 32;
+        obj.updated = true;
+    
+    } else if (obj.x > this.width + 16) {
+        obj.x -= this.width + 32;
+        obj.updated = true;
+    }
+    
+    if (obj.y < -16) {
+        obj.y += this.height + 32
+        obj.updated = true;
+    
+    } else if (obj.y > this.height + 16) {
+        obj.y -= this.height + 32;
+        obj.updated = true;
+    }
 };
 
