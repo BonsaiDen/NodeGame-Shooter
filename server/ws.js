@@ -112,10 +112,8 @@ function Connection($, req, socket, headers, upgradeHeader) {
             try {
                 socket.write('\x00', 'binary');
                 if (typeof data == 'string') {
-                    var buf = new Buffer(data);
-                    var out = buf.toString('binary', 0, buf.length)
-                    socket.write(out, 'binary');
-                    bytes += out.length;
+                    socket.write(data, 'utf8');
+                    bytes += new Buffer(data).length;
                 }
                 socket.write('\xff', 'binary'); 
                 socket.flush();
