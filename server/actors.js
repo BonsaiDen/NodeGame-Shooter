@@ -136,9 +136,9 @@ ActorPlayer.onDestroy = function() {
     this.clients();
     this.defender = null;
     this.hp = 0;
-    var players_defs = this.$.getActors('player_def');
-    for(var i = 0, l = players_defs.length; i < l; i++) {
-        var pd = players_defs[i];
+    var playersDefs = this.$.getActors('player_def');
+    for(var i = 0, l = playersDefs.length; i < l; i++) {
+        var pd = playersDefs[i];
         if (pd.player == this) {
             pd.destroy();
         }
@@ -149,10 +149,10 @@ ActorPlayer.onMessage = function(once) {
     var msg = [
         Math.round(this.r * 10) / 10,
         this.interleave(this.mr),
-        (this.defense % 200) != 0 ? 1 : 0,
-        this.thrust ? 1 : 0,
-        this.boost ? 1 : 0,
-        this.shield ? 1 : 0,
+        (this.defense % 200) != 0,
+        this.thrust,
+        this.boost,
+        this.shield,
         this.camuFade,
         this.missiles
     ];
@@ -226,6 +226,7 @@ ActorMissile.onUpdate = function() {
             if (dist < 100 && dist < max
                 && (p != this.player || (this.timeDiff(this.time) > 2000 && !target))
                 && p.camu != 2) {
+                
                 this.target = p;
             }
         }

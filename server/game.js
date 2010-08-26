@@ -334,7 +334,7 @@ Shooter.onUpdate = function() {
     
     // Collision Detection
     var players      = this.getActors('player');
-    var players_defs = this.getActors('player_def');
+    var playersDefs  = this.getActors('player_def');
     var powerups     = this.getActors('powerup');
     var bombs        = this.getActors('bomb');
     
@@ -347,8 +347,8 @@ Shooter.onUpdate = function() {
     }
     
     // Player Defends
-    for(var i = 0, dl = players_defs.length; i < dl; i++) {
-        var pd = players_defs[i];
+    for(var i = 0, dl = playersDefs.length; i < dl; i++) {
+        var pd = playersDefs[i];
         if (pd.alive() && pd.player.hp > 0) {
         
             // PowerUp collision
@@ -379,8 +379,8 @@ Shooter.onUpdate = function() {
             if (!pd.alive()) {
                 continue;
             }
-            for(var e = i + 1, dl = players_defs.length; e < dl; e++) {
-                var pdd = players_defs[e];
+            for(var e = i + 1, dl = playersDefs.length; e < dl; e++) {
+                var pdd = playersDefs[e];
                 if (pdd.alive() && this.circleCollision(pdd, pd,
                                                       this.sizeDefend,
                                                       this.sizeDefend)) {
@@ -405,15 +405,15 @@ Shooter.onUpdate = function() {
 
 Shooter.collidePlayer = function(p, i, l) {
     var players      = this.getActors('player');
-    var players_defs = this.getActors('player_def');
+    var playersDefs  = this.getActors('player_def');
     var powerups     = this.getActors('powerup');
     var bullets      = this.getActors('bullet');
     var missiles     = this.getActors('missile');
     var bombs        = this.getActors('bomb');
     
     // Player / Player Defend collision
-    for(var e = 0, dl = players_defs.length; e < dl; e++) {
-        var pd = players_defs[e];
+    for(var e = 0, dl = playersDefs.length; e < dl; e++) {
+        var pd = playersDefs[e];
         if (pd.alive() && this.circleCollision(p, pd,
                                              this.sizePlayer,
                                              this.sizeDefend)) {
@@ -547,9 +547,9 @@ Shooter.destroyBomb = function(b) {
     }
     
     // Defs
-    var players_defs = this.getActors('player_def');
-    for(var i = 0, l = players_defs.length; i < l; i++) {
-        var e = players_defs[i];
+    var playersDefs = this.getActors('player_def');
+    for(var i = 0, l = playersDefs.length; i < l; i++) {
+        var e = playersDefs[i];
         if (e.alive() && this.circleCollision(b, e, b.range, this.sizeDefend)) {
             e.destroy();
         }
