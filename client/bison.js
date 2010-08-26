@@ -40,7 +40,12 @@ function _encode(data) {
             }
             
             if (m <= 255) {
-                enc += chr(13 + add) + chr(m) + chr(r);
+                if (m == 0) {
+                    enc += chr(13 + add) + chr(r + 128);
+                
+                } else {
+                    enc += chr(13 + add) + chr(r) + chr(m);
+                }
             
             } else if (m <= 65535) {
                 enc += chr(15 + add) + chr(m >> 8 & 0xff) + chr(m & 0xff) + chr(r);
@@ -62,7 +67,7 @@ function _encode(data) {
             
             if (data <= 255) {
                 enc += chr(1 + add) + chr(data);
-                
+            
             } else if (data <= 65535) {
                 enc += chr(3 + add) + chr(data >> 8 & 0xff) + chr(data & 0xff);
             
@@ -172,9 +177,16 @@ function decode(data) {
             var size = Math.floor((t - 1) / 2) - 6;
             var m = 0, r = 0;
             if (size == 0) {
-                m = data.charCodeAt(p);
-                r = data.charCodeAt(p + 1);
-                p += 2;
+                r = data.charCodeAt(p);
+                if (r >= 128) {
+                    m = 0;
+                    r -= 128;
+                    p++;
+                
+                } else {
+                    m = data.charCodeAt(p + 1);
+                    p += 2;
+                }
             
             } else if (size == 1) {
                 m = (data.charCodeAt(p) << 8) + data.charCodeAt(p + 1);
@@ -183,7 +195,7 @@ function decode(data) {
             
             } else if (size == 2) {
                 m = (data.charCodeAt(p) << 24) + (data.charCodeAt(p + 1) << 16)
-                         + (data.charCodeAt(p + 2) << 8) + data.charCodeAt(p + 3);
+                    + (data.charCodeAt(p + 2) << 8) + data.charCodeAt(p + 3);
                 
                 r = data.charCodeAt(p + 4);
                 p += 5;
