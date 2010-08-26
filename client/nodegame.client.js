@@ -241,8 +241,7 @@ Client.prototype.update = function() {
                 this.actors[c].onDraw();
             }
             
-            var diff = (this.time - this.lastRender) - this.fpsTime;
-            this.lastRender = this.time - diff;
+            this.lastRender = this.time;
             
             var msg = JSON.stringify(this.$.onInput());
             if (msg != this.lastState) {
