@@ -26,24 +26,7 @@ var chr = String.fromCharCode;
 
 var enc = '';
 function _encode(data) {
-    if (typeof data == 'object') {
-        if (data.push) {
-            enc += chr(8);
-            for(var i = 0, l = data.length; i < l; i++) {
-                _encode(data[i]);
-            }
-            enc += chr(9);
-    
-        } else {
-            enc += chr(10);
-            for(var i in data) {
-                enc += chr(20 + i.length) + i;
-                _encode(data[i]);
-            }
-            enc += chr(11);
-        }
-    
-    } else if (typeof data == 'number') {
+    if (typeof data == 'number') {
         
         // Float
         var add = 0;
@@ -58,16 +41,17 @@ function _encode(data) {
             
             if (m <= 255) {
                 enc += chr(13 + add) + chr(m) + chr(r);
-                
+            
             } else if (m <= 65535) {
                 enc += chr(15 + add) + chr(m >> 8 & 0xff) + chr(m & 0xff) + chr(r);
             
             } else if (m <= 2147483647) {
                 enc += chr(17 + add) + chr(m >> 24 & 0xff) + chr(m >> 16 & 0xff)
                        + chr(m >> 8 & 0xff) + chr(m & 0xff) + chr(r);
+            
             } else {
-                throw 'Number out of range';
-            }    
+                enc += chr(1 + add) + chr(0);
+            }
         
         // Fixed
         } else {
@@ -87,12 +71,35 @@ function _encode(data) {
                        + chr(data >> 8 & 0xff) + chr(data & 0xff);
             
             } else {
-                throw 'Number out of range';
+                enc += chr(1 + add) + chr(0);
             }
         }
     
+    // Strings
     } else if (typeof data == 'string') {
         enc += chr(7) + data + chr(0);
+    
+    // Boolean
+    } else if (typeof data == 'boolean') {
+        enc += chr(data ? 19 : 20)
+    
+    // Objects / Arrays
+    } else if (typeof data == 'object') {
+        if (Array.isArray(data)) {
+            enc += chr(8);
+            for(var i = 0, l = data.length; i < l; i++) {
+                _encode(data[i]);
+            }
+            enc += chr(9);
+        
+        } else {
+            enc += chr(10);
+            for(var i in data) {
+                enc += chr(25 + i.length) + i;
+                _encode(data[i]);
+            }
+            enc += chr(11);
+        }
     }
 }
 
@@ -103,11 +110,11 @@ function encode(data) {
 };
 
 function add(o, v, k) {
-    if (!o.push) {
-        o[k] = v;
+    if (Array.isArray(o)) {
+        o.push(v);
     
     } else {
-        o.push(v);
+        o[k] = v;
     }
 }
 
@@ -122,9 +129,9 @@ function decode(data) {
         var t = data.charCodeAt(p++);
         
         // Key
-        if (t >= 20) {
-            k = data.substring(p, p + (t - 20));
-            p += (t - 20);
+        if (t >= 25) {
+            k = data.substring(p, p + (t - 25));
+            p += (t - 25);
         
         // Array // Objects
         } else if (t == 8 || t == 10) {
@@ -158,7 +165,7 @@ function decode(data) {
                 
                 p += 4;
             }
-            add(s[0], t % 2 ? value : 0 - value, k);;
+            add(s[0], t % 2 ? value : 0 - value, k);
         
         // Floats
         } else if (t > 12 && t < 19) {
@@ -183,6 +190,10 @@ function decode(data) {
             }
             add(s[0], t % 2 ? m + r * 0.01: 0 - (m + r * 0.01), k);
         
+        // Boolean
+        } else if (t > 18 && t < 21) {
+            add(s[0], t == 19, k);
+        
         // String
         } else if (t == 7) {
             str = '';
@@ -193,7 +204,7 @@ function decode(data) {
         }
     }
     return d[0];
-};
+}
 
 window.BISON = {
     'encode': encode,
