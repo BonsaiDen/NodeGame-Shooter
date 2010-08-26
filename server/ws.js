@@ -92,7 +92,7 @@ function Connection($, req, socket, headers, upgradeHeader) {
                     frame = [];
                     state = 0
                     $.onMessage(that, str.toString('utf8', 0, str.length));
-                    
+                
                 } else {
                     frame.push(b);
                 }
@@ -107,24 +107,30 @@ function Connection($, req, socket, headers, upgradeHeader) {
     }
     
     function write(data) {
+        var bytes = 0;
         if (socket.writable) {
             try {
                 socket.write('\x00', 'binary');
                 if (typeof data == 'string') {
-                    socket.write(data, 'utf8');
+                    var buf = new Buffer(data);
+                    var out = buf.toString('binary', 0, buf.length)
+                    socket.write(out, 'binary');
+                    bytes += out.length;
                 }
                 socket.write('\xff', 'binary'); 
                 socket.flush();
+                bytes += 2;
             
             } catch(e) {
                 
             }
         }
+        return bytes;
     }
     
     // Methods
     this.send = function(data) {
-        write(data);
+        return write(data);
     };
     
     this.close = function() {
@@ -196,9 +202,11 @@ function Server() {
     };
     
     this.broadcast = function(data) {
+        var bytes = 0;
         for(var c in connections) {
-            connections[c].send(data);
+            bytes += connections[c].send(data);
         }
+        return bytes;
     }
     
     this.listen = function(port) {
