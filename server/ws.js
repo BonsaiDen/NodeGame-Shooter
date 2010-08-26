@@ -113,7 +113,7 @@ function Connection($, req, socket, headers, upgradeHeader) {
                 socket.write('\x00', 'binary');
                 if (typeof data == 'string') {
                     socket.write(data, 'utf8');
-                    bytes += new Buffer(data).length;
+                    bytes += Buffer.byteLength(data);
                 }
                 socket.write('\xff', 'binary'); 
                 socket.flush();
