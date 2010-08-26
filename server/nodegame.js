@@ -22,6 +22,7 @@
 
 
 var ws = require(__dirname + '/ws');
+var BISON = require(__dirname + '/bison.node');
 var sys = require('sys');
 
 // Message types
@@ -231,24 +232,22 @@ Server.prototype.updateClients = function() {
 // Messaging -------------------------------------------------------------------
 Server.prototype.send = function(conn, type, msg) {
     msg.unshift(type);
-    
-    var e = this.toJSON(msg);
-    conn.send(e);
-    this.bytesSend += e.length + 2;
+    this.bytesSend += conn.send(this.toBISON(msg));
 };
 
 Server.prototype.emit = function(type, msg) {
     msg.unshift(type);
-    
-    var e = this.toJSON(msg);
-    this.$.broadcast(e);
-    this.bytesSend += (e.length + 2) * this.clientCount;
+    this.bytesSend += this.$.broadcast(this.toBISON(msg));
 };
 
-Server.prototype.toJSON = function(data) {
-    var msg = JSON.stringify(data);
-    msg = msg.substring(1).substring(0, msg.length - 2);
-    return msg.replace(/\"([a-z0-9]+)\"\:/gi, '$1:');
+//Server.prototype.toJSON = function(data) {
+//    var msg = JSON.stringify(data);
+//    msg = msg.substring(1).substring(0, msg.length - 2);
+//    return msg.replace(/\"([a-z0-9]+)\"\:/gi, '$1:');
+//};
+
+Server.prototype.toBISON = function(data) {
+    return BISON.encode(data);
 };
 
 

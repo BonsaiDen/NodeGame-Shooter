@@ -133,9 +133,9 @@ Client.prototype.connect = function(host, port) {
 
 Client.prototype.onMessage = function(msg) {
     var that = this;
-    var data = msg.data.replace(/([a-z0-9]+)\:/gi, '"$1":'), type = 0;
+    var data = [], type = 0;
     try {
-        data = JSON.parse('[' + data + ']');
+        data = BISON.decode(msg.data);
         type = data.shift();
     
     } catch(e) {
