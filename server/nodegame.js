@@ -22,7 +22,7 @@
 
 
 var ws = require(__dirname + '/ws');
-var BISON = require(__dirname + '/bison.node');
+var BISON = require(__dirname + '/bison');
 var sys = require('sys');
 
 // Message types
