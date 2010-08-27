@@ -59,10 +59,14 @@ ActorPlayer.onUpdate = function(data) {
     
     var col = this.$.colorCodes[this.$.playerColors[this.id]];
     if (this.shield && !data[5]) {
-        this.$.effectRing(this.x, this.y, 20, 30, 0.5, 2.75, col, this.alpha);
+        this.$.effectRing(this.x, this.y, 20,
+                          {'n': 30, 'd': 0.5, 's': 2.75,
+                           'c': col, 'a': this.alpha});
     
     } else if (!this.shield && data[5]) {
-        this.$.effectRing(this.x, this.y, 35, 30, 0.20, -2.75, col, this.alpha);
+        this.$.effectRing(this.x, this.y, 35, 
+                          {'n': 30, 'd': 0.2, 's': -2.75,
+                           'c': col, 'a': this.alpha});
     }
     this.shield = data[5];
     
@@ -77,8 +81,8 @@ ActorPlayer.onUpdate = function(data) {
                 var ox = this.x + Math.sin(r) * size;
                 var oy = this.y + Math.cos(r) * size;
                 
-                this.$.effectExplosion(ox, oy, 6, 0.25, 1, col);
-                this.$.effectArea(ox, oy, 3.5, 0.25, col);
+                this.$.effectExplosion(ox, oy, 6, {'d': 0.25, 's': 1, 'c': col});
+                this.$.effectArea(ox, oy, {'s': 3.5, 'd': 0.25, 'c': col});
             }
         }
     }
@@ -93,11 +97,13 @@ ActorPlayer.onInterleave = function(step) {
 ActorPlayer.onDestroy = function(complete) {
     if (complete) {
         var col = this.$.colorCodes[this.$.playerColors[this.id]];
-        this.$.effectExplosion(this.x, this.y, 20, 0.9, 1.4, col);
-        this.$.effectArea(this.x, this.y, 20, 0.5, col);
+        this.$.effectExplosion(this.x, this.y, 20, {'d': 0.9, 's': 1.4, 'c': col});
+        this.$.effectArea(this.x, this.y, {'s': 20, 'd': 0.5, 'c': col});
         
         if (this.shield) {
-            this.$.effectRing(this.x, this.y, 20, 42, 0.6, 3.25, col, this.alpha);
+            this.$.effectRing(this.x, this.y, 20,
+                              {'n': 42, 'd': 0.6, 's': 3.25,
+                               'c': col, 'a': this.alpha});
         }
         for(var i = 0; i < this.missiles; i++) {
             var r = this.$.wrapAngle((Math.PI * 2 / this.mor * i) - Math.PI + this.mmr);
@@ -105,8 +111,8 @@ ActorPlayer.onDestroy = function(complete) {
             var ox = this.x + Math.sin(r) * size;
             var oy = this.y + Math.cos(r) * size;
             
-            this.$.effectExplosion(ox, oy, 6, 0.45, 1, col);
-            this.$.effectArea(ox, oy, 8.5, 0.45, col);
+            this.$.effectExplosion(ox, oy, 6, {'d': 0.45, 's': 1, 'c': col});
+            this.$.effectArea(ox, oy, {'s': 8.5, 'd': 0.45, 'c': col});
         }
     }
 };
@@ -144,18 +150,12 @@ ActorPlayer.onDraw = function() {
             var r = this.$.wrapAngle(this.r - Math.PI);
             var ox = this.x + Math.sin(r) * 12;
             var oy = this.y + Math.cos(r) * 12;
-            this.$.effectParticle(
-                            ox, oy,
-                            this.$.wrapAngle(r - 0.8 + Math.random() * 1.60),
-                            2, 0.2 + (this.boost ? 0.1 : 0), col, this.alpha);
-            
-            if (this.boost) {
+            var rr = [-0.9, -0.5, -0.25, 0.25, 0.5, 0.9];
+            for(var i = 0; i < (this.boost ? 2 : 1); i++) {
                 this.$.effectParticle(ox, oy,
-                                      this.$.wrapAngle(r - 0.8 + Math.random()
-                                                         * 1.60),
-                                       
-                                      2, 0.2 + (this.boost ? 0.1 : 0), col,
-                                      this.alpha);
+                        this.$.wrapAngle(r - rr[Math.floor(Math.random() * 6)]),
+                        {'s': 1.6, 'd': 0.2 + (this.boost ? 0.1 : 0),
+                         'c': col, 'a': this.alpha});
             }
         }
         
@@ -172,7 +172,8 @@ ActorPlayer.onDraw = function() {
             r = r - Math.PI * 2.47 * d - 0.4 + Math.random() * 0.80;
             r = this.$.wrapAngle(r);
             
-            this.$.effectParticle(ox, oy, r, 2, 0.13, col, this.alpha);
+            this.$.effectParticle(ox, oy, r, {'s': 2, 'd': 0.10,
+                                              'c': col, 'a': this.alpha});
         }
         
         // Shield ring
@@ -249,13 +250,14 @@ ActorPlayer.onDraw = function() {
 var ActorBullet = Client.createActorType('bullet', 10);
 ActorBullet.onCreate = function(data, complete) {
     this.id = data[0];
+    this.col = this.$.playerColor(this.id);;
 };
 
 ActorBullet.onDestroy = function(complete) {
     if (complete) {
-        var col = this.$.playerColor(this.id);
-        this.$.effectExplosion(this.x, this.y, 4, 0.35, 1, col);
-        this.$.effectArea(this.x, this.y, 3.5, 0.35, col);
+        this.$.effectExplosion(this.x, this.y, 4, {'d': 0.35, 's': 1, 'c': this.col});
+        this.$.effectArea(this.x, this.y, {'s': 3.5, 'd': 0.35, 'c': this.col});
+        
     }
 };
 
@@ -264,7 +266,7 @@ ActorBullet.onInterleave = function(diff) {
 };
 
 ActorBullet.onDraw = function() {
-    this.$.fillCircle(this.x, this.y, 2.9, this.$.playerColor(this.id));
+    this.$.fillCircle(this.x, this.y, 2.9, this.col);
 };
 
 
@@ -273,11 +275,11 @@ var ActorMissile = Client.createActorType('missile', 2);
 ActorMissile.onCreate = function(data, complete) {
     this.id = data[0];
     this.r = data[1];
+    this.col = this.$.playerColor(this.id);;
     
     if (complete) {
-        var col = this.$.playerColor(this.id);
-        this.$.effectExplosion(this.x, this.y, 4, 0.35, 1, col);
-        this.$.effectArea(this.x, this.y, 3.5, 0.35, col);
+        this.$.effectExplosion(this.x, this.y, 4, {'d': 0.35, 's': 1, 'c': this.col});
+        this.$.effectArea(this.x, this.y, {'s': 3.5, 'd': 0.35, 'c': this.col});
     }
 };
 
@@ -287,9 +289,8 @@ ActorMissile.onUpdate = function(data) {
 
 ActorMissile.onDestroy = function(complete) {
     if (complete) {
-        var col = this.$.playerColor(this.id);
-        this.$.effectExplosion(this.x, this.y, 6, 0.45, 1, col);
-        this.$.effectArea(this.x, this.y, 8.5, 0.45, col);
+        this.$.effectExplosion(this.x, this.y, 6,{'d': 0.45, 's': 1, 'c': this.col});
+        this.$.effectArea(this.x, this.y, {'s': 8.5, 'd': 0.45, 'c': this.col});
     }
 };
 
@@ -332,7 +333,10 @@ ActorMissile.onDraw = function() {
     var ox = this.x + Math.sin(r) * 4;
     var oy = this.y + Math.cos(r) * 4;
     
-    this.$.effectParticle(ox, oy, r, 0.15, 0.25, col, 0.5);
+    var rr = [-0.75, -0.0, 0.75];
+    this.$.effectParticle(ox, oy,
+                          this.$.wrapAngle(r - rr[Math.floor(Math.random() * 3)]),
+                          {'s': 0.15, 'd': 0.25, 'c': col, 'a': 0.5});
 };
 
 
@@ -346,13 +350,15 @@ ActorBomb.onCreate = function(data, complete) {
 ActorBomb.onDestroy = function(complete) {
     if (complete) {
         var col = this.$.playerColor(this.id);
-        this.$.effectArea(this.x, this.y, this.radius, 1.0, col);
-        this.$.effectRing(this.x, this.y, this.radius / 2 * 0.975, 75, 1, 1.25,
-                          col, 1);
+        this.$.effectArea(this.x, this.y, {'s': this.radius, 'd': 1, 'c': col});
+        this.$.effectRing(this.x, this.y, this.radius / 2 * 0.975,
+                          {'n': 75, 'd': 1, 's': 1.25, 'c': col, 'a': 1});
         
-        this.$.effectArea(this.x, this.y, this.radius / 2, 1.5, col);
-        this.$.effectRing(this.x, this.y, this.radius * 0.975, 125, 1, 1.25,
-                          col, 1);
+        this.$.effectArea(this.x, this.y,
+                          {'s': this.radius / 2, 'd': 1.5, 'c': col});
+        
+        this.$.effectRing(this.x, this.y, this.radius * 0.975, 
+                          {'n': 125, 'd': 1, 's': 1.25, 'c': col, 'a': 1});
     }
 };
 
@@ -368,23 +374,26 @@ ActorBomb.onDraw = function() {
     var r = Math.atan2(this.mx, this.my);
     var ox = this.x - Math.sin(r) * 2;
     var oy = this.y - Math.cos(r) * 2;
+    
+    var rr = [-0.7, -0.35, -0.15, 0.15, 0.35, 0.7];
     this.$.effectParticle(ox, oy,
-                          this.$.wrapAngle(r - 0.8 + Math.random() * 1.60),
-                          1, 0.5, col, 1);
+              this.$.wrapAngle(r - rr[Math.floor(Math.random() * 6)] * 1.15),
+              {'s': 1.25, 'd': 0.3, 'c': col, 'a': 1});
     
     this.$.effectParticle(ox, oy,
-                          this.$.wrapAngle(r - 1.6 + Math.random() * 3.20),
-                          0.5, 0.8, col, 1);          
+              this.$.wrapAngle(r - rr[Math.floor(Math.random() * 6)] * 1.5),
+              {'s': 1.125, 'd': 0.4, 'c': col, 'a': 1});
 };
 
 // PowerUP ---------------------------------------------------------------------
 var ActorPowerUp = Client.createActorType('powerup', 0);
 ActorPowerUp.onCreate = function(data, complete) {
     this.type = data[0];
+    this.col = this.$.powerUpColors[this.type];
+    
     if (complete) {
         this.createTime = this.$.getTime();
-        var col = this.$.powerUpColors[this.type];
-        this.$.effectExplosion(this.x, this.y, 8, 1, 0.5, col); 
+        this.$.effectExplosion(this.x, this.y, 8, {'d': 1, 's': 0.5, 'c': this.col}); 
     
     } else {
         this.createTime = this.$.getTime() - 1000;
@@ -393,9 +402,8 @@ ActorPowerUp.onCreate = function(data, complete) {
 
 ActorPowerUp.onDestroy = function(complete) {
     if (complete) {
-        var col = this.$.powerUpColors[this.type];
-        this.$.effectExplosion(this.x, this.y, 8, 1, 0.5, col);
-        this.$.effectArea(this.x, this.y, 8, 0.3, col);
+        this.$.effectExplosion(this.x, this.y, 8, {'d': 1, 's': 0.5, 'c': this.col});
+        this.$.effectArea(this.x, this.y, {'s': 8, 'd': 0.3, 'c': this.col});
     }
 };
 
@@ -429,16 +437,17 @@ ActorPlayerDef.onCreate = function(data, complete) {
     this.y = data[4];
     this.wrap();
     
+    this.col = this.$.playerColor(this.id);
     if (complete) {
-        this.$.effectExplosion(this.dx, this.dy, 4, 0.25, 1,
-                               this.$.playerColor(this.id));
+        this.$.effectExplosion(this.dx, this.dy, 4,
+                              {'d': 0.25, 's': 1, 'c': this.col});
     }
 };
 
 ActorPlayerDef.onDestroy = function(complete) {
     if (complete) {
-        this.$.effectExplosion(this.dx, this.dy, 6, 0.5, 1,
-                               this.$.playerColor(this.id));
+        this.$.effectExplosion(this.dx, this.dy, 6,
+                               {'d': 0.5, 's': 1, 'c': this.col});
     }
 };
 

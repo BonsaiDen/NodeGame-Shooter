@@ -65,7 +65,10 @@ function _encode(data) {
                 add = 1;
             }
             
-            if (data <= 255) {
+            if (data <= 112) {
+                enc += chr(25 + data + add * 112);
+                
+            } else if (data <= 255) {
                 enc += chr(1 + add) + chr(data);
             
             } else if (data <= 65535) {
@@ -129,18 +132,22 @@ function decode(data) {
     var s = [];
     var d = [];
     var k = '';
+    var dict = false;
     var str = '';
+    var set = false;
     while(p < l) {
         var t = data.charCodeAt(p++);
         
         // Key
-        if (t >= 25) {
+        if (t >= 25 && dict && set) {
             k = data.substring(p, p + (t - 25));
             p += (t - 25);
+            set = false;
         
         // Array // Objects
         } else if (t == 8 || t == 10) {
             var a = t == 8 ? [] : {};
+            set = dict = t == 10;
             if (s.length > 0) {
                 add(s[0], a, k);
             
@@ -151,8 +158,14 @@ function decode(data) {
         
         } else if (t == 11 || t == 9) {
             s.shift();
+            set = dict = !Array.isArray(s[0]);
         
         // Fixed
+        } else if (t >= 25) {
+            var value = t - 25;
+            add(s[0], value > 112 ? (0 - (value - 112)) : value, k);
+            set = true;
+        
         } else if (t > 0 && t < 7) {
             var size = Math.floor((t - 1) / 2);
             var value = 0;
@@ -171,6 +184,7 @@ function decode(data) {
                 p += 4;
             }
             add(s[0], t % 2 ? value : 0 - value, k);
+            set = true;
         
         // Floats
         } else if (t > 12 && t < 19) {
@@ -201,10 +215,12 @@ function decode(data) {
                 p += 5;
             }
             add(s[0], t % 2 ? m + r * 0.01: 0 - (m + r * 0.01), k);
+            set = true;
         
         // Boolean
         } else if (t > 18 && t < 21) {
             add(s[0], t == 19, k);
+            set = true;
         
         // String
         } else if (t == 7) {
@@ -213,6 +229,7 @@ function decode(data) {
                 str += data.charAt(p++);
             }
             add(s[0], str, k);
+            set = true;
         }
     }
     return d[0];

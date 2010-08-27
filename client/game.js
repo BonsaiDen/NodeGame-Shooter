@@ -373,46 +373,53 @@ Shooter.playerColorFaded = function(id) {
 
 
 // Effects ---------------------------------------------------------------------
-Shooter.effectArea = function(x, y, size, d, col) {
+Shooter.effectArea = function(x, y, obj) {
     this.particles.push({
         'x': x, 'y': y,
-        'size': size,
-        'time': this.getTime() + d * 1500,
-        'd': d * 1500,
-        'col': col
+        'size': obj.s,
+        'time': this.getTime() + obj.d * 1500,
+        'd': obj.d * 1500,
+        'col': obj.c
     });
 };
 
-Shooter.effectParticle = function(x, y, r, speed, d, col, a) {
+Shooter.effectParticle = function(x, y, r, obj) {
     this.particles.push({
         'x': x , 'y': y,
         'r': this.wrapAngle(r),
-        'speed': speed,
-        'time': this.getTime() + d * 1500,
-        'd': d * 1500,
-        'col': col,
-        'a': a
+        'speed': obj.s,
+        'time': this.getTime() + obj.d * 1500,
+        'd': obj.d * 1500,
+        'col': obj.c,
+        'a': obj.a
     });
 };
 
-Shooter.effectExplosion = function(x, y, count, d, speed, col) {
+Shooter.effectExplosion = function(x, y, count, obj) {
     var r = (Math.PI * 2 * Math.random());
     var rs = Math.PI * 2 / (count * 2);
     for(var i = 0; i < count * 2; i++) {
         this.effectParticle(x, y, (r + rs * i) - Math.PI,
-                            0.35 + Math.random() * speed,
-                            (1 * d) + Math.random() * (0.5 * d), col, 1);
+                            {'s':  0.35 + Math.random() * obj.s,
+                             'd': (1 * obj.d) + Math.random() * (0.5 * obj.d),
+                             'c': obj.c,
+                             'a': 1});
     }
 };
 
-Shooter.effectRing = function(x, y, size, count, d, speed, col, a) {
-    for(var i = 0; i < count; i++) {
-        var r = (Math.PI * 2 / count * i) - Math.PI;
+Shooter.effectRing = function(x, y, size, obj) {
+    for(var i = 0; i < obj.n; i++) {
+        var r = (Math.PI * 2 / obj.n * i) - Math.PI;
         var e = Math.random() / 2 + 0.5;
         var ox = x + Math.sin(r) * size;
         var oy = y + Math.cos(r) * size;
-        this.effectParticle(ox, oy, r + e / 2, speed * 0.5 * e, d, col, a);
-        this.effectParticle(ox, oy, r - e, speed * e, d * 2, col, a);
+        this.effectParticle(ox, oy, r + e / 2,
+                            {'s':  obj.s * 0.5 * e, 'd': obj.d,
+                             'c': obj.c, 'a': obj.a});
+        
+        this.effectParticle(ox, oy, r - e,
+                            {'s':  obj.s * e, 'd': obj.d * 2,
+                             'c': obj.c, 'a': obj.a});
     }
 };
 
