@@ -224,7 +224,9 @@ ActorMissile.onUpdate = function() {
             var p = players[i];
             var dist = this.$$.getDistance(this, p);
             if (dist < 100 && dist < max
-                && (p != this.player || (this.timeDiff(this.time) > 2000 && !target))
+                && (p != this.player
+                    || (this.timeDiff(this.time) > 2150 && !target))
+                
                 && p.camu != 2) {
                 
                 this.target = p;
