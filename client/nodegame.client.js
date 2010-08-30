@@ -243,7 +243,7 @@ Client.prototype.update = function() {
             
             this.lastRender = this.time;
             
-            var msg = JSON.stringify(this.$.onInput());
+            var msg = BISON.encode(this.$.onInput());
             if (msg != this.lastState) {
                 this.conn.send(msg);
                 this.lastState = msg;
@@ -269,7 +269,7 @@ Client.prototype.createActorType = function(id, rate) {
 };
 
 Client.prototype.send = function(msg) {
-    this.conn.send(JSON.stringify(msg));
+    this.conn.send(BISON.encode(msg));
 };
 
 Client.prototype.getTime = function() {

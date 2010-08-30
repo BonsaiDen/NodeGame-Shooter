@@ -82,7 +82,7 @@ function Server(port, maxClients, maxChars) {
         
         } else {
             try {
-                that.clients[conn.$clientID].onMessage(JSON.parse(msg));
+                that.clients[conn.$clientID].onMessage(BISON.decode(msg));
             
             } catch (e) {
                 that.log('!! Error: ' + e);
