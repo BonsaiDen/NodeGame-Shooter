@@ -80,6 +80,18 @@ ActorPlayer.onUpdate = function(data) {
                 var size = 26 + Math.cos(this.mmr * 2);
                 var ox = this.x + Math.sin(r) * size;
                 var oy = this.y + Math.cos(r) * size;
+                if (ox < -16) {
+                    ox += this.$.width + 32;
+                
+                } else if (ox > this.$.width + 16) {
+                    ox -= this.$.width + 32;
+                }
+                if (oy < -16) {
+                    oy += this.$.height + 32;
+                
+                } else if (oy > this.$.height + 16) {
+                    oy -= this.$.height + 32;
+                }
                 
                 this.$.effectExplosion(ox, oy, 6, {'d': 0.25, 's': 1, 'c': col});
                 this.$.effectArea(ox, oy, {'s': 3.5, 'd': 0.25, 'c': col});
@@ -217,6 +229,18 @@ ActorPlayer.onDraw = function() {
                 var size = 26 + Math.cos(this.mmr * 2);
                 var ox = this.x + Math.sin(r) * size;
                 var oy = this.y + Math.cos(r) * size;
+                if (ox < -16) {
+                    ox += this.$.width + 32;
+                
+                } else if (ox > this.$.width + 16) {
+                    ox -= this.$.width + 32;
+                }
+                if (oy < -16) {
+                    oy += this.$.height + 32;
+                
+                } else if (oy > this.$.height + 16) {
+                    oy -= this.$.height + 32;
+                }
                 
                 this.$.alpha(this.alpha * 0.5);
                 this.$.fillCircle(ox, oy, 5, col);
@@ -476,11 +500,11 @@ ActorPlayerDef.wrap = function() {
         this.dx -= this.$.width + 32;
     }
     
-    if (this.y < -16) {
-        this.y += this.$.height + 32;
+    if (this.dy < -16) {
+        this.dy += this.$.height + 32;
     
-    } else if (this.y > this.$.height + 16) {
-        this.y -= this.$.height + 32;
+    } else if (this.dy > this.$.height + 16) {
+        this.dy -= this.$.height + 32;
     }
 };
 
