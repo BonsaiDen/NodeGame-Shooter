@@ -155,23 +155,22 @@ function Connection($, req, socket, headers, upgradeHeader) {
 };
 
 
-function Server() {
+function Server(httpDir) {
     var $ = new http.Server();
     var that = this;
     var connections = {};
     
-    $.addListener('connection', function(socket) {
-        socket.setTimeout(0);
-        socket.setNoDelay(true);
-        socket.setKeepAlive(true, 0);
-    });
-    
+    // Sockets
     $.addListener('upgrade', function(req, socket, upgradeHeader) {
         if (req.method == 'GET'
             && 'upgrade' in req.headers && 'connection' in req.headers
             && req.headers.upgrade.toLowerCase() == 'websocket'
             && req.headers.connection.toLowerCase() == 'upgrade') {
             
+            // Setup connection
+            socket.setTimeout(0);
+            socket.setNoDelay(true);
+            socket.setKeepAlive(true, 0);
             new Connection(that, req, socket, req.headers, upgradeHeader);
         
         } else {
@@ -180,6 +179,12 @@ function Server() {
         }
     });
     
+    $.addListener('request', function(req, response) {    
+        response.writeHead(404, {});
+        response.end();
+    });
+    
+    // Methods and Events
     this.add = function(conn) {
         connections[conn.id] = conn;
         that.onConnect(conn);

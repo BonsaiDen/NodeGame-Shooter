@@ -21,9 +21,9 @@
 */
 
 
+var sys = require('sys');
 var ws = require(__dirname + '/ws');
 var BISON = require(__dirname + '/bison');
-var sys = require('sys');
 
 // Message types
 var MSG_GAME_START = 1;
@@ -39,10 +39,13 @@ var MSG_ACTORS_DESTROY = 8;
 
 // Server ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-function Server(port, maxClients, maxChars) {
-    this.maxChars = maxChars || 128;
-    this.maxClients = maxClients || 64;
-    this.port = port;
+function Server(options) {
+    this.maxChars = options.maxChars || 128;
+    this.maxClients = options.maxClients || 64;
+    this.port = options.port || 8000;
+    this.showStatus = options.status === false ? false : true;
+    this.clientDir = options.clientDir || __dirname + '/../client';
+    process.cwd(this.clientDir);
     
     // Server
     this.fields = {};
@@ -66,7 +69,7 @@ function Server(port, maxClients, maxChars) {
     
     // Socket
     var that = this;
-    this.$ = new ws.Server();
+    this.$ = new ws.Server(this.clientDir);
     this.$.onConnect = function(conn) {
         if (this.clientCount >= this.maxClients) {
             conn.close();
@@ -135,7 +138,6 @@ Server.prototype.shutdown = function() {
         }
         that.log('>> Shutting down...');
         that.status(true);
-        sys.print('\x1b[u\n');
         process.exit(0);
     }, 100);
 };
@@ -160,13 +162,22 @@ Server.prototype.timeDiff = function(time) {
 };
 
 Server.prototype.log = function(str) {
-    this.logs.push([this.getTime(), str]);
-    if (this.logs.length > 18) {
-        this.logs.shift();
+    if (this.showStatus) {
+        this.logs.push([this.getTime(), str]);
+        if (this.logs.length > 18) {
+            this.logs.shift();
+        }
+
+    } else {
+        console.log(str);
     }
 };
 
 Server.prototype.status = function(end) {
+    if (!this.showStatus) {
+        return;
+    }
+    
     var that = this;
     function toTime(time) {
         var t = Math.round((time - that.startTime) / 1000);
@@ -202,6 +213,9 @@ Server.prototype.status = function(end) {
     
     if (!end) {
         setTimeout(function() {that.status(false)}, 500);
+    
+    } else {
+        sys.print('\x1b[u\n');
     }
 };
 
@@ -239,12 +253,6 @@ Server.prototype.emit = function(type, msg) {
     msg.unshift(type);
     this.bytesSend += this.$.broadcast(this.toBISON(msg));
 };
-
-//Server.prototype.toJSON = function(data) {
-//    var msg = JSON.stringify(data);
-//    msg = msg.substring(1).substring(0, msg.length - 2);
-//    return msg.replace(/\"([a-z0-9]+)\"\:/gi, '$1:');
-//};
 
 Server.prototype.toBISON = function(data) {
     return BISON.encode(data);
