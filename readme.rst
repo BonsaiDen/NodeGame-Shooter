@@ -18,10 +18,9 @@ there might be a 6 player server available at
 Todo
 ----
 
-- (Client) Reduce the graphical "lag" of moving objects
-- (Client) Add sound effects with HTML5 Audio
+- (Client) Better/More sound effects
 - (Server) Improve collision detection for ships(use polygon stuff instead of circles)
-- (Server) May be some asteroids(again, polygon stuf...)
+- (Server) May be some asteroids(again, polygon stuff...)
 
 
 License

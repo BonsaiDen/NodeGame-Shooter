@@ -46,6 +46,12 @@ ActorPlayer.onUpdate = function(data) {
     this.defense = data[2];
     this.thrust = data[3];
     this.boost = data[4];
+    if (this.fade == -1 && data[6] != -1) {
+        this.$.playSound('fadeOut');
+    }
+    if (this.fade == -2 && data[6] != -2) {
+        this.$.playSound('fadeIn');
+    }
     this.fade = data[6];
     
     // Shield
@@ -59,11 +65,13 @@ ActorPlayer.onUpdate = function(data) {
     
     var col = this.$.colorCodes[this.$.playerColors[this.id]];
     if (this.shield && !data[5]) {
+        this.$.playSound('powerOff');
         this.$.effectRing(this.x, this.y, 20,
                           {'n': 30, 'd': 0.5, 's': 2.75,
                            'c': col, 'a': this.alpha});
     
     } else if (!this.shield && data[5]) {
+        this.$.playSound('powerOn');
         this.$.effectRing(this.x, this.y, 35, 
                           {'n': 30, 'd': 0.2, 's': -2.75,
                            'c': col, 'a': this.alpha});
@@ -72,6 +80,7 @@ ActorPlayer.onUpdate = function(data) {
     
     // Missiles
     if (data[7] > this.missiles) {
+        this.$.playSound('powerOn');
         this.mmr = 0;
         this.mor = data[7];
         for(var i = 0; i < data[7]; i++) {
@@ -126,6 +135,7 @@ ActorPlayer.onDestroy = function(complete) {
             this.$.effectExplosion(ox, oy, 6, {'d': 0.45, 's': 1, 'c': col});
             this.$.effectArea(ox, oy, {'s': 8.5, 'd': 0.45, 'c': col});
         }
+        this.$.playSound('explosionShip');
     }
 };
 
@@ -275,13 +285,16 @@ var ActorBullet = Client.createActorType('bullet', 10);
 ActorBullet.onCreate = function(data, complete) {
     this.id = data[0];
     this.col = this.$.playerColor(this.id);;
+    if (complete) {
+        this.$.playSound('launchSmall');
+    }
 };
 
 ActorBullet.onDestroy = function(complete) {
     if (complete) {
         this.$.effectExplosion(this.x, this.y, 4, {'d': 0.35, 's': 1, 'c': this.col});
         this.$.effectArea(this.x, this.y, {'s': 3.5, 'd': 0.35, 'c': this.col});
-        
+        this.$.playSound('explosionSmall'); 
     }
 };
 
@@ -304,6 +317,7 @@ ActorMissile.onCreate = function(data, complete) {
     if (complete) {
         this.$.effectExplosion(this.x, this.y, 4, {'d': 0.35, 's': 1, 'c': this.col});
         this.$.effectArea(this.x, this.y, {'s': 3.5, 'd': 0.35, 'c': this.col});
+        this.$.playSound('launchMedium');
     }
 };
 
@@ -315,6 +329,7 @@ ActorMissile.onDestroy = function(complete) {
     if (complete) {
         this.$.effectExplosion(this.x, this.y, 6,{'d': 0.45, 's': 1, 'c': this.col});
         this.$.effectArea(this.x, this.y, {'s': 8.5, 'd': 0.45, 'c': this.col});
+        this.$.playSound('explosionMedium');
     }
 };
 
@@ -369,10 +384,15 @@ var ActorBomb = Client.createActorType('bomb', 8);
 ActorBomb.onCreate = function(data, complete) {
     this.id = data[0];
     this.radius = data[1];
+    if (complete) {
+        this.$.playSound('launchBig');
+    }
 };
 
 ActorBomb.onDestroy = function(complete) {
     if (complete) {
+        this.$.playSound('explosionBig');
+        
         var col = this.$.playerColor(this.id);
         this.$.effectArea(this.x, this.y, {'s': this.radius, 'd': 1, 'c': col});
         this.$.effectRing(this.x, this.y, this.radius / 2 * 0.975,
@@ -417,7 +437,8 @@ ActorPowerUp.onCreate = function(data, complete) {
     
     if (complete) {
         this.createTime = this.$.getTime();
-        this.$.effectExplosion(this.x, this.y, 8, {'d': 1, 's': 0.5, 'c': this.col}); 
+        this.$.effectExplosion(this.x, this.y, 8, {'d': 1, 's': 0.5, 'c': this.col});
+        this.$.playSound('powerSound');
     
     } else {
         this.createTime = this.$.getTime() - 1000;
@@ -428,6 +449,7 @@ ActorPowerUp.onDestroy = function(complete) {
     if (complete) {
         this.$.effectExplosion(this.x, this.y, 8, {'d': 1, 's': 0.5, 'c': this.col});
         this.$.effectArea(this.x, this.y, {'s': 8, 'd': 0.3, 'c': this.col});
+        this.$.playSound('powerSound');
     }
 };
 
@@ -470,6 +492,7 @@ ActorPlayerDef.onCreate = function(data, complete) {
 
 ActorPlayerDef.onDestroy = function(complete) {
     if (complete) {
+        this.$.playSound('explosionMedium');
         this.$.effectExplosion(this.dx, this.dy, 6,
                                {'d': 0.5, 's': 1, 'c': this.col});
     }

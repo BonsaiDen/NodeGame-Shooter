@@ -47,15 +47,15 @@ Shooter.onConnect = function(success) {
     
     window.onbeforeunload = function() {
         localStorage.setItem('small', that.small);
-    //    localStorage.setItem('extreme', that.extreme);
+        localStorage.setItem('sound', that.soundEnabled);
     };
     
     // Canvas
     this.particles = [];
     this.small = localStorage.getItem('small') == 'true' || false;
     this.scale = this.small ? 0.5 : 1;
-    this.extreme = false;//!(localStorage.getItem('extreme') == 'true' || false);
-   // this.onExtreme();
+    this.soundEnabled = !(localStorage.getItem('sound') == 'true' || true);
+    this.onSound();
     
     // Stuff
     this.playerNames = {};
@@ -91,7 +91,7 @@ Shooter.onConnect = function(success) {
     this.keys = {};
     window.onkeydown = window.onkeyup = function(e) {
         var key = e.keyCode;
-        if (key != 116) {
+        if (key != 116 && !e.shiftKey && !e.altKey && !e.ctrlKey) {
             if (e.type == "keydown") {
                 that.keys[key] = 1;
             
@@ -107,8 +107,76 @@ Shooter.onConnect = function(success) {
     window.onblur = function(e) {
         that.keys = {};
     };
+    
+    // Sounds
+    var sounds = [
+        'explosionBig',
+        'explosionMedium',
+        'explosionShip',
+        'explosionSmall',
+        
+        'fadeIn',
+        'fadeOut',
+        'launchBig',
+        'launchMedium',
+        'launchSmall',
+        'powerOff',
+        'powerOn',
+        'powerSound'
+    ];
+    
+    this.sounds = {};
+    var t = (new Audio()).canPlayType('audio/mp3') ? 'mp3' : 'ogg';
+    for(var i = 0; i < sounds.length; i++) {
+        this.sounds[sounds[i]] = [];
+        var a = new Audio('sounds/' + sounds[i] + '.' + t);
+        a.volume = 0.0;
+        a.isPlaying = true;
+        a.play();
+        a.addEventListener('ended', function() {
+            this.isPlaying = false;
+        }, false);
+        
+        a.addEventListener('error', function() {
+            this.isPlaying = false;
+        }, false);
+        this.sounds[sounds[i]].push(a);
+    }
+    this.audio = null;
 };
 
+Shooter.playSound = function(snd) {
+    if (!this.soundEnabled) {
+        return;
+    }
+    
+    var sounds = this.sounds[snd];
+    for(var i = 0; i < sounds.length; i++) {
+        if (!sounds[i].isPlaying) {
+            sounds[i].isPlaying = true;
+            sounds[i].volume = 0.5;
+            sounds[i].play();
+            return true;
+        }
+    }
+    if (sounds.length > 5) {
+        return false;
+    }
+    
+    var a = new Audio(sounds[0].src);
+    a.isPlaying = true;
+    a.volume = 0.5;
+    a.addEventListener('ended', function() {
+        a.isPlaying = false;
+    }, false);
+    
+    a.addEventListener('error', function() {
+        a.isPlaying = false;
+    }, false);
+    
+    a.play();
+    sounds.push(a);
+};
 
 Shooter.onInit = function(data) {
     this.width = data.s[0];
@@ -305,12 +373,12 @@ Shooter.onResize = function(data) {
     this.initCanvas();
 };
 
-Shooter.onExtreme = function(data) {
- //   this.extreme = !this.extreme;
- //   document.getElementById('extreme').innerHTML = (this.extreme
-  ///                                                  ? 'DEACTIVATE'
- //                                                   : 'ACTIVATE')
- //                                                   + ' EXTREEEEME';
+Shooter.onSound = function(data) {
+    this.soundEnabled = !this.soundEnabled;
+    document.getElementById('sound').innerHTML = (this.soundEnabled
+                                                    ? 'DEACTIVATE'
+                                                    : 'ACTIVATE')
+                                                    + ' SOUND';
 };
 
 Shooter.onLogin = function(e) {
