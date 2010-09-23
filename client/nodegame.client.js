@@ -244,7 +244,7 @@ Client.prototype.update = function() {
             this.lastRender = this.time;
             
             var msg = BISON.encode(this.$.onInput());
-            if (msg != this.lastState) {
+            if (this.$.playing && msg != this.lastState) {
                 this.conn.send(msg);
                 this.lastState = msg;
             } 
