@@ -140,7 +140,7 @@ Client.prototype.onMessage = function(msg) {
     
     } catch(e) {
         try {
-            console.log('JSON Error:', msg);
+            console.log('BISON Error:', msg);
         
         } catch(e) {
             
