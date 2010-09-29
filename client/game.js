@@ -125,6 +125,15 @@ Shooter.onConnect = function(success) {
         'powerSound'
     ];
     
+    // IE9 doesn't expose the Audio object... idiots...
+    if (typeof Audio === 'undefined') {  
+        window.Audio = function(src) {
+            var a = document.createElement('audio');
+            a.src = src || '';
+            return a;
+        };
+    }
+    
     this.sounds = {};
     var t = (new Audio()).canPlayType('audio/mp3') ? 'mp3' : 'ogg';
     for(var i = 0; i < sounds.length; i++) {
@@ -142,7 +151,6 @@ Shooter.onConnect = function(success) {
         }, false);
         this.sounds[sounds[i]].push(a);
     }
-    this.audio = null;
 };
 
 Shooter.playSound = function(snd) {
@@ -159,7 +167,7 @@ Shooter.playSound = function(snd) {
             return true;
         }
     }
-    if (sounds.length > 5) {
+    if (sounds.length > 7) {
         return false;
     }
     
@@ -251,6 +259,10 @@ Shooter.renderRound = function() {
     
     var t = Math.round((this.roundTime
                        + (this.roundStart - this.getTime())) / 1000);
+    
+    if (t < 0) {
+        t = 0;
+    }
     
     var m = Math.floor(t / 60);
     var s = t % 60;
