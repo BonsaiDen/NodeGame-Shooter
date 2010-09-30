@@ -57,6 +57,23 @@ Shooter.onConnect = function(success) {
     this.soundEnabled = !(localStorage.getItem('sound') == 'true' || true);
     this.onSound();
     
+    // Sounds
+    this.sound = new SoundPlayer(7, 'sounds', [
+        'explosionBig',
+        'explosionMedium',
+        'explosionShip',
+        'explosionSmall',
+        
+        'fadeIn',
+        'fadeOut',
+        'launchBig',
+        'launchMedium',
+        'launchSmall',
+        'powerOff',
+        'powerOn',
+        'powerSound'
+    ]);
+
     // Stuff
     this.playerNames = {};
     this.playerScores = {};
@@ -107,83 +124,10 @@ Shooter.onConnect = function(success) {
     window.onblur = function(e) {
         that.keys = {};
     };
-    
-    // Sounds
-    var sounds = [
-        'explosionBig',
-        'explosionMedium',
-        'explosionShip',
-        'explosionSmall',
-        
-        'fadeIn',
-        'fadeOut',
-        'launchBig',
-        'launchMedium',
-        'launchSmall',
-        'powerOff',
-        'powerOn',
-        'powerSound'
-    ];
-    
-    // IE9 doesn't expose the Audio object... idiots...
-    if (typeof Audio === 'undefined') {  
-        window.Audio = function(src) {
-            var a = document.createElement('audio');
-            a.src = src || '';
-            return a;
-        };
-    }
-    
-    this.sounds = {};
-    var t = (new Audio()).canPlayType('audio/mp3') ? 'mp3' : 'ogg';
-    for(var i = 0; i < sounds.length; i++) {
-        this.sounds[sounds[i]] = [];
-        var a = new Audio('sounds/' + sounds[i] + '.' + t);
-        a.volume = 0.0;
-        a.isPlaying = true;
-        a.play();
-        a.addEventListener('ended', function() {
-            this.isPlaying = false;
-        }, false);
-        
-        a.addEventListener('error', function() {
-            this.isPlaying = false;
-        }, false);
-        this.sounds[sounds[i]].push(a);
-    }
 };
 
 Shooter.playSound = function(snd) {
-    if (!this.soundEnabled) {
-        return;
-    }
-    
-    var sounds = this.sounds[snd];
-    for(var i = 0; i < sounds.length; i++) {
-        if (!sounds[i].isPlaying) {
-            sounds[i].isPlaying = true;
-            sounds[i].volume = 0.5;
-            sounds[i].play();
-            return true;
-        }
-    }
-    if (sounds.length > 7) {
-        return false;
-    }
-    
-    var a = new Audio(sounds[0].src);
-    a.isPlaying = true;
-    a.volume = 0.5;
-    a.addEventListener('ended', function() {
-        a.isPlaying = false;
-    }, false);
-    
-    a.addEventListener('error', function() {
-        a.isPlaying = false;
-    }, false);
-    
-    a.play();
-    sounds.push(a);
+    this.sound.play(snd, 0.5);
 };
 
 Shooter.onInit = function(data) {
