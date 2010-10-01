@@ -4,8 +4,8 @@ NodeGame: Shooter
 **NodeGame: Shooter** is a simple multiplayer game using node.js and HTML5
 WebSockets as well as the Canvas object.
 
-It currently runs natively in Chrome 5+, Safari 5 and Firefox 4 Beta.
-It also runs *somehow* in IE9 and Opera 10 using a flash fallback for the WebSocket API.
+| It currently runs natively in Chrome 5+, Safari 5 and Firefox 4 Beta.
+| It also runs *somehow* in IE9 and Opera 10 using a flash fallback for the WebSocket API.
 
 
 Playing
@@ -18,9 +18,10 @@ there might be a 6 player server available at
 
 Setup
 -----
-If you want to run the game yourself you must first edit `client/config.js` to point to your server.  
-Then start `server/game.js` via Node.js, additionally you can supply a port for the game to listen on.  
-If you want to make the Flash fallback responsive you must allow Node.js to listen on port 843, so either `sudo` start the game or use something like `privbind` on Ubuntu.
+
+| If you want to run the game yourself you must first edit `client/config.js` to point to your server.
+| Then start `server/game.js` via Node.js, additionally you can supply a port for the game to listen on.
+| If you want to make the Flash fallback responsive you must allow Node.js to listen on port 843, so either `sudo` start the game or use something like `privbind` on Ubuntu.
 
 
 Todo
