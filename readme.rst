@@ -4,13 +4,14 @@ NodeGame: Shooter
 **NodeGame: Shooter** is a simple multiplayer game using node.js and HTML5
 WebSockets as well as the Canvas object.
 
-It currently runs in Chrome 5+, Safari 4 and Firefox 4 Beta.
+It currently runs natively in Chrome 5+, Safari 5 and Firefox 4 Beta.
+It also runs *somehow* in IE9 and Opera 10 using a flash fallback for the WebSocket API.
 
 
 Playing
 -------
 
-Depending on the time of the day(read: wether my PC is running or not)
+Depending on the time of the day(read: whether my PC is running or not)
 there might be a 6 player server available at 
 <http://dl.dropbox.com/u/2332843/game.html>.
 
