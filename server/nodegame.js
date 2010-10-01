@@ -44,8 +44,6 @@ function Server(options) {
     this.maxClients = options.maxClients || 64;
     this.port = options.port || 8000;
     this.showStatus = options.status === false ? false : true;
-    this.clientDir = options.clientDir || __dirname + '/../client';
-    process.cwd(this.clientDir);
     
     // Server
     this.fields = {};
@@ -69,7 +67,7 @@ function Server(options) {
     
     // Socket
     var that = this;
-    this.$ = new ws.Server(this.clientDir);
+    this.$ = new ws.Server();
     this.$.onConnect = function(conn) {
         if (this.clientCount >= this.maxClients) {
             conn.close();

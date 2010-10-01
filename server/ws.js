@@ -155,7 +155,7 @@ function Connection($, req, socket, headers, upgradeHeader) {
 };
 
 
-function Server(baseDir) {
+function Server() {
     var that = this;
     var $ = new http.Server();
     var connections = {};
