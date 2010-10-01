@@ -16,6 +16,13 @@ there might be a 6 player server available at
 <http://dl.dropbox.com/u/2332843/game.html>.
 
 
+Setup
+-----
+If you want to run the game yourself you must first edit `client/config.js` to point to your server.  
+Then start `server/game.js` via Node.js, additionally you can supply a port for the game to listen on.  
+If you want to make the Flash fallback responsive you must allow Node.js to listen on port 843, so either `sudo` start the game or use something like `privbind` on Ubuntu.
+
+
 Todo
 ----
 
