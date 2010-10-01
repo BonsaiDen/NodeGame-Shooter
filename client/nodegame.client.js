@@ -93,9 +93,8 @@ function Client(fps) {
 };
 
 Client.prototype.connect = function(host, port) {
-    if (!window['WebSocket']) {
-        this.$.onWebSocketError();
-        return;
+    if (WebSocket.prototype.__createFlash) {
+        this.$.onWebSocketFlash();
     }
     
     var that = this;

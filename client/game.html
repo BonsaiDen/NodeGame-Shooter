@@ -54,9 +54,9 @@
             margin: 8px auto;
         } 
         
-        #fail {
-            font-size: 20px;
-            width: 300px;
+        #warning {
+            font-size: 10px;
+            width: 480px;
             display: none;
             margin: 8px auto;
         }   
@@ -86,6 +86,14 @@
         }
         </style>
         
+        <script type="text/javascript">
+            WEB_SOCKET_SWF_LOCATION = 'flash/WebSocketMain.swf';
+        </script>
+        
+        <script type="text/javascript" src="flash/swfobject.js"></script>
+        <script type="text/javascript" src="flash/FABridge.js"></script>
+        <script type="text/javascript" src="flash/web_socket.js"></script> 
+        
         <script type="text/javascript" src="bison.js"></script>
         <script type="text/javascript" src="nodegame.client.js"></script>
         <script type="text/javascript" src="config.js"></script>
@@ -96,13 +104,12 @@
     
     <body>
         <a href="http://github.com/BonsaiDen/NodeGame-Shooter"><img style="position: absolute; top: 0; left: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_left_red_aa0000.png" alt="Fork me on GitHub" /></a>
+        <div id="warning">
+            OH NOES! Kittens failed to detect WebSockets nao da laggy Flash thing haz to do tha work!<br/>
+            Pls grab a modern Browsa lak Chrome 5+, Firefox 4 Beta or Safari 5. THX!
+        </div>
         <canvas id="bg"></canvas>
         <div id="error">SERVER OFFLINE</div>
-        <div id="fail">
-            Sorry, but your current Browser does not support WebSockets.<br/>
-            <br/>
-            WebSockets are supported in Chrome 5+, Firefox 4 Beta+ and Safari 4.
-        </div>
         <div id="size"><a href="#" onclick="Shooter.onResize()">CHANGE SIZE</a> | <a href="#" id="sound" onclick="Shooter.onSound()">DEACTIVATE SOUND</a></div>
         <div id="box">Your Name<br/><input id="login" type="text" value="" maxlength="12"/></div>
         <div id="controls">W/A/D or Arrow Keys control your Ship | Space shoots | M / Return fires and detonates a bomb</div>

@@ -167,9 +167,8 @@ Shooter.onInput = function() {
     return keys;
 };
 
-Shooter.onWebSocketError = function() {
-    document.getElementById('bg').style.display = 'none';
-    document.getElementById('fail').style.display = 'block';
+Shooter.onWebSocketFlash = function() {
+    document.getElementById('warning').style.display = 'block';
 };
 
 
