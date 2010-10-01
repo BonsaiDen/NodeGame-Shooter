@@ -38,7 +38,7 @@ function Connection($, req, socket, headers, upgradeHeader) {
         var spaces1 = key1.replace(/[^\ ]/g, '').length;
         var spaces2 = key2.replace(/[^\ ]/g, '').length;
         
-        if (spaces1 == 0 || spaces2 == 0
+        if (spaces1 === 0 || spaces2 === 0
             || num1 % spaces1 != 0 || num2 % spaces2 != 0) {
             
             socket.end();
@@ -77,8 +77,8 @@ function Connection($, req, socket, headers, upgradeHeader) {
     function read(data) {
         for(var i = 0, l = data.length; i < l; i++) {
             var b = data[i];
-            if (state == 0) {
-                if (b & 0x80 == 0x80) {
+            if (state === 0) {
+                if (b & 0x80 === 0x80) {
                     state = 2;
                 
                 } else {
@@ -86,8 +86,8 @@ function Connection($, req, socket, headers, upgradeHeader) {
                 }
             
             // Low
-            } else if (state == 1) {
-                if (b == 0xff) {
+            } else if (state === 1) {
+                if (b === 0xff) {
                     var str = new Buffer(frame);
                     frame = [];
                     state = 0
@@ -98,8 +98,8 @@ function Connection($, req, socket, headers, upgradeHeader) {
                 }
             
             // High
-            } else if (state == 2) {
-                if (b == 0x00) {
+            } else if (state === 2) {
+                if (b === 0x00) {
                     that.close();
                 }
             }
@@ -111,7 +111,7 @@ function Connection($, req, socket, headers, upgradeHeader) {
         if (socket.writable) {
             try {
                 socket.write('\x00', 'binary');
-                if (typeof data == 'string') {
+                if (typeof data === 'string') {
                     socket.write(data, 'utf8');
                     bytes += Buffer.byteLength(data);
                 }
@@ -155,17 +155,17 @@ function Connection($, req, socket, headers, upgradeHeader) {
 };
 
 
-function Server(httpDir) {
-    var $ = new http.Server();
+function Server(baseDir) {
     var that = this;
+    var $ = new http.Server();
     var connections = {};
     
-    // Sockets
+    // WebSockets
     $.addListener('upgrade', function(req, socket, upgradeHeader) {
-        if (req.method == 'GET'
+        if (req.method === 'GET'
             && 'upgrade' in req.headers && 'connection' in req.headers
-            && req.headers.upgrade.toLowerCase() == 'websocket'
-            && req.headers.connection.toLowerCase() == 'upgrade') {
+            && req.headers.upgrade.toLowerCase() === 'websocket'
+            && req.headers.connection.toLowerCase() === 'upgrade') {
             
             // Setup connection
             socket.setTimeout(0);
@@ -177,12 +177,32 @@ function Server(httpDir) {
             socket.end();
             socket.destroy();
         }
-    });
+    }); 
     
-    $.addListener('request', function(req, response) {    
-        response.writeHead(404, {});
-        response.end();
-    });
+    // Flash policy
+    var $flash = new http.Server();
+    var flashPort = 843;
+    
+    function flashPolicy(socket) {
+        var callback = function(data) {
+            if (data.toString() === '<policy-file-request/>\x00') {
+                socket.write('<?xml version="1.0"?>'
+                    + '<!DOCTYPE cross-domain-policy SYSTEM "http://www.macromedia.com/xml/dtds/cross-domain-policy.dtd">'
+                    + '<cross-domain-policy>'
+                    + ' <allow-access-from domain="*" to-ports="*" />'
+                    + '</cross-domain-policy>'
+                );
+                socket.end();
+                socket.destroy();
+            
+            } else if (flashPort === 843) {
+                socket.end();
+                socket.destroy();
+            }
+            socket.removeListener('data', callback);
+        }
+        socket.on('data', callback);
+    }
     
     // Methods and Events
     this.add = function(conn) {
@@ -210,9 +230,17 @@ function Server(httpDir) {
             bytes += connections[c].send(data);
         }
         return bytes;
-    }
+    };
     
     this.listen = function(port) {
+        try {
+            $flash.listen(843);
+            $flash.addListener('connection', flashPolicy);
+        
+        } catch (e) {
+            flashPort = port;
+            $.addListener('connection', flashPolicy);
+        }
         $.listen(port);
     };
 };
