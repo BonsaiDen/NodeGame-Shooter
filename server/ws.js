@@ -7,6 +7,7 @@
 
 
 var http = require('http');
+var net = require('net');
 var crypto = require('crypto');
 
 function pack(num) {
@@ -177,32 +178,7 @@ function Server() {
             socket.end();
             socket.destroy();
         }
-    }); 
-    
-    // Flash policy
-    var $flash = new http.Server();
-    var flashPort = 843;
-    
-    function flashPolicy(socket) {
-        var callback = function(data) {
-            if (data.toString() === '<policy-file-request/>\x00') {
-                socket.write('<?xml version="1.0"?>'
-                    + '<!DOCTYPE cross-domain-policy SYSTEM "http://www.macromedia.com/xml/dtds/cross-domain-policy.dtd">'
-                    + '<cross-domain-policy>'
-                    + ' <allow-access-from domain="*" to-ports="*" />'
-                    + '</cross-domain-policy>'
-                );
-                socket.end();
-                socket.destroy();
-            
-            } else if (flashPort === 843) {
-                socket.end();
-                socket.destroy();
-            }
-            socket.removeListener('data', callback);
-        }
-        socket.on('data', callback);
-    }
+    });
     
     // Methods and Events
     this.add = function(conn) {
@@ -234,12 +210,21 @@ function Server() {
     
     this.listen = function(port) {
         try {
-            $flash.listen(843);
-            $flash.addListener('connection', flashPolicy);
+            // Flash policy
+            net.createServer(function(socket) {
+                socket.write('<?xml version="1.0"?>'
+                    + '<!DOCTYPE cross-domain-policy SYSTEM "http://www.macromedia.com/xml/dtds/cross-domain-policy.dtd">'
+                    + '<cross-domain-policy>'
+                    + ' <allow-access-from domain="*" to-ports="*" />'
+                    + '</cross-domain-policy>'
+                );
+                socket.end();
+                socket.destroy();
+            
+            }).listen(843);
         
         } catch (e) {
-            flashPort = port;
-            $.addListener('connection', flashPolicy);
+            
         }
         $.listen(port);
     };
