@@ -189,7 +189,7 @@ Client.onUpdate = function() {
             this.$.createActor('missile', {
                 'player': this.player,
                 'r': this.$$.wrapAngle(this.player.r + this.player.mr),
-                'd': 13
+                'd': 14.5
             });
             this.player.missiles--;
         
@@ -197,7 +197,7 @@ Client.onUpdate = function() {
             this.$.createActor('bullet', {
                 'player': this.player,
                 'r': this.$$.wrapAngle(this.player.r + this.player.mr),
-                'd': 12
+                'd': 12.5
             });
         }
         this.shotTime = this.getTime();

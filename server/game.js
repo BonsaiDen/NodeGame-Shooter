@@ -63,7 +63,7 @@ Shooter.onInit = function() {
     this.$.setField('m', this.maxPlayers);
     
     // Sizes
-    this.sizePlayer = 11;
+    this.sizePlayer = 14;
     this.sizeShield = 22;
     this.sizePowerUp = 10;
     this.sizeBullet = 2;
@@ -180,10 +180,10 @@ Shooter.addPlayerStats = function(id) {
 
 
 // Gameplay --------------------------------------------------------------------
-Shooter.circleCollision = function(a, b, ra, rb) {
+Shooter.circleCollision = function(a, b, ra, rb, circle) {
     
     // Normal
-    if (this.checkCollision(a, b, ra, rb)) {
+    if (this.checkCollision(a, b, ra, rb, circle)) {
         return true;
     }
     
@@ -199,7 +199,7 @@ Shooter.circleCollision = function(a, b, ra, rb) {
     } else if (a.x + ra > this.width + 16) {
         aa.x = a.x - 32 - this.width;
     }
-    if (a.x != aa.x && this.checkCollision(aa, b, ra, rb)) {
+    if (a.x != aa.x && this.checkCollision(aa, b, ra, rb, circle)) {
         return true;
     }
     
@@ -213,23 +213,42 @@ Shooter.circleCollision = function(a, b, ra, rb) {
     } else if (a.y + ra > this.height + 16) {
         ab.y = a.y - 32 - this.height;
     }
-    if (a.y != ab.y && this.checkCollision(ab, b, ra, rb)) {
+    if (a.y != ab.y && this.checkCollision(ab, b, ra, rb, circle)) {
         return true;
     }
     
     // Diagonal
     aa.y = ab.y;
-    if (a.y != aa.y && a.x != aa.x && this.checkCollision(aa, b, ra, rb)) {
+    if (a.y != aa.y && a.x != aa.x && this.checkCollision(aa, b, ra, rb, circle)) {
         return true;
     }
     return false;
 };
 
-Shooter.checkCollision = function(a, b, ra, rb) {
+Shooter.checkCollision = function(a, b, ra, rb, circle) {
     var r = ra + rb;
     var dx = a.x - b.x;
     var dy = a.y - b.y;
-    return r * r > dx * dx + dy * dy; 
+    if (r * r > dx * dx + dy * dy) {
+        if (circle) {
+            return true;
+        
+        } else if (a.polygon && b.polygon) {
+            return a.polygon.intersects(b.polygon);
+        
+        } else if (a.polygon) {
+            return a.polygon.intersectsCircle(b.x, b.y, rb);
+            
+        } else if (b.polygon) {
+            return b.polygon.intersectsCircle(a.x, a.y, ra);
+        
+        } else {
+            return true;
+        }
+    
+    } else {
+        return false;
+    }
 };
 
 Shooter.initPowerUp = function(type, max, wait, rand) { 
@@ -439,7 +458,7 @@ Shooter.collidePlayer = function(p, i, l) {
     for(var e = 0, dl = bombs.length; e < dl; e++) {
         var bo = bombs[e];
         if (bo.alive() && this.circleCollision(p, bo, this.sizePlayer,
-                                                    this.sizeBomb)) {
+                                                      this.sizeBomb)) {
             
             bo.destroy();
         }
@@ -479,8 +498,10 @@ Shooter.collidePlayer = function(p, i, l) {
             if (b.alive()) {
                 
                 // Hit on ship
-                if (!p.shield && this.circleCollision(p, b, this.sizePlayer,
-                                                            this.sizeBullet)) {
+                if (!p.shield
+                    && (b.player != p || this.timeDiff(b.time) > 50)
+                    && this.circleCollision(p, b, this.sizePlayer,
+                                                  this.sizeBullet)) {
                     
                     b.destroy();
                     p.hp -= 5;
@@ -495,7 +516,8 @@ Shooter.collidePlayer = function(p, i, l) {
                 } else if (p.shield
                            && (b.player != p || this.timeDiff(b.time) > 225)
                            && this.circleCollision(p, b, this.sizeShield,
-                                                         this.sizeBullet)) {
+                                                         this.sizeBullet,
+                                                         true)) {
                     
                     b.destroy();
                 }
@@ -508,8 +530,10 @@ Shooter.collidePlayer = function(p, i, l) {
             if (m.alive()) {
                 
                 // Hit on ship
-                if (!p.shield && this.circleCollision(p, m, this.sizePlayer,
-                                                            this.sizeMissile)) {
+                if (!p.shield  
+                    && (m.player != p || this.timeDiff(m.time) > 50)
+                    && this.circleCollision(p, m, this.sizePlayer,
+                                                  this.sizeMissile)) {
                     
                     m.destroy();
                     p.hp -= 4;
@@ -524,7 +548,8 @@ Shooter.collidePlayer = function(p, i, l) {
                 } else if (p.shield
                            && (m.player != p || this.timeDiff(m.time) > 225)
                            && this.circleCollision(p, m, this.sizeShield,
-                                                         this.sizeMissile)) {
+                                                         this.sizeMissile,
+                                                         true)) {
                     
                     m.destroy();
                 }

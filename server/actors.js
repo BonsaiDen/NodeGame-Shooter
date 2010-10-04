@@ -21,6 +21,9 @@
 */
 
 
+var polygon = require(__dirname + '/polygon');
+
+
 // Actors ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 var ActorPlayer = Server.createActorType('player', 2);
@@ -29,6 +32,10 @@ ActorPlayer.onCreate = function(data) {
     this.hp = 15;
     this.r = (Math.random() * Math.PI * 2) - Math.PI;
     this.mr = 0;
+    
+    this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
+                                        [[0, -14.3], [11.2, 14.3],
+                                         [-11.2, 14.3], [0, -14.3]]);
     
     this.$$.randomPosition(this, this.$$.sizePlayer);
     
@@ -41,7 +48,7 @@ ActorPlayer.onCreate = function(data) {
     
     // PowerUPS
     this.boost = false;
-    this.boostTime = this.getTime();
+    this.boostTime = 0;
     
     this.shield = false;
     this.shieldTime = 0;
@@ -72,6 +79,8 @@ ActorPlayer.onUpdate = function() {
     
     this.x += this.mx;
     this.y += this.my;
+    this.polygon.transform(this.x, this.y, this.r);
+    
     
     // Wrap
     this.$$.wrapPosition(this);
@@ -171,9 +180,6 @@ ActorMissile.onCreate = function(data) {
     this.player = data.player;
     
     var r = data.r;
-    this.x = this.player.x + Math.sin(r) * 12;
-    this.y = this.player.y + Math.cos(r) * 12;
-    
     this.mx = this.player.mx + Math.sin(r) * 4.0;
     this.my = this.player.my + Math.cos(r) * 4.0;
     
