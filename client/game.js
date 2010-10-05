@@ -45,6 +45,9 @@ Shooter.onConnect = function(success) {
         that.onLogin(e);
     };
     
+    // Force FF to show up the cookie dialog, because if cookies aren't allowed
+    // localStorage will fail too.
+    document.cookie = '';
     window.onbeforeunload = function() {
         localStorage.setItem('small', that.small);
         localStorage.setItem('sound', that.sound.enabled);
@@ -54,7 +57,7 @@ Shooter.onConnect = function(success) {
     this.particles = [];
     try {
         this.small = localStorage.getItem('small') == 'true' || false;
-        
+    
     } catch (e) {
         this.small = false;
     }
@@ -78,7 +81,7 @@ Shooter.onConnect = function(success) {
     ]);
     
     try {
-        this.sound.enabled = !(localStorage.getItem('sound') == 'true' || true);
+        this.sound.enabled = !(localStorage.getItem('sound') == 'true' || false);
         
     } catch (e) {
         this.sound.enabled = true;
