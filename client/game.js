@@ -47,15 +47,13 @@ Shooter.onConnect = function(success) {
     
     window.onbeforeunload = function() {
         localStorage.setItem('small', that.small);
-        localStorage.setItem('sound', that.soundEnabled);
+        localStorage.setItem('sound', that.enabled);
     };
     
     // Canvas
     this.particles = [];
     this.small = localStorage.getItem('small') == 'true' || false;
     this.scale = this.small ? 0.5 : 1;
-    this.soundEnabled = !(localStorage.getItem('sound') == 'true' || true);
-    this.onSound();
     
     // Sounds
     this.sound = new SoundPlayer(7, 'sounds', [
@@ -73,7 +71,9 @@ Shooter.onConnect = function(success) {
         'powerOn',
         'powerSound'
     ]);
-
+    this.sound.enabled = !(localStorage.getItem('sound') == 'true' || true);
+    this.onSound();   
+    
     // Stuff
     this.playerNames = {};
     this.playerScores = {};
@@ -329,8 +329,8 @@ Shooter.onResize = function(data) {
 };
 
 Shooter.onSound = function(data) {
-    this.soundEnabled = !this.soundEnabled;
-    document.getElementById('sound').innerHTML = (this.soundEnabled
+    this.sound.enabled = !this.sound.enabled;
+    document.getElementById('sound').innerHTML = (this.sound.enabled
                                                     ? 'DEACTIVATE'
                                                     : 'ACTIVATE')
                                                     + ' SOUND';

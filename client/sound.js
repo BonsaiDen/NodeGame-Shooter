@@ -34,7 +34,7 @@ function SoundPlayer(max, dir, sounds) {
     }
     
     // Sounds 
-    this.soundEnabled = true;
+    this.enabled = true;
     this.soundType = (new Audio()).canPlayType('audio/mp3') ? 'mp3' : 'ogg';
     this.soundFiles = sounds;
     this.soundDirectory = dir;
@@ -49,7 +49,7 @@ function SoundPlayer(max, dir, sounds) {
 }
 
 SoundPlayer.prototype.play = function(snd) {
-    if (!this.soundEnabled) {
+    if (!this.enabled) {
         return;
     }
     
