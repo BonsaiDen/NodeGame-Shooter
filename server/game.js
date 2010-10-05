@@ -63,7 +63,7 @@ Shooter.onInit = function() {
     this.$.setField('m', this.maxPlayers);
     
     // Sizes
-    this.sizePlayer = 14;
+    this.sizePlayer = 16;
     this.sizeShield = 22;
     this.sizePowerUp = 10;
     this.sizeBullet = 2;
