@@ -34,8 +34,8 @@ ActorPlayer.onCreate = function(data) {
     this.mr = 0;
     
     this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
-                                        [[0, -14.3], [11.2, 14.3],
-                                         [-11.2, 14.3], [0, -14.3]]);
+                                        [[0, -14.3], [-11.2, 14.3],
+                                         [11.2, 14.3], [0, -14.3]]);
     
     this.$$.randomPosition(this, this.$$.sizePlayer);
     
