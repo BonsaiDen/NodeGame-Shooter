@@ -531,3 +531,55 @@ ActorPlayerDef.wrap = function() {
     }
 };
 
+
+// Asteroid --------------------------------------------------------------------
+var ActorAsteroid = Client.createActorType('asteroid', 8);
+ActorAsteroid.onCreate = function(data, complete) {
+    this.r = data[0];
+    this.mr = data[1]; 
+    this.type = data[2];
+    this.col = '#777777';
+};
+
+ActorAsteroid.onDraw = function() {
+    this.$.line(3);
+    this.$.stroke(this.col);
+    
+    this.$.bg.save();
+    this.$.bg.translate(this.x, this.y);
+    this.$.bg.rotate(Math.PI - this.r);
+    this.$.bg.beginPath();
+    if (this.type === 1) {
+        this.$.bg.moveTo(-5, -7);
+        this.$.bg.lineTo(-9 , -2);
+        this.$.bg.lineTo(-2, 8);
+        this.$.bg.lineTo(10, 6);
+        this.$.bg.lineTo(7, -6);
+    
+    } else if (this.type === 2) {    
+        this.$.bg.moveTo(-2, -13);
+        this.$.bg.lineTo(-14 , -8);
+        this.$.bg.lineTo(-13, 8);
+        this.$.bg.lineTo(-2, 13);
+        this.$.bg.lineTo(11, 10);
+        this.$.bg.lineTo(13, -8);
+    }
+    this.$.bg.closePath();
+    this.$.bg.stroke();
+    this.$.bg.restore();
+};
+
+ActorAsteroid.onInterleave = function(step) {
+    this.r = this.$.wrapAngle(this.r + this.mr / step);
+    this.$.wrapPosition(this);
+};
+
+ActorAsteroid.onDestroy = function(complete) {
+    if (complete) {
+        var add = this.type === 2 ? 4 : 0;
+        this.$.effectExplosion(this.x, this.y, 8, {'d': 0.85 + add / 7, 's': 0.50, 'c': this.col});
+        this.$.effectArea(this.x, this.y, {'s': 13 + add * 1.75, 'd': 0.5 + add / 27, 'c': this.col});
+        this.$.playSound('explosionMedium');
+    }
+};
+

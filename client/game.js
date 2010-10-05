@@ -47,12 +47,17 @@ Shooter.onConnect = function(success) {
     
     window.onbeforeunload = function() {
         localStorage.setItem('small', that.small);
-        localStorage.setItem('sound', that.enabled);
+        localStorage.setItem('sound', that.sound.enabled);
     };
     
     // Canvas
     this.particles = [];
-    this.small = localStorage.getItem('small') == 'true' || false;
+    try {
+        this.small = localStorage.getItem('small') == 'true' || false;
+        
+    } catch (e) {
+        this.small = false;
+    }
     this.scale = this.small ? 0.5 : 1;
     
     // Sounds
@@ -71,7 +76,13 @@ Shooter.onConnect = function(success) {
         'powerOn',
         'powerSound'
     ]);
-    this.sound.enabled = !(localStorage.getItem('sound') == 'true' || true);
+    
+    try {
+        this.sound.enabled = !(localStorage.getItem('sound') == 'true' || true);
+        
+    } catch (e) {
+        this.sound.enabled = true;
+    }
     this.onSound();   
     
     // Stuff

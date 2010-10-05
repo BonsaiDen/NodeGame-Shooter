@@ -34,8 +34,8 @@ ActorPlayer.onCreate = function(data) {
     this.mr = 0;
     
     this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
-                                        [[0, -14.3], [-11.2, 14.3],
-                                         [11.2, 14.3], [0, -14.3]]);
+                                        [[0, -14], [-11.7, 14],
+                                         [11.7, 14], [0, -14]]);
     
     this.$$.randomPosition(this, this.$$.sizePlayer);
     
@@ -80,7 +80,6 @@ ActorPlayer.onUpdate = function() {
     this.x += this.mx;
     this.y += this.my;
     this.polygon.transform(this.x, this.y, this.r);
-    
     
     // Wrap
     this.$$.wrapPosition(this);
@@ -448,5 +447,85 @@ ActorPlayerDef.onMessage = function(once) {
                    Math.round(this.player.y * 100) / 100]
                    : [this.r, Math.round(this.player.x * 100) / 100,
                               Math.round(this.player.y * 100) / 100];
+};
+
+
+// Asteroid --------------------------------------------------------------------
+var ActorAsteroid = Server.createActorType('asteroid', 8);
+ActorAsteroid.onCreate = function(data) {
+    this.$$.randomPosition(this, this.$$.sizeAsteroid);
+    var tx = this.x;
+    var ty = this.y;
+    
+    this.type = Math.random() * 10 >= 5 ? 2 : 1;
+    this.hp = this.type * 10;
+    
+    var rx = (Math.random() * this.$$.width + 32) - 16;
+    var ry = (Math.random() * this.$$.height + 32) - 16;
+    var top = Math.random() * 10 < 5;
+    var left = Math.random() * 10 < 5;
+    if (Math.random() * 10 < 5) {
+        this.x = left ? rx / 2 : rx / 2 + this.$$.width / 2;
+        if (this.x < -16 || this.x > this.$$.width + 16) {
+            this.y = top ? ry / 2 : ry / 2 + this.$$.height / 2;
+        
+        } else {
+            this.y = top ? -16 : this.$$.height + 16;
+        }
+    
+    } else {
+        this.y = top ? ry / 2 : ry / 2 + this.$$.height / 2;
+        if (this.y < -16 || this.y > this.$$.height + 16) {
+            this.x = left ? rx / 2 : rx / 2 + this.$$.width / 2;
+        
+        } else {
+            this.y = top ? -16 : this.$$.height + 16;
+        }
+    }
+    
+    var ps = [
+        [[-5, -7], [-9, -2], [-2, 8], [10, 6], [7, -6]],
+        [[-2, -13], [-14 , -8], [-13, 8], [-2, 13], [11, 10], [13, -8]]
+    ];
+    for(var i = 0; i < ps.length; i++) {
+        for(var e = 0; e < ps[i].length; e++) {
+            ps[i][e][0] *= 1.14;
+            ps[i][e][1] *= 1.14;
+        }
+    }
+    
+    this.polygon = new polygon.Polygon2D(this.x, this.y,
+                                         this.r, ps[this.type - 1]);
+    
+    var speed = Math.random() * 2.5 + 0.5;
+    this.r = this.$$.wrapAngle(Math.atan2(tx - this.x, ty - this.y) + Math.PI);
+    this.mr = ((Math.random() * Math.PI * 2) - Math.PI) / 20;
+    if (this.mr > -0.05 && this.mr < 0.05) {
+        this.mr *= 4;
+    }
+    
+    this.mx = Math.sin(this.r) * speed;
+    this.my = Math.cos(this.r) * speed;
+};
+
+
+ActorAsteroid.onUpdate = function() {
+    this.r = this.$$.wrapAngle(this.r + this.mr);
+    this.x += this.mx;
+    this.y += this.my;
+    this.polygon.transform(this.x, this.y, this.r);
+    this.$$.wrapPosition(this);
+};
+
+ActorAsteroid.onMessage = function(once) {
+    var msg = [
+        Math.round(this.r * 10) / 10,
+        this.interleave(this.mr)
+    ];
+    
+    if (once) {
+        msg.push(this.type);
+    }
+    return msg;
 };
 
