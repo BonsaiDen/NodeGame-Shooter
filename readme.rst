@@ -12,8 +12,7 @@ Playing
 -------
 
 Depending on the time of the day(read: whether my PC is running or not)
-there might be a 6 player server available at 
-<http://dl.dropbox.com/u/2332843/game.html>.
+there might be a 6 player server available at: http://bonsaiden.github.com/NodeGame-Shooter/
 
 
 Setup
