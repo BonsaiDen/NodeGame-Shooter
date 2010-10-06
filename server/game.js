@@ -862,23 +862,27 @@ Shooter.getDistance = function(a, b) {
 };
 
 Shooter.getAngle = function(a, b) {
-    var ax = a.x;
-    var bx = b.x;
-    if (a.x < this.width / 4 && b.x > this.width - this.width / 4) {
-        ax += this.width;
+    var tx = b.x - a.x;
+    var ty = b.y - a.y;
     
-    } else if (a.x > this.width - this.width / 4 && b.x < this.width / 4) {
-        bx += this.width;
+    // area actually goes from -16 to 512 due to the border space that's out of screen
+    tx = ((tx + 16) % (this.width + 32)) - 16;
+    ty = ((ty + 16) % (this.height + 32)) - 16;
+    
+    // It just doesn't work without this stuff
+    if (b.x < this.width / 4 && a.x > this.width - this.width / 4) {
+        tx += this.width;
+    
+    } else if (a.x < this.width / 4 && b.x > this.width - this.width / 4) {
+        tx -= this.width;
     }
     
-    var ay = a.y;
-    var by = b.y;
-    if (a.y < this.height / 4 && b.x > this.height - this.height / 4) {
-        ay += this.height;
+    if (b.y < this.height / 4 && a.y > this.height - this.height / 4) {
+        ty += this.height;
     
-    } else if (a.y > this.height - this.height / 4 && b.y < this.height / 4) {
-        by += this.height;
+    } else if (a.y < this.height / 4 && b.y > this.height - this.height / 4) {
+        ty -= this.height;
     }
-    return this.wrapAngle(Math.atan2(ax - bx, ay - by) + Math.PI);
+    return Math.atan2(tx, ty);
 };
 
