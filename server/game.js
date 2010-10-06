@@ -72,6 +72,11 @@ Shooter.onInit = function() {
     this.sizeBomb = 4;
     this.sizeAsteroid = 16;
     
+    this.fullWidth = this.width + 32;
+    this.fullHeight = this.height + 32;
+    this.halfWidth = this.width / 2;
+    this.halfHeight = this.height / 2;
+    
     // PowerUPS
     this.powerUps = {};
     this.powerUpCount = 0;
@@ -834,66 +839,56 @@ Shooter.randomPosition = function(obj, size) {
 
 Shooter.wrapPosition = function(obj) {
     if (obj.x < -16) {
-        obj.x += this.width + 32;
+        obj.x += this.fullWidth;
         obj.updated = true;
     
     } else if (obj.x > this.width + 16) {
-        obj.x -= this.width + 32;
+        obj.x -= this.fullWidth;
         obj.updated = true;
     }
     
     if (obj.y < -16) {
-        obj.y += this.height + 32
+        obj.y += this.fullHeight
         obj.updated = true;
     
     } else if (obj.y > this.height + 16) {
-        obj.y -= this.height + 32;
+        obj.y -= this.fullHeight;
         obj.updated = true;
     }
 };
 
-Shooter.getDistance = function(a, b) {
-    var ox = a.x - b.x;
-    if (a.x < this.width / 2) {
-        ox = (a.x + this.width) - b.x;
-        
-    } else if (b.x < this.width / 2) {
-        ox = a.x - (b.x + this.width);
+Shooter.getDistance = function(a, b) { 
+    var tx = b.x - a.x;
+    var ty = b.y - a.y;
+    while(tx < -(this.halfWidth)) {
+      tx += this.fullWidth;
     }
-    
-    var oy = a.y - b.y;
-    if (a.y < this.height / 2) {
-        oy = (a.y + this.height) - b.y;
-        
-    } else if (b.y < this.height / 2) {
-        oy = a.y - (b.y + this.height);
+    while(ty < -(this.halfHeight)) {
+      ty += this.fullHeight;
     }
-    var dx = Math.min(Math.abs(a.x - b.x), Math.abs(ox));
-    var dy = Math.min(Math.abs(a.y - b.y), Math.abs(oy));
-    return Math.sqrt(dx * dx + dy * dy);
+    while(tx > this.halfWidth) {
+      tx -= this.fullWidth;
+    }
+    while(ty > this.halfHeight) {
+      ty -= this.fullHeight;
+    }
+    return Math.sqrt(tx * tx + ty * ty);
 };
 
 Shooter.getAngle = function(a, b) {
     var tx = b.x - a.x;
     var ty = b.y - a.y;
-    
-    // area actually goes from -16 to 512 due to the border space that's out of screen
-    tx = ((tx + 16) % (this.width + 32)) - 16;
-    ty = ((ty + 16) % (this.height + 32)) - 16;
-    
-    // It just doesn't work without this stuff
-    if (b.x < this.width / 4 && a.x > this.width - this.width / 4) {
-        tx += this.width;
-    
-    } else if (a.x < this.width / 4 && b.x > this.width - this.width / 4) {
-        tx -= this.width;
+    while(tx < -(this.halfWidth)) {
+      tx += this.fullWidth;
     }
-    
-    if (b.y < this.height / 4 && a.y > this.height - this.height / 4) {
-        ty += this.height;
-    
-    } else if (a.y < this.height / 4 && b.y > this.height - this.height / 4) {
-        ty -= this.height;
+    while(ty < -(this.halfHeight)) {
+      ty += this.fullHeight;
+    }
+    while(tx > this.halfWidth) {
+      tx -= this.fullWidth;
+    }
+    while(ty > this.halfHeight) {
+      ty -= this.fullHeight;
     }
     return Math.atan2(tx, ty);
 };
