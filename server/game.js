@@ -805,7 +805,8 @@ Shooter.randomPosition = function(obj, size) {
         found = true;
         for(var i = 0, l = players.length; i < l; i++) {
             if (this.checkCollision(players[i], obj,
-                                    this.sizePlayer * 2, size * 2)) {
+                                    this.sizePlayer * 2, size * 2,
+                                    true)) {
                 
                 found = false;
                 break;
@@ -815,7 +816,8 @@ Shooter.randomPosition = function(obj, size) {
         if (found) {
             for(var i = 0, l = powerups.length; i < l; i++) {
                 if (this.checkCollision(powerups[i], obj,
-                                        this.sizePowerUp * 2, size * 2)) {
+                                        this.sizePowerUp * 2, size * 2,
+                                        true)) {
                     
                     found = false;
                     break;
@@ -826,7 +828,8 @@ Shooter.randomPosition = function(obj, size) {
         if (found) {
             for(var i = 0, l = asteroids.length; i < l; i++) {
                 if (this.checkCollision(asteroids[i], obj,
-                                        this.sizeAsteroid * 2, size * 2)) {
+                                        this.sizeAsteroid * 2, size * 2,
+                                        true)) {
                     
                     found = false;
                     break;
