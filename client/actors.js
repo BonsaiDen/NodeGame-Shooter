@@ -533,7 +533,7 @@ ActorPlayerDef.wrap = function() {
 
 
 // Asteroid --------------------------------------------------------------------
-var ActorAsteroid = Client.createActorType('asteroid', 8);
+var ActorAsteroid = Client.createActorType('asteroid', 6);
 ActorAsteroid.onCreate = function(data, complete) {
     this.r = data[0];
     this.mr = data[1]; 
@@ -550,20 +550,30 @@ ActorAsteroid.onDraw = function() {
     this.$.bg.rotate(Math.PI - this.r);
     this.$.bg.beginPath();
     if (this.type === 1) {
-        this.$.bg.moveTo(-5, -7);
-        this.$.bg.lineTo(-9 , -2);
-        this.$.bg.lineTo(-2, 8);
-        this.$.bg.lineTo(10, 6);
-        this.$.bg.lineTo(7, -6);
+        this.$.bg.moveTo(-1, -6);
+        this.$.bg.lineTo(-7, -4);
+        this.$.bg.lineTo(-6, 4);
+        this.$.bg.lineTo(2, 5);
+        this.$.bg.lineTo(6, -2);
     
-    } else if (this.type === 2) {    
+    } else if (this.type === 2) {
         this.$.bg.moveTo(-2, -13);
-        this.$.bg.lineTo(-14 , -8);
-        this.$.bg.lineTo(-13, 8);
-        this.$.bg.lineTo(-2, 13);
+        this.$.bg.lineTo(-13 , -8);
+        this.$.bg.lineTo(-12, 8);
+        this.$.bg.lineTo(-2, 12);
         this.$.bg.lineTo(11, 10);
-        this.$.bg.lineTo(13, -8);
+        this.$.bg.lineTo(12, -8);
+    
+    } else if (this.type === 3) {
+        this.$.bg.moveTo(-5, -16);
+        this.$.bg.lineTo(-16 , -9);
+        this.$.bg.lineTo(-15, 12);
+        this.$.bg.lineTo(-4, 16);
+        this.$.bg.lineTo(13, 13);
+        this.$.bg.lineTo(16, -5);
+        this.$.bg.lineTo(10, -15);
     }
+    
     this.$.bg.closePath();
     this.$.bg.stroke();
     this.$.bg.restore();
@@ -576,7 +586,7 @@ ActorAsteroid.onInterleave = function(step) {
 
 ActorAsteroid.onDestroy = function(complete) {
     if (complete) {
-        var add = this.type === 2 ? 4 : 0;
+        var add = this.type === 2 ? 4 : (this.type === 3 ? 8 : 0);
         this.$.effectExplosion(this.x, this.y, 8, {'d': 0.85 + add / 7, 's': 0.50, 'c': this.col});
         this.$.effectArea(this.x, this.y, {'s': 13 + add * 1.75, 'd': 0.5 + add / 27, 'c': this.col});
         this.$.playSound('explosionMedium');

@@ -360,9 +360,9 @@ Shooter.onUpdate = function() {
       
     // Asteroids
     var asteroids = this.getActors('asteroid');
-    if (asteroids.length < 5 && this.getTime() > this.nextAsteroid) {
+    if (asteroids.length < 9 && this.getTime() > this.nextAsteroid) {
         this.createActor('asteroid');
-        this.nextAsteroid = this.getTime() + Math.random() * 12500;
+        this.nextAsteroid = this.getTime() + Math.random() * 10000;
     }
     
     // Collision Detection
@@ -501,11 +501,23 @@ Shooter.collideAsteroid = function(a, i, al) {
         var aa = asteroids[e];
         if (aa.hp > 0) {
             if (this.circleCollision(a, aa, this.sizeAsteroid, this.sizeAsteroid)) {
-                a.hp = 0;
-                aa.hp = 0;
-                a.destroy();
-                aa.destroy();
-                return;
+                
+                if (a.type === aa.type) {
+                    a.hp = 0;
+                    a.destroy();
+                    aa.hp = 0;
+                    aa.destroy();
+                    return;
+                
+                } else if (a.type <= aa.type) {
+                    a.hp = 0;
+                    a.destroy();
+                    return;
+                
+                } else {
+                    aa.hp = 0;
+                    aa.destroy();
+                }
             }
         }
     }

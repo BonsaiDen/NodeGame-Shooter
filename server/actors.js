@@ -451,14 +451,14 @@ ActorPlayerDef.onMessage = function(once) {
 
 
 // Asteroid --------------------------------------------------------------------
-var ActorAsteroid = Server.createActorType('asteroid', 8);
+var ActorAsteroid = Server.createActorType('asteroid', 6);
 ActorAsteroid.onCreate = function(data) {
     this.$$.randomPosition(this, this.$$.sizeAsteroid);
     var tx = this.x;
     var ty = this.y;
     
-    this.type = Math.random() * 10 >= 5 ? 2 : 1;
-    this.hp = this.type * 10;
+    this.type = Math.ceil(Math.random() * 3);
+    this.hp = [5, 10, 20][this.type - 1];
     
     var rx = (Math.random() * this.$$.width + 32) - 16;
     var ry = (Math.random() * this.$$.height + 32) - 16;
@@ -484,20 +484,21 @@ ActorAsteroid.onCreate = function(data) {
     }
     
     var ps = [
-        [[-5, -7], [-9, -2], [-2, 8], [10, 6], [7, -6]],
-        [[-2, -13], [-14 , -8], [-13, 8], [-2, 13], [11, 10], [13, -8]]
+        [[-1, -6], [-7, -4], [-6, 4], [2, 5], [6, -2]],
+        [[-2, -13], [-13 , -8], [-12, 8], [-2, 12], [11, 10], [12, -8]],
+        [[-5, -16], [-16 , -9], [-15, 12], [-4, 16], [13, 13], [16, -5], [10, -15]]
     ];
+    
     for(var i = 0; i < ps.length; i++) {
         for(var e = 0; e < ps[i].length; e++) {
-            ps[i][e][0] *= 1.14;
-            ps[i][e][1] *= 1.14;
+            ps[i][e][0] *= 1.15;
+            ps[i][e][1] *= 1.15;
         }
     }
-    
     this.polygon = new polygon.Polygon2D(this.x, this.y,
                                          this.r, ps[this.type - 1]);
     
-    var speed = Math.random() * 2.5 + 0.5;
+    var speed = Math.random() * 2.0 + 0.75;
     this.r = this.$$.wrapAngle(Math.atan2(tx - this.x, ty - this.y) + Math.PI);
     this.mr = ((Math.random() * Math.PI * 2) - Math.PI) / 20;
     if (this.mr > -0.05 && this.mr < 0.05) {
@@ -507,7 +508,6 @@ ActorAsteroid.onCreate = function(data) {
     this.mx = Math.sin(this.r) * speed;
     this.my = Math.cos(this.r) * speed;
 };
-
 
 ActorAsteroid.onUpdate = function() {
     this.r = this.$$.wrapAngle(this.r + this.mr);
