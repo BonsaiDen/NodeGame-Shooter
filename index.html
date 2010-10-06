@@ -48,11 +48,20 @@
        
         #error {
             font-size: 30px;
-            width: 300px;
+            width: 400px;
             display: none;
             text-align: center;
             margin: 8px auto;
         } 
+        
+        #error a {
+            font-size: 20px;
+            text-decoration: underline;
+        }
+        
+        #error a:hover {
+            text-decoration: none;
+        }
         
         #warning {
             font-size: 10px;
@@ -109,7 +118,9 @@
             Pls grab a modern Browsa lak Chrome 5+, Firefox 4 Beta or Safari 5. THX!
         </div>
         <canvas id="bg"></canvas>
-        <div id="error">SERVER OFFLINE</div>
+        <div id="error">SERVER OFFLINE<br/>
+            <a href="http://www.youtube.com/watch?v=0Z0QBtFo8kc">Watch the Game on YouTube!</a>
+        </div>
         <div id="size"><a href="#" onclick="Shooter.onResize()">CHANGE SIZE</a> | <a href="#" id="sound" onclick="Shooter.onSound()">DEACTIVATE SOUND</a></div>
         <div id="box">Your Name<br/><input id="login" type="text" value="" maxlength="12"/></div>
         <div id="controls">W/A/D or Arrow Keys control your Ship | Space shoots | M / Return fires and detonates a bomb</div>
