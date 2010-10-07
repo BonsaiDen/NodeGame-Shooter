@@ -457,7 +457,7 @@ ActorAsteroid.onCreate = function(data) {
     var tx = this.x;
     var ty = this.y;
     
-    this.type = Math.ceil(Math.random() * 3);
+    this.type = data.type;
     this.hp = [5, 10, 20][this.type - 1];
     
     var rx = (Math.random() * this.$$.width + 32) - 16;
@@ -505,6 +505,16 @@ ActorAsteroid.onCreate = function(data) {
         this.mr *= 4;
     }
     
+    this.mx = Math.sin(this.r) * speed;
+    this.my = Math.cos(this.r) * speed;
+};
+
+ActorAsteroid.setMovement = function(x, y, dist, r) {
+    this.r = this.$$.wrapAngle(r);
+    this.x = x + Math.sin(r) * dist;
+    this.y = y + Math.cos(r) * dist;
+    
+    var speed = Math.random() * 2.0 + 0.75;
     this.mx = Math.sin(this.r) * speed;
     this.my = Math.cos(this.r) * speed;
 };

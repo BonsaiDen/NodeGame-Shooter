@@ -460,7 +460,7 @@ Game.prototype.getActors = function(clas) {
 };
 
 Game.prototype.createActor = function(clas, data) {
-    this.$.createActor(clas, data);
+    return this.$.createActor(clas, data);
 };
 
 

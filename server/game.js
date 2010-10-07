@@ -90,7 +90,8 @@ Shooter.onInit = function() {
     this.initPowerUp('camu',    1, 47, 20);
     
     // Asteroids
-    this.nextAsteroid = this.getTime() + Math.random() * 7500;
+    this.maxAsteroids = 8;
+    this.nextAsteroid = this.getTime() + Math.random() * 500;
     
     // Start Game
     this.startRound();
@@ -365,9 +366,9 @@ Shooter.onUpdate = function() {
       
     // Asteroids
     var asteroids = this.getActors('asteroid');
-    if (asteroids.length < 9 && this.getTime() > this.nextAsteroid) {
-        this.createActor('asteroid');
-        this.nextAsteroid = this.getTime() + Math.random() * 10000;
+    if (asteroids.length < this.maxAsteroids && this.getTime() > this.nextAsteroid) {
+        this.createActor('asteroid', {'type': Math.ceil(Math.random() * 3)});
+        this.nextAsteroid = this.getTime() + Math.random() * 1000;
     }
     
     // Collision Detection
@@ -389,6 +390,21 @@ Shooter.onUpdate = function() {
         var a = asteroids[i];
         if (a.hp > 0) {
             this.collideAsteroid(a, i, l);
+        }
+    }
+    
+    for(var i = 0, l = asteroids.length; i < l; i++) {
+        var a = asteroids[i];
+        if (a.hp <= 0 && !a.bombed) {
+            if (a.type > 1) {
+                var ar = this.createActor('asteroid', {'type': a.type - 1});
+                var al = this.createActor('asteroid', {'type': a.type - 1}); 
+                ar.setMovement(a.x, a.y, [0, 0, 10, 16][a.type],
+                               a.r - ((Math.PI / 4) + (Math.random() * (Math.PI / 2))));
+                
+                al.setMovement(a.x, a.y, [0, 0, 10, 16][a.type],
+                               a.r + ((Math.PI / 4) + (Math.random() * (Math.PI / 2)))); 
+            }
         }
     }
     
@@ -481,6 +497,7 @@ Shooter.collideAsteroid = function(a, i, al) {
                                                       this.sizeBomb)) {
             
             bo.destroy();
+            a.bombed = true;
             return;
         }
     }
@@ -774,6 +791,8 @@ Shooter.destroyBomb = function(b) {
         var e = asteroids[i];
         if (e.alive() && this.circleCollision(b, e, b.range, this.sizeAsteroid)) {
             b.player.client.addScore(1);
+            e.bombed = true;
+            e.hp = 0;
             e.destroy();
         }
     }
