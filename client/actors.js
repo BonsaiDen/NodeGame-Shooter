@@ -589,7 +589,7 @@ ActorAsteroid.onDestroy = function(complete) {
         var add = this.type === 2 ? 5.5 : (this.type === 3 ? 10 : 0);
         this.$.effectExplosion(this.x, this.y, 8, {'d': 0.85 + add / 7, 's': 0.50, 'c': this.col});
         this.$.effectArea(this.x, this.y, {'s': 13 + add * 1.75, 'd': 0.5 + add / 27, 'c': this.col});
-        this.$.playSound('explosionMedium');
+        this.$.playSound(this.type === 1 ? 'explosionSmall' : 'explosionMedium');
     }
 };
 
