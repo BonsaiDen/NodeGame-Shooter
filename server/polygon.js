@@ -134,8 +134,12 @@ Vector2D.prototype.sub = function(o) {
     return new Vector2D(this.x - o.x, this.y - o.y);
 };
 
-Vector2D.prototype.mul = function(o) {
-    return new Vector2D(this.x * o.x, this.y * o.y);
+Vector2D.prototype.cross = function(o) {
+    return new Vector2D(o.y - this.y, this.x - o.x);
+};
+
+Vector2D.prototype.mul = function(m) {
+    return new Vector2D(this.x * m, this.y * m);
 };
 
 Vector2D.prototype.div = function(scale) {
