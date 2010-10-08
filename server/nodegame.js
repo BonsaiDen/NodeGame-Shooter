@@ -657,6 +657,14 @@ Actor.prototype.destroy = function() {
     }
 };
 
+Actor.prototype.remove = function() {
+    if (this.$alive) {
+        this.$alive = false;
+        this.onDestroy();
+        this.$emit(MSG_ACTORS_REMOVE);
+    }
+};
+
 // Helpers
 Actor.prototype.log = function(str) {
     return this.$.log(str);

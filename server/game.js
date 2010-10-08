@@ -25,7 +25,7 @@ var NodeGame = require(__dirname + '/nodegame');
 // Init
 Server = new NodeGame.Server({
     'port': Math.abs(process.argv[2]) || 28785,
-    'status': false
+    'status': true
 });
 Server.run();
 
@@ -106,7 +106,7 @@ Shooter.startRound = function() {
     this.roundStart = this.getTime();
     this.roundTimeLeft = this.roundTime;
     this.nextAsteroid = this.getTime() + Math.random() * 5000;
-    this.nextBigAsteroid = this.getTime() + 40000 + Math.random() * 40000;
+    this.nextBigAsteroid = this.getTime() + 40000 + Math.random() * 60000;
     
     this.$.setField('ri', this.roundID); // roundID
     this.$.setField('rt', this.roundTime); //roundTime
@@ -192,14 +192,14 @@ Shooter.addPlayerStats = function(id) {
 
 
 // Gameplay --------------------------------------------------------------------
-Shooter.circleCollision = function(a, b, ra, rb, circle, nowrap) {
+Shooter.circleCollision = function(a, b, ra, rb, circle, noWrap) {
     
     // Normal
     if (this.checkCollision(a, b, ra, rb, circle)) {
         return true;
     }
     
-    if (nowrap) {
+    if (noWrap) {
         return false;
     }
     
@@ -235,7 +235,9 @@ Shooter.circleCollision = function(a, b, ra, rb, circle, nowrap) {
     
     // Diagonal
     aa.y = ab.y;
-    if (a.y != aa.y && a.x != aa.x && this.checkCollision(aa, b, ra, rb, circle)) {
+    if (a.y != aa.y && a.x != aa.x
+        && this.checkCollision(aa, b, ra, rb, circle)) {
+        
         return true;
     }
     return false;
@@ -389,7 +391,7 @@ Shooter.onUpdate = function() {
         if (!bigFound) {
             this.createActor('asteroid', {'type': 4});
         }
-        this.nextBigAsteroid = this.getTime() + 40000 + Math.random() * 40000;
+        this.nextBigAsteroid = this.getTime() + 40000 + Math.random() * 60000;
     }
     
     // Collision Detection

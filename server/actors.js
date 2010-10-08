@@ -594,7 +594,7 @@ ActorAsteroid.onUpdate = function() {
                || this.x > this.$$.width + 160
                || this.y > this.$$.height + 160) {
         
-        this.destroy();
+        this.remove();
     }
 };
 
