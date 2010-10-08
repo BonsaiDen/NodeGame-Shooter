@@ -273,18 +273,20 @@ Shooter.renderParticles = function() {
         if (!p.size) {
             p.x += Math.sin(p.r) * p.speed;
             p.y += Math.cos(p.r) * p.speed;
-            if (p.x < -16) {
-                p.x += this.width + 32;
-            
-            } else if (p.x > this.width + 16) {
-                p.x -= this.width + 32;
-            }
-            
-            if (p.y < -16) {
-                p.y += this.height + 32;
-            
-            } else if (p.y > this.height + 16) {
-                p.y -= this.height + 32;
+            if (!p.nowrap) {
+                if (p.x < -16) {
+                    p.x += this.width + 32;
+                
+                } else if (p.x > this.width + 16) {
+                    p.x -= this.width + 32;
+                }
+                
+                if (p.y < -16) {
+                    p.y += this.height + 32;
+                
+                } else if (p.y > this.height + 16) {
+                    p.y -= this.height + 32;
+                }
             }
         }
         
@@ -308,31 +310,33 @@ Shooter.renderParticles = function() {
                 this.fillCircle(p.x, p.y, p.size, p.col || '#ffffff');
                 
                 // Overlap
-                var x = p.x;
-                var y = p.y;
-                if (p.x - p.size < -16) {
-                    x = p.x + 32 + this.width;
-                
-                } else if (p.x + p.size > this.width + 16) {
-                    x = p.x - 32 - this.width;
-                }
-                if (x !== p.x) {
-                    this.fillCircle(x, p.y, p.size, p.col || '#ffffff');
-                }
-                
-                if (p.y - p.size < -16) {
-                    y = p.y + 32 + this.height;
-                
-                } else if (p.y + p.size > this.height + 16) {
-                    y = p.y - 32 - this.height;
-                }
-                
-                if (y !== p.y) {
-                    this.fillCircle(p.x, y, p.size, p.col || '#ffffff');
-                }
-                
-                if (y !== p.y && x !== p.x) {
-                    this.fillCircle(x, y, p.size, p.col || '#ffffff');
+                if (!p.nowrap) {
+                    var x = p.x;
+                    var y = p.y;
+                    if (p.x - p.size < -16) {
+                        x = p.x + 32 + this.width;
+                    
+                    } else if (p.x + p.size > this.width + 16) {
+                        x = p.x - 32 - this.width;
+                    }
+                    if (x !== p.x) {
+                        this.fillCircle(x, p.y, p.size, p.col || '#ffffff');
+                    }
+                    
+                    if (p.y - p.size < -16) {
+                        y = p.y + 32 + this.height;
+                    
+                    } else if (p.y + p.size > this.height + 16) {
+                        y = p.y - 32 - this.height;
+                    }
+                    
+                    if (y !== p.y) {
+                        this.fillCircle(p.x, y, p.size, p.col || '#ffffff');
+                    }
+                    
+                    if (y !== p.y && x !== p.x) {
+                        this.fillCircle(x, y, p.size, p.col || '#ffffff');
+                    }
                 }
             }
         }
@@ -421,7 +425,8 @@ Shooter.effectArea = function(x, y, obj) {
         'size': obj.s,
         'time': this.getTime() + obj.d * 1500,
         'd': obj.d * 1500,
-        'col': obj.c
+        'col': obj.c,
+        'nowrap': obj.n || false
     });
 };
 
@@ -433,7 +438,8 @@ Shooter.effectParticle = function(x, y, r, obj) {
         'time': this.getTime() + obj.d * 1500,
         'd': obj.d * 1500,
         'col': obj.c,
-        'a': obj.a
+        'a': obj.a,
+        'nowrap': obj.n || false
     });
 };
 
@@ -445,7 +451,8 @@ Shooter.effectExplosion = function(x, y, count, obj) {
                             {'s':  0.35 + Math.random() * obj.s,
                              'd': (1 * obj.d) + Math.random() * (0.5 * obj.d),
                              'c': obj.c,
-                             'a': 1});
+                             'a': 1,
+                             'n': obj.n});
     }
 };
 
