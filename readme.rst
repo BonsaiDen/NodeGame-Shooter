@@ -1,34 +1,32 @@
 NodeGame: Shooter
 =================
 
-**NodeGame: Shooter** is a simple multiplayer game using node.js and HTML5
-WebSockets as well as the Canvas object.
+**NodeGame: Shooter** is an asteroids / geometry wars styled HTML5 multiplayer game. It was written using Node.js and HTML5.
 
 | It currently runs natively in Chrome 5+, Safari 5 and Firefox 4 Beta.
-| It also runs *somehow* in IE9 and Opera 10 using a flash fallback for the WebSocket API.
+| It also runs **somewhat** in IE9 and Opera 10 using a Flash fallback for the HTML5 WebSocket API.
 
 
 Playing
 -------
 
-Depending on the time of the day(read: whether my PC is running or not)
-there might be a 6 player server available at: http://bonsaiden.github.com/NodeGame-Shooter/
+Currently I don't have any hosting for the game, so whether you can play it or not solely depends on the fact that my computer is online, you can give it a try here:  http://bonsaiden.github.com/NodeGame-Shooter/
 
 
 Setup
 -----
 
-| If you want to run the game yourself you must first edit `client/config.js` to point to your server.
+| If you want to run/host the game yourself you must first edit `client/config.js` to point to your server.
+
 | Then start `server/game.js` via Node.js, additionally you can supply a port for the game to listen on.
-| If you want to make the Flash fallback responsive you must allow Node.js to listen on port 843, so either `sudo` start the game or use something like `privbind` on Ubuntu.
+
+| In case that you want to make the Flash fallback responsive, you must allow Node.js to listen on port 843. So either `sudo` start the game or use something like `privbind` on Ubuntu.
 
 
 Todo
 ----
 
-- (Client) Better/More sound effects
-- (Server) Improve collision detection for ships(use polygon stuff instead of circles)
-- (Server) May be some asteroids(again, polygon stuff...)
+- (Client) Improve the sound effects
 
 
 License
