@@ -225,6 +225,8 @@ ActorMissile.onUpdate = function() {
         var max = 10000;
         var target = this.target;
         this.target = null;
+        
+        var defTarget = null;
         for(var i = 0, l = players.length; i < l; i++) {
             var p = players[i];
             var dist = this.$$.getDistance(this, p);
@@ -234,8 +236,17 @@ ActorMissile.onUpdate = function() {
                 
                 && p.camu !== 2) {
                 
-                this.target = p;
+                if (p.defense === 0) {
+                    this.target = p;
+                
+                } else {
+                    defTarget = p;
+                }
             }
+        }
+        
+        if (this.target === null) {
+            this.target = defTarget;
         }
         this.tick = this.getTime();
     }
