@@ -105,6 +105,7 @@ Shooter.startRound = function() {
     
     this.roundStart = this.getTime();
     this.roundTimeLeft = this.roundTime;
+    this.roundTimeUpdate = this.getTime();
     this.nextAsteroid = this.getTime() + Math.random() * 5000;
     this.nextBigAsteroid = this.getTime() + 40000 + Math.random() * 60000;
     
@@ -351,10 +352,18 @@ Shooter.collidePowerUps = function(o, p) {
 // Mainloop --------------------------------------------------------------------
 Shooter.onUpdate = function() {
 
-    // RoundTimer
+    // RoundTimer, make sure we keep it in sync
+    if (this.getTime() > this.roundTimeUpdate + 15000 && !this.roundFinished) {
+        updateRound = true;
+        this.roundTimeUpdate = this.getTime();
+    
+    } else {
+        updateRound = false;
+    }
+    
     this.$.setField('rt', 
                     this.roundTimeLeft + (this.roundStart - this.getTime()),
-                    false);
+                    updateRound);
     
     if (this.roundFinished) {
         return;

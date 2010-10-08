@@ -380,10 +380,12 @@ Shooter.onLogin = function(e) {
 // Rounds & Players ------------------------------------------------------------
 Shooter.checkRound = function(data) {
     if (this.roundGO !== !!data.rg) {
-        this.roundStart = this.getTime();
         this.roundID = data.ri;
-        this.roundTime = data.rt;
         this.roundStats = data.rs;
+    }
+    if (data.rt) {
+        this.roundStart = this.getTime();
+        this.roundTime = data.rt;
     }
     this.roundGO = !!data.rg;
 };
