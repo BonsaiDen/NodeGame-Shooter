@@ -85,10 +85,10 @@ Shooter.onInit = function() {
     this.initPowerUp('shield',  2, 23, 10);
     this.initPowerUp('missile', 2, 16, 15);
     this.initPowerUp('life',    2,  8,  8);
-    this.initPowerUp('boost',   2, 20, 15);
-    this.initPowerUp('defense', 1, 35, 30);
+    this.initPowerUp('boost',   2, 20, 14);
+    this.initPowerUp('defense', 1, 30, 30);
     this.initPowerUp('bomb',    1, 70, 35);
-    this.initPowerUp('camu',    1, 47, 20);
+    this.initPowerUp('camu',    1, 45, 20);
     
     // Asteroids
     this.maxAsteroids = [8, 7, 7, 6, 6, 5, 4];
@@ -531,8 +531,10 @@ Shooter.collideAsteroid = function(a, i, al) {
                                                this.sizeDefend,
                                                false,
                                                noWrap)) {
+            if (a.type > 1) {
+                pd.destroy();
+            }
             
-            pd.destroy();
             if (a.type < 4) {
                 a.hp -= 15;
                 if (a.hp <= 0) {
