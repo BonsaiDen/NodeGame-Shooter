@@ -72,10 +72,17 @@ Client.init = function(init) {
     }
 };
 
-Client.kill = function() {
+Client.kill = function(asteroid) {
     if (this.player && !this.$$.roundFinished) {
         this.bomb = null;
-        this.addScore(this.player.camu === 2 ? -10 : -5);
+        
+        if (asteroid === true) {
+            this.addScore(-2);
+        
+        } else {
+            this.addScore(this.player.camu === 2 ? -10 : -5);
+        }
+        
         this.reset = this.getTime();
         this.player.destroy();
         if (this.player.bomb && !this.bombLaunched) {

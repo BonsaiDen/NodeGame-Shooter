@@ -91,7 +91,7 @@ Shooter.onInit = function() {
     this.initPowerUp('camu',    1, 47, 20);
     
     // Asteroids
-    this.maxAsteroids = [9, 8, 8, 7, 6, 5, 4];
+    this.maxAsteroids = [8, 7, 7, 6, 6, 5, 4];
     
     // Start Game
     this.startRound();
@@ -562,14 +562,22 @@ Shooter.collideAsteroid = function(a, i, al) {
             && this.circleCollision(a, p, asteroidSize, this.sizePlayer,
                                                         false, noWrap)) {
             
+            if (a.type === 1) {
+                p.hp -= 8;
+            
+            } else {
+                p.hp = 0;
+            }
+            if (p.hp <= 0) {
+                p.client.kill(true);
+                this.getPlayerStats(p.client.id).selfDestructs += 1;
+            }
+            
             if (a.type < 4) {
                 a.hp = 0;
                 a.destroy();
+                return;
             }
-            p.hp = 0;
-            p.client.kill();
-            this.getPlayerStats(p.client.id).selfDestructs += 1;
-            return;
         }
     }
     
