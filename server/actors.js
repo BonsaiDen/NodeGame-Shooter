@@ -568,10 +568,11 @@ ActorAsteroid.onCreate = function(data) {
         this.x += this.x < this.$$.halfWidth ? -128 : 128;
         this.y += this.y < this.$$.halfHeight ? -128 : 128;
         this.mr *= 0.125;
-        if (this.mr > -0.01 && this.mr < 0.01) {
-            this.mr *= 2.5;
-        }
     }
+    while (this.mr > -0.01 && this.mr < 0.01) {
+        this.mr *= 2.5;
+    }
+    
     this.mr = Math.round(this.mr * 100) / 100;
     this.mx = Math.sin(this.r) * speed;
     this.my = Math.cos(this.r) * speed;
