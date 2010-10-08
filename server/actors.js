@@ -470,13 +470,12 @@ ActorAsteroid.onCreate = function(data) {
     var tx = this.$$.width / 4 + (Math.random() * (this.$$.width / 2));
     var ty = this.$$.height / 4 + (Math.random() * (this.$$.height / 2));
     this.type = data.type;
-    this.hp = [1, 5, 10, 20, 1000][this.type];
+    this.hp = [1, 5, 10, 20, 1000, 1000][this.type];
     
-    if (this.type === 4) {
+    if (this.type >= 4) {
         tx = this.$$.width / 3 + (Math.random() * (this.$$.width / 3));
         ty = this.$$.height / 3 + (Math.random() * (this.$$.height / 3));  
     }
-    
     
     var ps = [
         [[-1, -6], [-7, -4], [-6, 4], [2, 5], [6, -2]],
@@ -485,15 +484,18 @@ ActorAsteroid.onCreate = function(data) {
          [10, -15]],
         
         [[-66, -120], [-126, -56], [-92, 76], [-42, 118], [6, 102], [120, 62],
-         [148, 36], [148, -22], [58, -90]]
+         [148, 36], [148, -22], [58, -90]],
+         
+        [[-96, -100], [-126, -26], [-112, 75], [-32, 92], [35, 92], [110, 70],
+         [138, 36], [128, -52], [28, -120]]  
     ];
     
     // fix scale for collosion detection
     for(var i = 0; i < ps.length; i++) {
         for(var e = 0; e < ps[i].length; e++) {
             if (i < 3) {
-                ps[i][e][0] *= 1.15;
-                ps[i][e][1] *= 1.15;
+                ps[i][e][0] *= 1.16;
+                ps[i][e][1] *= 1.16;
             
             } else {
                 ps[i][e][0] *= 1.035;
@@ -534,17 +536,17 @@ ActorAsteroid.onCreate = function(data) {
         }
         
         // Find free spot
-        var size = this.type === 4 ? this.$$.sizeBigAsteroid
+        var size = this.type >= 4 ? this.$$.sizeBigAsteroid
                                   : this.$$.sizeAsteroid * 2;
         
         var asteroids = this.$$.getActors('asteroid');
         for(var i = 0, l = asteroids.length; i < l; i++) {
-            var asize = asteroids[i].type === 4 ? this.$$.sizeBigAsteroid
-                                                : this.$$.sizeAsteroid * 2;
+            var asize = asteroids[i].type >= 4 ? this.$$.sizeBigAsteroid
+                                               : this.$$.sizeAsteroid * 2;
             
             if (this.$$.checkCollision(asteroids[i], this, asize, size,
                                        true,
-                                       asteroids[i].type === 4)) {
+                                       asteroids[i].type >= 4)) {
                 
                 found = false;
                 break;
@@ -563,7 +565,7 @@ ActorAsteroid.onCreate = function(data) {
         this.mr *= 0.5;
     }
     
-    if (this.type === 4) {
+    if (this.type >= 4) {
         this.speed = Math.random() * 1.0 + 1.0;
         this.x += this.x < this.$$.halfWidth ? -128 : 128;
         this.y += this.y < this.$$.halfHeight ? -128 : 128;

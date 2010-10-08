@@ -393,14 +393,15 @@ Shooter.onUpdate = function() {
     if (this.getTime() > this.nextBigAsteroid) {
         var bigFound = false;
         for(var i = 0, l = asteroids.length; i < l; i++) {
-            if (asteroids[i].type === 4) {
+            if (asteroids[i].type >= 4) {
                 bigFound = true;
                 break;
             }
         }
         
         if (!bigFound) {
-            this.createActor('asteroid', {'type': 4});
+            this.createActor('asteroid',
+                             {'type': 4 + Math.round(Math.random(1))});
         }
         this.nextBigAsteroid = this.getTime() + 70000 + Math.random() * 70000;
     }
@@ -451,8 +452,8 @@ Shooter.onUpdate = function() {
             for(var f = 0, lf = powerups.length; f < lf; f++) {
                 var o = powerups[f];
                 if (o.alive() && this.circleCollision(pd, o,
-                                                    this.sizeDefend,
-                                                    this.sizePowerUp)) {
+                                                      this.sizeDefend,
+                                                      this.sizePowerUp)) {
                     
                     this.collidePowerUps(o, pd.player);
                 }
@@ -462,8 +463,8 @@ Shooter.onUpdate = function() {
             for(var e = 0, dl = bombs.length; e < dl; e++) {
                 var bo = bombs[e];
                 if (bo.alive() && this.circleCollision(pd, bo,
-                                                     this.sizeDefend,
-                                                     this.sizeBomb)) {
+                                                       this.sizeDefend,
+                                                       this.sizeBomb)) {
                     
                     bo.destroy();
                     pd.destroy();
@@ -478,8 +479,8 @@ Shooter.onUpdate = function() {
             for(var e = i + 1, dl = playersDefs.length; e < dl; e++) {
                 var pdd = playersDefs[e];
                 if (pdd.alive() && this.circleCollision(pdd, pd,
-                                                      this.sizeDefend,
-                                                      this.sizeDefend)) {
+                                                        this.sizeDefend,
+                                                        this.sizeDefend)) {
                     
                     pdd.destroy();
                     pd.destroy();
@@ -507,11 +508,11 @@ Shooter.collideAsteroid = function(a, i, al) {
     var bombs        = this.getActors('bomb');
     var asteroids    = this.getActors('asteroid');
     
-    var asteroidSize = a.type === 4 ? this.sizeBigAsteroid : this.sizeAsteroid;
-    var noWrap = a.type === 4;
+    var asteroidSize = a.type >= 4 ? this.sizeBigAsteroid : this.sizeAsteroid;
+    var noWrap = a.type >= 4;
     
     // Big Asteroid PowerUP collision
-    if (a.type === 4) {
+    if (a.type >= 4) {
         var powerups     = this.getActors('powerup');
         for(var f = 0, lf = powerups.length; f < lf; f++) {
             var o = powerups[f];
@@ -597,9 +598,9 @@ Shooter.collideAsteroid = function(a, i, al) {
         var aa = asteroids[e];
         if (aa.hp > 0) {
             if (this.circleCollision(a, aa, asteroidSize,
-                                     aa.type === 4 ? this.sizeBigAsteroid
-                                                   : this.sizeAsteroid,
-                                                   false, noWrap)) {
+                                     aa.type >= 4 ? this.sizeBigAsteroid
+                                                  : this.sizeAsteroid,
+                                                  false, noWrap)) {
                 
                 if (a.type === aa.type) {
                     a.hp = 0;
@@ -940,12 +941,12 @@ Shooter.randomPosition = function(obj, size) {
         
         if (found) {
             for(var i = 0, l = asteroids.length; i < l; i++) {
-                var asize = asteroids[i].type === 4 ? this.sizeBigAsteroid
-                                                    : this.sizeAsteroid * 2;
+                var asize = asteroids[i].type >= 4 ? this.sizeBigAsteroid
+                                                   : this.sizeAsteroid * 2;
                 
                 if (this.checkCollision(asteroids[i], obj, asize, size * 2,
                                         true,
-                                        asteroids[i].type === 4)) {
+                                        asteroids[i].type >= 4)) {
                     
                     found = false;
                     break;
