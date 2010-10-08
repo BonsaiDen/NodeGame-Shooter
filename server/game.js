@@ -91,7 +91,7 @@ Shooter.onInit = function() {
     this.initPowerUp('camu',    1, 47, 20);
     
     // Asteroids
-    this.maxAsteroids = 8;
+    this.maxAsteroids = [9, 8, 8, 7, 6, 5, 4];
     
     // Start Game
     this.startRound();
@@ -374,7 +374,9 @@ Shooter.onUpdate = function() {
       
     // Asteroids
     var asteroids = this.getActors('asteroid');
-    if (asteroids.length < this.maxAsteroids && this.getTime() > this.nextAsteroid) {
+    if (asteroids.length < this.maxAsteroids[this.playerCount]
+        && this.getTime() > this.nextAsteroid) {
+        
         this.createActor('asteroid', {'type': Math.ceil(Math.random() * 2) + 1});
         this.nextAsteroid = this.getTime() + Math.random() * 10000;
     }
