@@ -169,6 +169,10 @@ Shooter.onMessage = function(msg) {
         this.playing = true;
         document.getElementById('box').style.display = 'none';
     }
+    if (msg.rt !== undefined) {
+        this.roundStart = this.getTime();
+        this.roundTime = msg.rt;
+    }
 };
 
 Shooter.onInput = function() {
@@ -380,10 +384,10 @@ Shooter.onLogin = function(e) {
 // Rounds & Players ------------------------------------------------------------
 Shooter.checkRound = function(data) {
     if (this.roundGO !== !!data.rg) {
-        this.roundStart = this.getTime();
         this.roundID = data.ri;
-        this.roundTime = data.rt;
         this.roundStats = data.rs;
+        this.roundStart = this.getTime();
+        this.roundTime = data.rt; 
     }
     this.roundGO = !!data.rg;
 };
