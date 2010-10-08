@@ -91,7 +91,7 @@ Shooter.onInit = function() {
     
     // Asteroids
     this.maxAsteroids = 8;
-    this.nextAsteroid = this.getTime() + Math.random() * 500;
+    this.nextAsteroid = this.getTime() + Math.random() * 5000;
     
     // Start Game
     this.startRound();
@@ -368,7 +368,7 @@ Shooter.onUpdate = function() {
     var asteroids = this.getActors('asteroid');
     if (asteroids.length < this.maxAsteroids && this.getTime() > this.nextAsteroid) {
         this.createActor('asteroid', {'type': Math.ceil(Math.random() * 3)});
-        this.nextAsteroid = this.getTime() + Math.random() * 1000;
+        this.nextAsteroid = this.getTime() + Math.random() * 10000;
     }
     
     // Collision Detection
