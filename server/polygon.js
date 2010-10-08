@@ -29,7 +29,7 @@ function Polygon2D(x, y, r, points) {
 }
 
 Polygon2D.prototype.transform = function(x, y, r) {
-    r = Math.PI - r; // due to the fact that the client do this too
+    r = Math.PI - r; // due to the fact that the client does this too
     for(var i = 0; i < this.count; i++) {
 		var px = x + (Math.cos(r) * this.base[i][0] - Math.sin(r) * this.base[i][1]);
 		var py = y + (Math.sin(r) * this.base[i][0] + Math.cos(r) * this.base[i][1]);
