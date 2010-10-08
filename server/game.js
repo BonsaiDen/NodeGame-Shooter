@@ -510,7 +510,7 @@ Shooter.collideAsteroid = function(a, i, al) {
                                                   false,
                                                   noWrap)) {
                 
-                this.createPowerUp(o.type, true, false);
+                this.removePowerUp(o.type);
                 o.destroy();
             }
         }
