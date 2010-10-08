@@ -281,7 +281,7 @@ ActorPlayer.onDraw = function() {
 
 
 // Bullet ----------------------------------------------------------------------
-var ActorBullet = Client.createActorType('bullet', 10);
+var ActorBullet = Client.createActorType('bullet', 6);
 ActorBullet.onCreate = function(data, complete) {
     this.id = data[0];
     this.col = this.$.playerColor(this.id);;
@@ -380,7 +380,7 @@ ActorMissile.onDraw = function() {
 
 
 // Bomb ------------------------------------------------------------------------
-var ActorBomb = Client.createActorType('bomb', 8);
+var ActorBomb = Client.createActorType('bomb', 6);
 ActorBomb.onCreate = function(data, complete) {
     this.id = data[0];
     this.radius = data[1];
@@ -474,7 +474,7 @@ ActorPowerUp.onDraw = function() {
 
 
 // Player Defender -------------------------------------------------------------
-var ActorPlayerDef = Client.createActorType('player_def', 8);
+var ActorPlayerDef = Client.createActorType('player_def', 6);
 ActorPlayerDef.onCreate = function(data, complete) {
     this.id = data[0];
     this.r = data[1];
@@ -541,6 +541,10 @@ ActorAsteroid.onCreate = function(data, complete) {
     this.col = '#777777';
 };
 
+ActorAsteroid.onUpdate = function(data) {
+    this.r = data[0];
+};
+
 ActorAsteroid.onDraw = function() {
     this.$.line(3);
     this.$.stroke(this.col);
@@ -572,6 +576,18 @@ ActorAsteroid.onDraw = function() {
         this.$.bg.lineTo(13, 13);
         this.$.bg.lineTo(16, -5);
         this.$.bg.lineTo(10, -15);
+    
+    } else if (this.type === 4) {    
+        this.$.line(6);
+        this.$.bg.moveTo(-66, -120);
+        this.$.bg.lineTo(-126 , -56);
+        this.$.bg.lineTo(-92, 76);
+        this.$.bg.lineTo(-42, 118);
+        this.$.bg.lineTo(6, 102);
+        this.$.bg.lineTo(120, 62);
+        this.$.bg.lineTo(148, 36);
+        this.$.bg.lineTo(148, -22);
+        this.$.bg.lineTo(58, -90);
     }
     
     this.$.bg.closePath();
@@ -581,15 +597,31 @@ ActorAsteroid.onDraw = function() {
 
 ActorAsteroid.onInterleave = function(step) {
     this.r = this.$.wrapAngle(this.r + this.mr / step);
-    this.$.wrapPosition(this);
+    if (this.type !== 4) {
+        this.$.wrapPosition(this);
+    }
 };
 
 ActorAsteroid.onDestroy = function(complete) {
     if (complete) {
-        var add = this.type === 2 ? 5.5 : (this.type === 3 ? 10 : 0);
-        this.$.effectExplosion(this.x, this.y, 8, {'d': 0.85 + add / 7, 's': 0.50, 'c': this.col});
-        this.$.effectArea(this.x, this.y, {'s': 13 + add * 1.75, 'd': 0.5 + add / 27, 'c': this.col});
-        this.$.playSound(this.type === 1 ? 'explosionSmall' : 'explosionMedium');
+        if (this.type === 4) {
+            this.$.effectExplosion(this.x, this.y, 60, {'d': 2.15, 's': 2.50,
+                                   'c': this.col});
+            
+            this.$.effectArea(this.x, this.y, {'s': 150, 'd': 1, 'c': this.col});
+            this.$.playSound('explosionMedium');
+        
+        } else {
+            var add = this.type === 2 ? 5.5 : (this.type === 3 ? 10 : 0);
+            this.$.effectExplosion(this.x, this.y, [0, 6, 10, 14][this.type],
+                                   {'d': 0.85 + add / 7, 's': 0.50, 'c': this.col});
+            
+            this.$.effectArea(this.x, this.y,
+                              {'s': 13 + add * 1.75,
+                               'd': 0.5 + add / 27, 'c': this.col});
+            
+            this.$.playSound(this.type === 1 ? 'explosionSmall' : 'explosionMedium');
+        }
     }
 };
 
