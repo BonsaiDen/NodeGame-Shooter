@@ -177,6 +177,7 @@ var ActorMissile = Server.createActorType('missile', 2);
 ActorMissile.onCreate = function(data) {
     this.time = this.getTime();
     this.player = data.player;
+    this.player.client.shots++;
     
     var r = data.r;
     this.mx = this.player.mx + Math.sin(r) * 4.0;
@@ -287,6 +288,7 @@ var ActorBullet = Server.createActorType('bullet', 6);
 ActorBullet.onCreate = function(data) {
     this.time = this.getTime();
     this.player = data.player;
+    this.player.client.shots++;
     
     var r = data.r;
     this.x = this.player.x + Math.sin(r) * 12;
@@ -335,6 +337,7 @@ var ActorBomb = Server.createActorType('bomb', 6);
 ActorBomb.onCreate = function(data) {
     this.time = this.getTime();
     this.player = data.player;
+    this.player.client.shots++;
     this.range = 120;
     
     var r = data.r;

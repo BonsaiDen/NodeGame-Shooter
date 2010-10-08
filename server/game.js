@@ -148,7 +148,12 @@ Shooter.endRound = function() {
             var stats = this.roundStats[c];
             sorted.push([this.$.clients[c].score,
                          stats.kills, this.$.clients[c].playerName,
-                         stats.selfDestructs, this.$.clients[c].playerColor]);       
+                         stats.selfDestructs,
+                         this.$.clients[c].playerColor,
+                         this.$.clients[c].shots > 0 ? 
+                                    Math.round(100 / this.$.clients[c].shots
+                                                   * this.$.clients[c].hits)
+                                                      : -1]);
         }
     }
     
@@ -620,6 +625,7 @@ Shooter.collideAsteroid = function(a, i, al) {
                                               false,
                                               noWrap)) {
                 
+                b.player.client.hits++;
                 b.destroy();
                 if (a.type < 4) {
                     a.hp -= 5;
@@ -641,6 +647,7 @@ Shooter.collideAsteroid = function(a, i, al) {
                                               false,
                                               noWrap)) {
                 
+                m.player.client.hits++;
                 m.destroy();
                 if (a.type < 4) {
                     a.hp -= 8;
@@ -731,6 +738,7 @@ Shooter.collidePlayer = function(p, i, l) {
                     && this.circleCollision(p, b, this.sizePlayer,
                                                   this.sizeBullet)) {
                     
+                    b.player.client.hits++;
                     b.destroy();
                     p.hp -= 5;
                     if (p.hp <= 0) {
@@ -747,6 +755,7 @@ Shooter.collidePlayer = function(p, i, l) {
                                                          this.sizeBullet,
                                                          true)) {
                     
+                    b.player.client.hits++;
                     b.destroy();
                 }
             }
@@ -763,6 +772,7 @@ Shooter.collidePlayer = function(p, i, l) {
                     && this.circleCollision(p, m, this.sizePlayer,
                                                   this.sizeMissile)) {
                     
+                    m.player.client.hits++;
                     m.destroy();
                     p.hp -= 4;
                     if (p.hp <= 0) {
@@ -779,6 +789,7 @@ Shooter.collidePlayer = function(p, i, l) {
                                                          this.sizeMissile,
                                                          true)) {
                     
+                    m.player.client.hits++;
                     m.destroy();
                 }
             }
@@ -820,6 +831,7 @@ Shooter.destroyBomb = function(b) {
             if (b.player && b.player.client.bombLaunched) {
                 if (e != b.player) {
                     b.player.client.addScore(10);
+                    b.player.client.hits++;
                     this.getPlayerStats(b.player.client.id).kills += 1;
                 
                 } else {

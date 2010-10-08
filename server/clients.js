@@ -55,6 +55,8 @@ Client.init = function(init) {
         this.$.setFieldItem('p', this.id, this.playerName); // players
         this.reset = -1;
         
+        this.shots = 0;
+        this.hits = 0;
         this.score = 0;
         this.$.setFieldItem('c', this.id, this.score); // scores
         this.$$.addPlayerStats(this.id);

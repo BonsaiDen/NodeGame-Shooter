@@ -243,18 +243,20 @@ Shooter.renderRound = function() {
         var ypos = 60;
         var xpos = 130;
         this.text(xpos, ypos, 'Name', 'right', 'top');
-        this.text(xpos + 75, ypos, 'Score', 'right', 'top');
-        this.text(xpos + 145, ypos, 'Kills', 'right', 'top');
-        this.text(xpos + 260, ypos, 'SelfDest', 'right', 'top');
+        this.text(xpos + 70, ypos, 'Points', 'right', 'top');
+        this.text(xpos + 135, ypos, 'Kills', 'right', 'top');
+        this.text(xpos + 195, ypos, 'Self', 'right', 'top');
+        this.text(xpos + 260, ypos, 'Hit', 'right', 'top');
         
         ypos += 22;
         for(var i = 0; i < this.roundStats.length; i++) {
             var p = this.roundStats[i];
             this.fill(this.colorCodes[p[4]]);
             this.text(xpos, ypos, p[2], 'right', 'top');
-            this.text(xpos + 75, ypos, p[0], 'right', 'top');
-            this.text(xpos + 145, ypos, p[1], 'right', 'top');
-            this.text(xpos + 260, ypos, p[3], 'right', 'top');
+            this.text(xpos + 70, ypos, p[0], 'right', 'top');
+            this.text(xpos + 135, ypos, p[1], 'right', 'top');
+            this.text(xpos + 195, ypos, p[3], 'right', 'top');
+            this.text(xpos + 260, ypos, p[5] >= 0 ? (p[5] + '%') : '--', 'right', 'top');
             ypos += 18;
         }
         this.font((this.scale === 1 ? 12 : 17));
