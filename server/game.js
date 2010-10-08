@@ -367,7 +367,7 @@ Shooter.onUpdate = function() {
     // Asteroids
     var asteroids = this.getActors('asteroid');
     if (asteroids.length < this.maxAsteroids && this.getTime() > this.nextAsteroid) {
-        this.createActor('asteroid', {'type': Math.ceil(Math.random() * 3)});
+        this.createActor('asteroid', {'type': Math.ceil(Math.random() * 2) + 1});
         this.nextAsteroid = this.getTime() + Math.random() * 10000;
     }
     
@@ -399,10 +399,10 @@ Shooter.onUpdate = function() {
             if (a.type > 1) {
                 var ar = this.createActor('asteroid', {'type': a.type - 1});
                 var al = this.createActor('asteroid', {'type': a.type - 1}); 
-                ar.setMovement(a.x, a.y, [0, 0, 10, 16][a.type],
+                ar.setMovement(a.x, a.y, [0, 0, 11, 17][a.type],
                                a.r - ((Math.PI / 4) + (Math.random() * (Math.PI / 2))));
                 
-                al.setMovement(a.x, a.y, [0, 0, 10, 16][a.type],
+                al.setMovement(a.x, a.y, [0, 0, 11, 17][a.type],
                                a.r + ((Math.PI / 4) + (Math.random() * (Math.PI / 2)))); 
             }
         }
