@@ -32,6 +32,8 @@ var MSG_ACTORS_UPDATE = 6;
 var MSG_ACTORS_REMOVE = 7;
 var MSG_ACTORS_DESTROY = 8;
 
+var MSG_CLIENT_MESSAGE = 9;
+
 
 // Game ------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -47,6 +49,9 @@ Game.prototype.onInit = function(data) {
 };
 
 Game.prototype.onUpdate = function(data) {
+};
+
+Game.prototype.onMessage = function(msg) {
 };
 
 Game.prototype.onInput = function() {
@@ -148,7 +153,7 @@ Client.prototype.onMessage = function(msg) {
     }
     
     // Game
-    if (type == MSG_GAME_START) {
+    if (type === MSG_GAME_START) {
         this.$.id = data[0];
         this.lastTime = this.lastRender = this.getTime();
         this.interleaveSteps = data[1] / 10;
@@ -156,26 +161,30 @@ Client.prototype.onMessage = function(msg) {
         this.$.onInit(data[2]);
         this.update();
     
-    } else if (type == MSG_GAME_FIELDS) {
+    } else if (type === MSG_GAME_FIELDS) {
         this.$.onUpdate(data[0]);
     
-    } else if (type == MSG_GAME_SHUTDOWN) {
+    } else if (type === MSG_GAME_SHUTDOWN) {
         this.$.onShutdown(data);
     
+    // Client
+    } else if (type === MSG_CLIENT_MESSAGE) {
+        this.$.onMessage(data[0]);
+    
     // Actors
-    } else if (type == MSG_ACTORS_INIT) {
+    } else if (type === MSG_ACTORS_INIT) {
         for(var i = 0, l = data.length; i < l; i++) {
             var a = data[i];
             this.actors[a[0][0]] = new Actor(this, a, false);
         }
     
-    } else if (type == MSG_ACTORS_CREATE) {
+    } else if (type === MSG_ACTORS_CREATE) {
         for(var i = 0, l = data.length; i < l; i++) {
             var a = data[i];
             this.actors[a[0][0]] = new Actor(this, a, true);
         }
     
-    } else if (type == MSG_ACTORS_UPDATE) {
+    } else if (type === MSG_ACTORS_UPDATE) {
         for(var i = 0, l = data.length; i < l; i++) {
             var a = data[i];
             if (this.actors[a[0][0]]) {
@@ -183,14 +192,14 @@ Client.prototype.onMessage = function(msg) {
             }
         }
     
-    } else if (type == MSG_ACTORS_REMOVE) {
+    } else if (type === MSG_ACTORS_REMOVE) {
         for(var i = 0, l = data.length; i < l; i++) {
             var a = data[i];
             this.actors[a[0]].remove();
             delete this.actors[a[0]];
         }
     
-    } else if (type == MSG_ACTORS_DESTROY) {
+    } else if (type === MSG_ACTORS_DESTROY) {
         for(var i = 0, l = data.length; i < l; i++) {
             var a = data[i];
             this.actors[a[0]].destroy(a[1], a[2]);
@@ -243,7 +252,7 @@ Client.prototype.update = function() {
             this.lastRender = this.time;
             
             var msg = BISON.encode(this.$.onInput());
-            if (this.$.playing && msg != this.lastState) {
+            if (this.$.playing && msg !== this.lastState) {
                 this.conn.send(msg);
                 this.lastState = msg;
             } 
@@ -291,7 +300,7 @@ function Actor(client, data, create) {
     this.my = d[4] - this.y;
     
     for(var m in client.actorTypes[d[5]]) {
-        if (m != 'update' && m != 'destroy' && m != 'remove') {
+        if (m !== 'update' && m !== 'destroy' && m !== 'remove') {
             this[m] = client.actorTypes[d[5]][m];
         }
     }

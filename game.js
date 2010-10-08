@@ -56,7 +56,7 @@ Shooter.onConnect = function(success) {
     // Canvas
     this.particles = [];
     try {
-        this.small = localStorage.getItem('small') == 'true' || false;
+        this.small = localStorage.getItem('small') === 'true' || false;
     
     } catch (e) {
         this.small = false;
@@ -81,7 +81,7 @@ Shooter.onConnect = function(success) {
     ]);
     
     try {
-        this.sound.enabled = !(localStorage.getItem('sound') == 'true' || false);
+        this.sound.enabled = !(localStorage.getItem('sound') === 'true' || false);
         
     } catch (e) {
         this.sound.enabled = true;
@@ -122,8 +122,8 @@ Shooter.onConnect = function(success) {
     this.keys = {};
     window.onkeydown = window.onkeyup = function(e) {
         var key = e.keyCode;
-        if (key != 116 && !e.shiftKey && !e.altKey && !e.ctrlKey) {
-            if (e.type == "keydown") {
+        if (key !== 116 && !e.shiftKey && !e.altKey && !e.ctrlKey) {
+            if (e.type === "keydown") {
                 that.keys[key] = 1;
             
             } else {
@@ -164,6 +164,13 @@ Shooter.onUpdate = function(data) {
     this.checkPlayers(data);
 };
 
+Shooter.onMessage = function(msg) {
+    if (msg.playing === true) {
+        this.playing = true;
+        document.getElementById('box').style.display = 'none';
+    }
+};
+
 Shooter.onInput = function() {
     var keys = {'keys': [
         this.keys[87] || this.keys[38] || 0,
@@ -174,7 +181,7 @@ Shooter.onInput = function() {
     };
     
     for(var i in this.keys) {
-        if (this.keys[i] == 2) {
+        if (this.keys[i] === 2) {
             this.keys[i] = 0;
         }
     }
@@ -232,7 +239,7 @@ Shooter.renderRound = function() {
                   + this.roundID + ' finished', 'right', 'top');
         
         // Scores
-        this.font((this.scale == 1 ? 15 : 17.5));
+        this.font((this.scale === 1 ? 15 : 17.5));
         var ypos = 60;
         var xpos = 130;
         this.text(xpos, ypos, 'Name', 'right', 'top');
@@ -250,7 +257,7 @@ Shooter.renderRound = function() {
             this.text(xpos + 260, ypos, p[3], 'right', 'top');
             ypos += 18;
         }
-        this.font((this.scale == 1 ? 12 : 17));
+        this.font((this.scale === 1 ? 12 : 17));
     
     } else {
         this.text(this.width - 4, 1, m + ':' + s + ' left | Round #'
@@ -309,7 +316,7 @@ Shooter.renderParticles = function() {
                 } else if (p.x + p.size > this.width + 16) {
                     x = p.x - 32 - this.width;
                 }
-                if (x != p.x) {
+                if (x !== p.x) {
                     this.fillCircle(x, p.y, p.size, p.col || '#ffffff');
                 }
                 
@@ -320,11 +327,11 @@ Shooter.renderParticles = function() {
                     y = p.y - 32 - this.height;
                 }
                 
-                if (y != p.y) {
+                if (y !== p.y) {
                     this.fillCircle(p.x, y, p.size, p.col || '#ffffff');
                 }
                 
-                if (y != p.y && x != p.x) {
+                if (y !== p.y && x !== p.x) {
                     this.fillCircle(x, y, p.size, p.col || '#ffffff');
                 }
             }
@@ -352,14 +359,12 @@ Shooter.onSound = function(data) {
 
 Shooter.onLogin = function(e) {
     e = e || window.event;
-    if (e.keyCode == 13) {
+    if (e.keyCode === 13) {
         var playerName = document.getElementById('login').value;
         playerName = playerName.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '_');
         if (playerName.length >= 2 && playerName.length <= 12) {
-            document.getElementById('box').style.display = 'none';
             e.preventDefault();
             this.send({'player': playerName});
-            this.playing = true;
         }
         return false;
     }
@@ -368,7 +373,7 @@ Shooter.onLogin = function(e) {
 
 // Rounds & Players ------------------------------------------------------------
 Shooter.checkRound = function(data) {
-    if (this.roundGO != !!data.rg) {
+    if (this.roundGO !== !!data.rg) {
         this.roundStart = this.getTime();
         this.roundID = data.ri;
         this.roundTime = data.rt;
@@ -387,7 +392,7 @@ Shooter.checkPlayers = function(data) {
     var controls = document.getElementById('controls'); 
     if (!this.playing && this.roundGO) {
         if (count < data.m) {
-            if (box.style.display != 'block') {
+            if (box.style.display !== 'block') {
                 box.style.display = 'block';
                 controls.style.display = 'block';
                 document.getElementById('login').focus();
@@ -467,7 +472,7 @@ Shooter.initCanvas = function() {
     this.canvas.height = this.height * this.scale;
     this.bg = this.canvas.getContext('2d');
     this.bg.scale(this.scale, this.scale);
-    this.font((this.scale == 1 ? 12 : 17));
+    this.font((this.scale === 1 ? 12 : 17));
 };
 
 Shooter.font = function(size) {
