@@ -97,7 +97,7 @@ ActorPlayer.onUpdate = function() {
     }
     
     // Speed
-    if (this.boost && this.timeDiff(this.boostTime) > 10000) {
+    if (this.boost && this.timeDiff(this.boostTime) > 12500) {
         this.boost = false;
     }
     
@@ -256,10 +256,10 @@ ActorMissile.onUpdate = function() {
         var dr = this.$$.getAngle(this, this.target);
         dr = this.$$.wrapAngle(this.r - dr);
         if (dr < 0) {
-            this.r -= Math.max(dr / 12, -0.3);
+            this.r -= Math.max(dr / 15, -0.3);
         
         } else {
-            this.r -= Math.min(dr / 12, 0.3);
+            this.r -= Math.min(dr / 15, 0.3);
         }
         this.r = this.$$.wrapAngle(this.r);
     }
@@ -429,12 +429,12 @@ ActorPlayerDef.onUpdate = function() {
     this.mx = this.player.mx;
     this.my = this.player.my;
     
-    if (this.timeDiff(this.initTime) < 22500) {
-        if (this.timeDiff(this.initTime) > 15000) {
+    if (this.timeDiff(this.initTime) < 14000) {
+        if (this.timeDiff(this.initTime) > 7500) {
             this.level = 2;
         }
         
-        if (this.timeDiff(this.shotTime) > (this.level === 1 ? 1200 : 225)) {
+        if (this.timeDiff(this.shotTime) > (this.level === 1 ? 1200 : 180)) {
             this.$.createActor('bullet', {
                 'player': this.player,
                 'r': this.r,
@@ -566,7 +566,7 @@ ActorAsteroid.onCreate = function(data) {
     }
     
     if (this.type >= 4) {
-        this.speed = Math.random() * 1.0 + 1.0;
+        this.speed = Math.random() * 1.2 + 1.20;
         this.x += this.x < this.$$.halfWidth ? -128 : 128;
         this.y += this.y < this.$$.halfHeight ? -128 : 128;
         this.mr *= 0.125;
