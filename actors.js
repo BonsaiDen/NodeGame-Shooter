@@ -577,7 +577,7 @@ ActorAsteroid.onDraw = function() {
         this.$.bg.lineTo(16, -5);
         this.$.bg.lineTo(10, -15);
     
-    } else if (this.type === 4) {    
+    } else if (this.type === 4) {
         this.$.line(6);
         this.$.bg.moveTo(-66, -120);
         this.$.bg.lineTo(-126 , -56);
@@ -588,6 +588,18 @@ ActorAsteroid.onDraw = function() {
         this.$.bg.lineTo(148, 36);
         this.$.bg.lineTo(148, -22);
         this.$.bg.lineTo(58, -90);
+    
+    } else if (this.type === 5) {
+        this.$.line(6);
+        this.$.bg.moveTo(-96, -100);
+        this.$.bg.lineTo(-126 , -26);
+        this.$.bg.lineTo(-112,75);
+        this.$.bg.lineTo(-32, 92);
+        this.$.bg.lineTo(35, 92);
+        this.$.bg.lineTo(110, 70);
+        this.$.bg.lineTo(138, 36);
+        this.$.bg.lineTo(128, -52);
+        this.$.bg.lineTo(28, -120);
     }
     
     this.$.bg.closePath();
@@ -597,14 +609,14 @@ ActorAsteroid.onDraw = function() {
 
 ActorAsteroid.onInterleave = function(step) {
     this.r = this.$.wrapAngle(this.r + this.mr / step);
-    if (this.type !== 4) {
+    if (this.type < 4) {
         this.$.wrapPosition(this);
     }
 };
 
 ActorAsteroid.onDestroy = function(complete) {
     if (complete) {
-        if (this.type === 4) {
+        if (this.type >= 4) {
             this.$.effectExplosion(this.x, this.y, 60, {'d': 2.15, 's': 2.50,
                                    'c': this.col, 'n': true});
            
