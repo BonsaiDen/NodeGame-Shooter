@@ -391,7 +391,7 @@ Shooter.onUpdate = function() {
         if (!bigFound) {
             this.createActor('asteroid', {'type': 4});
         }
-        this.nextBigAsteroid = this.getTime() + 40000 + Math.random() * 60000;
+        this.nextBigAsteroid = this.getTime() + 70000 + Math.random() * 70000;
     }
     
     // Collision Detection
@@ -506,7 +506,9 @@ Shooter.collideAsteroid = function(a, i, al) {
             var o = powerups[f];
             if (o.alive() && this.circleCollision(a, o,
                                                   this.sizeBigAsteroid,
-                                                  this.sizePowerUp)) {
+                                                  this.sizePowerUp,
+                                                  false,
+                                                  noWrap)) {
                 
                 o.destroy();
             }
