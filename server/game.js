@@ -353,18 +353,13 @@ Shooter.collidePowerUps = function(o, p) {
 Shooter.onUpdate = function() {
 
     // RoundTimer, make sure we keep it in sync
+    var roundTimeLeft = this.roundTimeLeft + (this.roundStart - this.getTime());
     if (this.getTime() > this.roundTimeUpdate + 15000 && !this.roundFinished) {
-        updateRound = true;
+        this.$.messageAll({'rt': roundTimeLeft});
         this.roundTimeUpdate = this.getTime();
-    
-    } else {
-        updateRound = false;
     }
     
-    this.$.setField('rt', 
-                    this.roundTimeLeft + (this.roundStart - this.getTime()),
-                    updateRound);
-    
+    this.$.setField('rt', roundTimeLeft, false);
     if (this.roundFinished) {
         return;
     }

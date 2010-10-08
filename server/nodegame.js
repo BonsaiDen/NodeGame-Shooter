@@ -258,6 +258,11 @@ Server.prototype.toBISON = function(data) {
     return BISON.encode(data);
 };
 
+Server.prototype.messageAll = function(msg) {
+    msg = [MSG_CLIENT_MESSAGE, msg];
+    this.bytesSend += this.$.broadcast(this.toBISON(msg));
+};
+
 
 // Actors ----------------------------------------------------------------------
 Server.prototype.createActor = function(clas, data) {
