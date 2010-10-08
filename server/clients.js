@@ -30,16 +30,16 @@ Client.onInit = function() {
     this.playerColor = -1;
     this.log('++ [' + this.getInfo() + '] connected');
     this.$.emitFields();
-    this.local = this.ip == '127.0.0.1'
+    this.local = this.ip === '127.0.0.1'
 };
 
 Client.init = function(init) {
     if (this.playerName && !this.$$.roundFinished) {
         
         // Get free color
-        if (this.playerColor == -1) {
+        if (this.playerColor === -1) {
             for(var i = 0; i < this.$$.maxPlayers; i++) {
-                if(this.$$.playerColors[i] == -1) {
+                if(this.$$.playerColors[i] === -1) {
                     this.$$.playerColors[i] = this.id;
                     this.playerColor = i;
                     break;
@@ -66,6 +66,8 @@ Client.init = function(init) {
         this.bombLaunched = false;
         
         this.$.emitFields();
+        this.message({'playing': true});
+        
         this.player = this.$.createActor('player', {'r': 0, 'client': this});
     }
 };
@@ -73,7 +75,7 @@ Client.init = function(init) {
 Client.kill = function() {
     if (this.player && !this.$$.roundFinished) {
         this.bomb = null;
-        this.addScore(this.player.camu == 2 ? -10 : -5);
+        this.addScore(this.player.camu === 2 ? -10 : -5);
         this.reset = this.getTime();
         this.player.destroy();
         if (this.player.bomb && !this.bombLaunched) {
@@ -96,14 +98,14 @@ Client.addScore = function(add) {
 
 Client.onMessage = function(msg) {
     // Controls
-    if (this.playerName != '' && msg.keys && msg.keys.length == 5) {
+    if (this.playerName !== '' && msg.keys && msg.keys.length === 5) {
         var k = msg.keys;
         this.keys = [!!k[0], !!k[1], !!k[2], !!k[3], !!k[4]];
     
     // Set name and init player
     } else if (msg.player) {
         msg.player = msg.player.trim().replace(/\s+/g, '_');
-        if (msg.player && this.playerName == ''
+        if (msg.player && this.playerName === ''
             && msg.player.length >= 2 && msg.player.length <= 12
             && this.$$.playerCount < this.$$.maxPlayers) {
             
@@ -113,7 +115,7 @@ Client.onMessage = function(msg) {
         }
     
     // Leave the game
-    } else if (this.playerName != '' && msg.leave) {
+    } else if (this.playerName !== '' && msg.leave) {
         this.leave();
     }
 };
@@ -123,7 +125,7 @@ Client.onUpdate = function() {
         return;
     }
     
-    if (this.reset != -1) {
+    if (this.reset !== -1) {
         if (this.timeDiff(this.reset) > 3000) {
             this.shotTime = this.getTime();
             this.player = this.$.createActor('player', {'r': 0, 'client': this});
@@ -222,7 +224,7 @@ Client.onRemove = function() {
 };
 
 Client.leave = function() {
-    if (this.playerName != '') {
+    if (this.playerName !== '') {
         this.$$.playerColors[this.playerColor] = -1;
         this.$$.playerCount -= 1;
         this.log('-- [' + this.getInfo() + '] ' + this.playerName

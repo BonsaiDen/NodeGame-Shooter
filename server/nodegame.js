@@ -36,6 +36,8 @@ var MSG_ACTORS_UPDATE = 6;
 var MSG_ACTORS_REMOVE = 7;
 var MSG_ACTORS_DESTROY = 8;
 
+var MSG_CLIENT_MESSAGE = 9;
+
 
 // Server ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -498,6 +500,10 @@ function Client(srv, conn) {
     this.onInit();
 }
 
+Client.prototype.message = function(msg) {
+    this.send(MSG_CLIENT_MESSAGE, [msg]);
+};
+
 Client.prototype.send = function(type, msg) {
     this.$.send(this.$conn, type, msg);
 };
@@ -557,7 +563,7 @@ function Actor(srv, clas, data) {
     
     // Extend
     for(var m in this.$.actorTypes[this.$clas]) {
-        if (m != 'destroy' && m != 'update' && m != 'alive') {
+        if (m !== 'destroy' && m !== 'update' && m !== 'alive') {
             this[m] = this.$.actorTypes[this.$clas][m];
         }
     }
@@ -570,10 +576,10 @@ Actor.prototype.$emit = function(type) {
         var c = this.$.clients[i];
         var index = c.$actors.indexOf(this.id);
         
-        if (this.$clients.length == 0 || this.$clients.indexOf(c.id) != -1) {
+        if (this.$clients.length === 0 || this.$clients.indexOf(c.id) !== -1) {
             // Destroy
-            if (type == MSG_ACTORS_DESTROY) {
-                if (index == -1) {
+            if (type === MSG_ACTORS_DESTROY) {
+                if (index === -1) {
                     c.$actors.push(this.id);
                     c.$initMessages.push(this.toMessage(true));
                 }
@@ -582,26 +588,26 @@ Actor.prototype.$emit = function(type) {
                                                   Math.round(this.y)]);
             
             // Update AND init
-            } else if (type == MSG_ACTORS_UPDATE) {
-                if (index == -1) {
+            } else if (type === MSG_ACTORS_UPDATE) {
+                if (index === -1) {
                     c.$actors.push(this.id);
                     c.$initMessages.push(this.toMessage(true));
                 }
                 c.$updatesMessages.push(this.toMessage(false));
             
             // Create
-            } else if (type == MSG_ACTORS_CREATE && index == -1) {
+            } else if (type === MSG_ACTORS_CREATE && index === -1) {
                 c.$actors.push(this.id);
                 c.$createMessages.push(this.toMessage(true));
             
             // Init
-            } else if (type == MSG_ACTORS_INIT && index == -1) {
+            } else if (type === MSG_ACTORS_INIT && index === -1) {
                 c.$actors.push(this.id);
                 c.$initMessages.push(this.toMessage(true));
             }
         
         // Remove
-        } else if (this.$clients.indexOf(c.id) == -1 && index != -1) {
+        } else if (this.$clients.indexOf(c.id) === -1 && index !== -1) {
             c.$actors.splice(index, 1);
             c.$removeMessages.push([this.id]);
         }

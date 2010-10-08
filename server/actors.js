@@ -102,7 +102,7 @@ ActorPlayer.onUpdate = function() {
     }
     
     // Camouflage
-    if (this.camu == 1) {
+    if (this.camu === 1) {
         if (this.camuFade >= 0) {
             this.camuFade -= 5;
             this.update();
@@ -115,7 +115,7 @@ ActorPlayer.onUpdate = function() {
         }
     
     // faded
-    } else if (this.camu == 2) {
+    } else if (this.camu === 2) {
         if (this.timeDiff(this.camuTime) > 15000) {
             this.camu = 3;
             this.camuFade = 0;
@@ -123,7 +123,7 @@ ActorPlayer.onUpdate = function() {
         }
         
     // fade in
-    } else if (this.camu == 3) {
+    } else if (this.camu === 3) {
         if (this.camuFade <= 100) {
             this.camuFade += 5;
             this.update();
@@ -134,7 +134,7 @@ ActorPlayer.onUpdate = function() {
         }
     }
     
-    if (this.mr != this.oldMr) {
+    if (this.mr !== this.oldMr) {
         this.update();
         this.oldMr = this.mr;
     }
@@ -147,7 +147,7 @@ ActorPlayer.onDestroy = function() {
     var playersDefs = this.$.getActors('player_def');
     for(var i = 0, l = playersDefs.length; i < l; i++) {
         var pd = playersDefs[i];
-        if (pd.player == this) {
+        if (pd.player === this) {
             pd.destroy();
         }
     }
@@ -157,7 +157,7 @@ ActorPlayer.onMessage = function(once) {
     var msg = [
         Math.round(this.r * 10) / 10,
         this.interleave(this.mr),
-        (this.defense % 200) != 0,
+        (this.defense % 200) !== 0,
         this.thrust,
         this.boost,
         this.shield,
@@ -229,10 +229,10 @@ ActorMissile.onUpdate = function() {
             var p = players[i];
             var dist = this.$$.getDistance(this, p);
             if (dist < 100 && dist < max
-                && (p != this.player
+                && (p !== this.player
                     || (this.timeDiff(this.time) > 2150 && !target))
                 
-                && p.camu != 2) {
+                && p.camu !== 2) {
                 
                 this.target = p;
             }
@@ -420,7 +420,7 @@ ActorPlayerDef.onUpdate = function() {
             this.level = 2;
         }
         
-        if (this.timeDiff(this.shotTime) > (this.level == 1 ? 1200 : 225)) {
+        if (this.timeDiff(this.shotTime) > (this.level === 1 ? 1200 : 225)) {
             this.$.createActor('bullet', {
                 'player': this.player,
                 'r': this.r,
@@ -430,7 +430,7 @@ ActorPlayerDef.onUpdate = function() {
         }
     }
     this.r = this.$$.wrapAngle(this.r + this.mr);
-    if (this.mx != this.mxOld || this.my != this.myOld) {
+    if (this.mx !== this.mxOld || this.my !== this.myOld) {
         this.mxOld = this.mx;
         this.myOld = this.my;
         this.update();

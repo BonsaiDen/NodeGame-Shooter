@@ -46,17 +46,17 @@ ActorPlayer.onUpdate = function(data) {
     this.defense = data[2];
     this.thrust = data[3];
     this.boost = data[4];
-    if (this.fade == -1 && data[6] != -1) {
+    if (this.fade === -1 && data[6] !== -1) {
         this.$.playSound('fadeOut');
     }
-    if (this.fade == -2 && data[6] != -2) {
+    if (this.fade === -2 && data[6] !== -2) {
         this.$.playSound('fadeIn');
     }
     this.fade = data[6];
     
     // Shield
-    if (this.fade != -1) {
-        this.alpha = this.id == this.$.id ? 0.20 + (this.fade / 100 * 0.8)
+    if (this.fade !== -1) {
+        this.alpha = this.id === this.$.id ? 0.20 + (this.fade / 100 * 0.8)
                                           : this.fade / 100;
     
     } else {
@@ -146,7 +146,7 @@ ActorPlayer.onDraw = function() {
     this.$.alpha(this.alpha);
     
     // Draw Ship base
-    if (this.fade > 0 || this.fade == -1 || this.id == this.$.id) {
+    if (this.fade > 0 || this.fade === -1 || this.id === this.$.id) {
         this.$.line(3);
         this.$.stroke(this.defense ? colFaded : col);
         
@@ -182,7 +182,7 @@ ActorPlayer.onDraw = function() {
         }
         
         // Rotate
-        if (this.mr != 0) {
+        if (this.mr !== 0) {
             var d = this.mr > 0 ? 1 : -1; 
             var r = this.$.wrapAngle(this.r - Math.PI);
             var ox = this.x + Math.sin(this.$.wrapAngle(r - Math.PI * 2.22 * d))
@@ -266,7 +266,7 @@ ActorPlayer.onDraw = function() {
     }
     
     // Name
-    if (this.fade > 0 || this.fade == -1 || this.id == this.$.id) {
+    if (this.fade > 0 || this.fade === -1 || this.id === this.$.id) {
         if (this.$.playerNames[this.id]) {
             this.$.alpha(this.alpha);
             this.$.fill(colFaded);
@@ -457,12 +457,12 @@ ActorPowerUp.onDraw = function() {
     this.$.bg.save();
     this.$.bg.translate(this.x, this.y);
     var scale = this.$.timeScale(this.createTime, 1000);
-    if (scale != 1) {
+    if (scale !== 1) {
         this.$.bg.scale(scale, scale);
     }
     
     var col = this.$.powerUpColors[this.type];
-    if (this.type != 'camu') {
+    if (this.type !== 'camu') {
         this.$.fillCircle(0, 0, 5.25, col);
     
     } else {
