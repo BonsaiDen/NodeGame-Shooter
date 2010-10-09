@@ -21,9 +21,16 @@
 */
 
 
-function Polygon2D(x, y, r, points) {
+function Polygon2D(x, y, r, points, border) {
     this.count = points.length;
-    this.base = points;
+    this.base = new Array(this.count);
+    for(var e = 0; e < points.length; e++) {
+        var r = Math.atan2(points[e][0], points[e][1]);
+        var d = Math.sqrt(points[e][0] * points[e][0]
+                          + points[e][1] * points[e][1]) + border;
+        
+        this.base[e] = [Math.sin(r) * d,  Math.cos(r) * d];
+    }
     this.points = new Array(this.count);
     this.transform(x, y, r);
 }

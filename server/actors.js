@@ -34,8 +34,8 @@ ActorPlayer.onCreate = function(data) {
     this.mr = 0;
     
     this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
-                                        [[0, -14.4], [-11.7, 14],
-                                         [11.7, 14], [0, -14.4]]);
+                                        [[0, -12], [-10, 12],
+                                         [10, 12], [0, -12]], 3);
     
     this.$$.randomPosition(this, this.$$.sizePlayer);
     
@@ -466,6 +466,19 @@ ActorPlayerDef.onMessage = function(once) {
 
 // Asteroid --------------------------------------------------------------------
 var ActorAsteroid = Server.createActorType('asteroid', 6);
+ActorAsteroid.points = [
+    [[-1, -6], [-7, -4], [-6, 4], [2, 5], [6, -2]],
+    [[-2, -13], [-13 , -8], [-12, 8], [-2, 12], [11, 10], [12, -8]],
+    [[-5, -16], [-16 , -9], [-15, 12], [-4, 16], [13, 13], [16, -5],
+     [10, -15]],
+    
+    [[-66, -120], [-126, -56], [-92, 76], [-42, 118], [6, 102], [120, 62],
+     [148, 36], [148, -22], [58, -90]],
+     
+    [[-96, -100], [-126, -26], [-112, 75], [-32, 92], [35, 92], [110, 70],
+     [138, 36], [128, -52], [28, -120]]
+];
+
 ActorAsteroid.onCreate = function(data) {    
     var tx = this.$$.width / 4 + (Math.random() * (this.$$.width / 2));
     var ty = this.$$.height / 4 + (Math.random() * (this.$$.height / 2));
@@ -476,35 +489,9 @@ ActorAsteroid.onCreate = function(data) {
         tx = this.$$.width / 3 + (Math.random() * (this.$$.width / 3));
         ty = this.$$.height / 3 + (Math.random() * (this.$$.height / 3));  
     }
-    
-    var ps = [
-        [[-1, -6], [-7, -4], [-6, 4], [2, 5], [6, -2]],
-        [[-2, -13], [-13 , -8], [-12, 8], [-2, 12], [11, 10], [12, -8]],
-        [[-5, -16], [-16 , -9], [-15, 12], [-4, 16], [13, 13], [16, -5],
-         [10, -15]],
-        
-        [[-66, -120], [-126, -56], [-92, 76], [-42, 118], [6, 102], [120, 62],
-         [148, 36], [148, -22], [58, -90]],
-         
-        [[-96, -100], [-126, -26], [-112, 75], [-32, 92], [35, 92], [110, 70],
-         [138, 36], [128, -52], [28, -120]]  
-    ];
-    
-    // fix scale for collosion detection
-    for(var i = 0; i < ps.length; i++) {
-        for(var e = 0; e < ps[i].length; e++) {
-            if (i < 3) {
-                ps[i][e][0] *= 1.157;
-                ps[i][e][1] *= 1.157;
-            
-            } else {
-                ps[i][e][0] *= 1.0325;
-                ps[i][e][1] *= 1.0325;
-            }
-        }
-    }
-    this.polygon = new polygon.Polygon2D(this.x, this.y,
-                                         this.r, ps[this.type - 1]); 
+    this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
+                                         ActorAsteroid.points[this.type - 1],
+                                         6);
     
     var found = false;
     var tries = 0;
