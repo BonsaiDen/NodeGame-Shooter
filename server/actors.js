@@ -35,7 +35,7 @@ ActorPlayer.onCreate = function(data) {
     
     this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
                                         [[0, -12], [10, 12],
-                                         [-10, 12], [0, -12]], 3);
+                                         [-10, 12], [0, -12]], 2.5);
     
     this.$$.randomPosition(this, this.$$.sizePlayer);
     
@@ -52,6 +52,9 @@ ActorPlayer.onCreate = function(data) {
     
     this.shield = false;
     this.shieldTime = 0;
+    
+    this.armor = false;
+    this.armorTime = 0;
     
     this.bomb = false;
     this.defender = null;
@@ -96,6 +99,11 @@ ActorPlayer.onUpdate = function() {
         this.shield = false;
     }
     
+    // Armor
+    if (this.armor && this.timeDiff(this.armorTime) > 17500) {
+        this.armor = false;
+    }
+    
     // Speed
     if (this.boost && this.timeDiff(this.boostTime) > 12500) {
         this.boost = false;
@@ -106,7 +114,7 @@ ActorPlayer.onUpdate = function() {
         if (this.camuFade >= 0) {
             this.camuFade -= 5;
             this.update();
-            
+        
         } else {
             this.camu = 2;
             this.camuTime = this.getTime();
@@ -114,7 +122,7 @@ ActorPlayer.onUpdate = function() {
             this.clients([this.client.id]);
         }
     
-    // faded
+    // Faded
     } else if (this.camu === 2) {
         if (this.timeDiff(this.camuTime) > 15000) {
             this.camu = 3;
@@ -122,7 +130,7 @@ ActorPlayer.onUpdate = function() {
             this.clients();
         }
         
-    // fade in
+    // Fade in
     } else if (this.camu === 3) {
         if (this.camuFade <= 100) {
             this.camuFade += 5;
@@ -162,7 +170,8 @@ ActorPlayer.onMessage = function(once) {
         this.boost,
         this.shield,
         this.camuFade,
-        this.missiles
+        this.missiles,
+        this.armor
     ];
     
     if (once) {
@@ -483,6 +492,7 @@ ActorAsteroid.onCreate = function(data) {
     var ty = this.$$.height / 4 + (Math.random() * (this.$$.height / 2));
     this.type = data.type;
     this.hp = [1, 5, 10, 20, 1000, 1000][this.type];
+    this.broken = null;
     
     if (this.type >= 4) {
         tx = this.$$.width / 3 + (Math.random() * (this.$$.width / 3));
@@ -566,12 +576,12 @@ ActorAsteroid.onCreate = function(data) {
     this.my = Math.cos(this.r) * speed;
 };
 
-ActorAsteroid.setMovement = function(x, y, dist, r) {
+ActorAsteroid.setMovement = function(x, y, dist, r, s) {
     this.r = this.$$.wrapAngle(r);
     this.x = x + Math.sin(r) * dist;
     this.y = y + Math.cos(r) * dist;
     
-    var speed = Math.random() * 2.0 + 0.75;
+    var speed = s ? (Math.random() * 1.25 + 2.25) : (Math.random() * 2.0 + 0.75);
     this.mx = Math.sin(this.r) * speed;
     this.my = Math.cos(this.r) * speed;
 };

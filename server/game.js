@@ -83,6 +83,7 @@ Shooter.onInit = function() {
     this.powerUpCount = 0;
     this.powerUpsMax = 3;
     this.initPowerUp('shield',  2, 23, 10);
+    this.initPowerUp('armor',   1, 30, 15);
     this.initPowerUp('missile', 2, 16, 15);
     this.initPowerUp('life',    2,  8,  8);
     this.initPowerUp('boost',   2, 20, 14);
@@ -260,6 +261,11 @@ Shooter.collidePowerUps = function(o, p) {
             p.defender.initTime = this.getTime();
         }
     
+    // Armor
+    } else if (o.type === 'armor') {
+        p.armor = true;
+        p.armorTime = this.getTime();
+    
     // Life
     } else if (o.type === 'life') {
         p.hp += 15;
@@ -357,11 +363,20 @@ Shooter.onUpdate = function() {
             if (a.type > 1 && a.type < 4) {
                 var ar = this.createActor('asteroid', {'type': a.type - 1});
                 var al = this.createActor('asteroid', {'type': a.type - 1}); 
-                ar.setMovement(a.x, a.y, [0, 0, 11, 17][a.type],
-                               a.r - ((Math.PI / 4) + (Math.random() * (Math.PI / 2))));
+                var dd = a.broken ? 1.125 : 1;
                 
-                al.setMovement(a.x, a.y, [0, 0, 11, 17][a.type],
-                               a.r + ((Math.PI / 4) + (Math.random() * (Math.PI / 2)))); 
+                var rr, rl;
+                if (!a.broken) {
+                    rr = a.r - ((Math.PI / 4) + (Math.random() * (Math.PI / 2)));
+                    rl = a.r + ((Math.PI / 4) + (Math.random() * (Math.PI / 2)));
+                
+                } else {
+                    var mr = Math.atan2(a.broken.mx, a.broken.my);
+                    rr = mr - ((Math.PI / 3) + (Math.random() * (Math.PI / 3)));
+                    rl = mr + ((Math.PI / 3) + (Math.random() * (Math.PI / 3)));
+                }
+                ar.setMovement(a.x, a.y, [0, 0, 11, 17][a.type] * dd, rr, !!a.broken);
+                al.setMovement(a.x, a.y, [0, 0, 11, 17][a.type] * dd, rl, !!a.broken); 
             }
         }
     }
@@ -493,11 +508,13 @@ Shooter.collideAsteroid = function(a, i, al) {
             && this.circleCollision(a, p, asteroidSize, this.sizePlayer,
                                                         false, noWrap)) {
             
-            if (a.type === 1) {
-                p.hp -= 8;
-            
-            } else {
-                p.hp = 0;
+            if (!p.armor || a.type >= 4) {
+                if (a.type === 1) {
+                    p.hp -= 5;
+                
+                } else {
+                    p.hp = 0;
+                }
             }
             if (p.hp <= 0) {
                 p.client.kill(true);
@@ -505,6 +522,9 @@ Shooter.collideAsteroid = function(a, i, al) {
             }
             
             if (a.type < 4) {
+                if (p.armor) {
+                    a.broken = p;
+                }
                 a.hp = 0;
                 a.destroy();
                 return;
@@ -700,7 +720,7 @@ Shooter.collidePlayer = function(p, i, l) {
                     
                     m.player.client.hits++;
                     m.destroy();
-                    p.hp -= 4;
+                    p.hp -= p.armor ? 2 : 4;
                     if (p.hp <= 0) {
                         m.player.client.addScore(10);
                         this.getPlayerStats(m.player.client.id).kills += 1;
