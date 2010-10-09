@@ -155,7 +155,7 @@ ActorPlayer.onDraw = function() {
         this.$.bg.save();
         this.$.bg.translate(this.x, this.y);
         this.$.bg.rotate(Math.PI - this.r);
-       
+        
         if (!this.armor) { 
             this.$.bg.beginPath();
             this.$.bg.moveTo(0, -12);
@@ -164,7 +164,7 @@ ActorPlayer.onDraw = function() {
             this.$.bg.lineTo(0, -12);
             this.$.bg.closePath();
             this.$.bg.stroke();
-            
+        
         } else {
             this.$.line(1.25);
             this.$.bg.beginPath();
