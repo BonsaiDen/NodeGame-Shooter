@@ -57,7 +57,7 @@ ActorPlayer.onUpdate = function(data) {
     // Shield
     if (this.fade !== -1) {
         this.alpha = this.id === this.$.id ? 0.20 + (this.fade / 100 * 0.8)
-                                          : this.fade / 100;
+                                           : this.fade / 100;
     
     } else {
         this.alpha = 1.0;
