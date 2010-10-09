@@ -198,83 +198,6 @@ Shooter.addPlayerStats = function(id) {
 
 
 // Gameplay --------------------------------------------------------------------
-Shooter.circleCollision = function(a, b, ra, rb, circle, noWrap) {
-    
-    // Normal
-    if (this.checkCollision(a, b, ra, rb, circle)) {
-        return true;
-    }
-    
-    if (noWrap) {
-        return false;
-    }
-    
-    // Overlap
-    var aa = {};
-    aa.x = a.x
-    aa.y = a.y;
-    
-    // Left / Right
-    if (a.x - ra < -16) {
-        aa.x = a.x + 32 + this.width;
-    
-    } else if (a.x + ra > this.width + 16) {
-        aa.x = a.x - 32 - this.width;
-    }
-    if (a.x != aa.x && this.checkCollision(aa, b, ra, rb, circle)) {
-        return true;
-    }
-    
-    // Top // Bottom
-    var ab = {};
-    ab.x = a.x;
-    ab.y = a.y;
-    if (a.y - ra < -16) {
-        ab.y = a.y + 32 + this.height;
-    
-    } else if (a.y + ra > this.height + 16) {
-        ab.y = a.y - 32 - this.height;
-    }
-    if (a.y != ab.y && this.checkCollision(ab, b, ra, rb, circle)) {
-        return true;
-    }
-    
-    // Diagonal
-    aa.y = ab.y;
-    if (a.y != aa.y && a.x != aa.x
-        && this.checkCollision(aa, b, ra, rb, circle)) {
-        
-        return true;
-    }
-    return false;
-};
-
-Shooter.checkCollision = function(a, b, ra, rb, circle) {
-    var r = ra + rb;
-    var dx = a.x - b.x;
-    var dy = a.y - b.y;
-    if (r * r > dx * dx + dy * dy) {
-        if (circle) {
-            return true;
-        
-        } else if (a.polygon && b.polygon) {
-            return a.polygon.intersects(b.polygon);
-        
-        } else if (a.polygon) {
-            return a.polygon.intersectsCircle(b.x, b.y, rb);
-            
-        } else if (b.polygon) {
-            return b.polygon.intersectsCircle(a.x, a.y, ra);
-        
-        } else {
-            return true;
-        }
-    
-    } else {
-        return false;
-    }
-};
-
 Shooter.initPowerUp = function(type, max, wait, rand) { 
     this.powerUps[type] = [0, 0, max, wait, rand];
 };
@@ -891,6 +814,83 @@ Shooter.destroyBomb = function(b) {
 
 
 // Helpers ---------------------------------------------------------------------
+Shooter.circleCollision = function(a, b, ra, rb, circle, noWrap) {
+    
+    // Normal
+    if (this.checkCollision(a, b, ra, rb, circle)) {
+        return true;
+    }
+    
+    if (noWrap) {
+        return false;
+    }
+    
+    // Overlap
+    var aa = {};
+    aa.x = a.x
+    aa.y = a.y;
+    
+    // Left / Right
+    if (a.x - ra < -16) {
+        aa.x = a.x + 32 + this.width;
+    
+    } else if (a.x + ra > this.width + 16) {
+        aa.x = a.x - 32 - this.width;
+    }
+    if (a.x != aa.x && this.checkCollision(aa, b, ra, rb, circle)) {
+        return true;
+    }
+    
+    // Top // Bottom
+    var ab = {};
+    ab.x = a.x;
+    ab.y = a.y;
+    if (a.y - ra < -16) {
+        ab.y = a.y + 32 + this.height;
+    
+    } else if (a.y + ra > this.height + 16) {
+        ab.y = a.y - 32 - this.height;
+    }
+    if (a.y != ab.y && this.checkCollision(ab, b, ra, rb, circle)) {
+        return true;
+    }
+    
+    // Diagonal
+    aa.y = ab.y;
+    if (a.y != aa.y && a.x != aa.x
+        && this.checkCollision(aa, b, ra, rb, circle)) {
+        
+        return true;
+    }
+    return false;
+};
+
+Shooter.checkCollision = function(a, b, ra, rb, circle) {
+    var r = ra + rb;
+    var dx = a.x - b.x;
+    var dy = a.y - b.y;
+    if (r * r > dx * dx + dy * dy) {
+        if (circle) {
+            return true;
+        
+        } else if (a.polygon && b.polygon) {
+            return a.polygon.intersects(b.polygon);
+        
+        } else if (a.polygon) {
+            return a.polygon.intersectsCircle(b.x, b.y, rb);
+            
+        } else if (b.polygon) {
+            return b.polygon.intersectsCircle(a.x, a.y, ra);
+        
+        } else {
+            return true;
+        }
+    
+    } else {
+        return false;
+    }
+};
+
 Shooter.wrapAngle = function(r) {
     if (r > Math.PI) {
         r -= Math.PI * 2;
