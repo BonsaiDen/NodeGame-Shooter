@@ -101,7 +101,7 @@ Shooter.onInit = function() {
 // Rounds ----------------------------------------------------------------------
 Shooter.startRound = function() {
     this.roundID++;
-    this.log('## Round #' + this.roundID + ' started!');
+   // this.log('## Round #' + this.roundID + ' started!');
     
     this.roundStart = this.getTime();
     this.roundTimeLeft = this.roundTime;
@@ -133,7 +133,7 @@ Shooter.startRound = function() {
 };
 
 Shooter.endRound = function() {
-    this.log('## Round #' + this.roundID + ' finished!');
+    //this.log('## Round #' + this.roundID + ' finished!');
     
     // Reset
     this.roundStart = this.getTime();
@@ -516,11 +516,9 @@ Shooter.collideAsteroid = function(a, i, al) {
         var powerups     = this.getActors('powerup');
         for(var f = 0, lf = powerups.length; f < lf; f++) {
             var o = powerups[f];
-            if (o.alive() && this.circleCollision(a, o,
-                                                  this.sizeBigAsteroid,
-                                                  this.sizePowerUp,
-                                                  false,
-                                                  noWrap)) {
+            if (o.alive()
+                && this.circleCollision(a, o, this.sizeBigAsteroid,
+                                              this.sizePowerUp, false, noWrap)) {
                 
                 this.removePowerUp(o.type);
                 o.destroy();
@@ -531,11 +529,10 @@ Shooter.collideAsteroid = function(a, i, al) {
     // Asteroid / Player Defend collision
     for(var e = 0, dl = playersDefs.length; e < dl; e++) {
         var pd = playersDefs[e];
-        if (pd.alive() && this.circleCollision(a, pd,
-                                               this.sizePlayer,
-                                               this.sizeDefend,
-                                               false,
-                                               noWrap)) {
+        if (pd.alive()
+            && this.circleCollision(a, pd, asteroidSize, this.sizeDefend,
+                                    false, noWrap)) {
+            
             if (a.type > 1) {
                 pd.destroy();
             }
@@ -554,10 +551,9 @@ Shooter.collideAsteroid = function(a, i, al) {
     // Asteroid / Bomb
     for(var e = 0, dl = bombs.length; e < dl; e++) {
         var bo = bombs[e];
-        if (bo.alive() && this.circleCollision(a, bo, asteroidSize,
-                                                      this.sizeBomb,
-                                                      false,
-                                                      noWrap)) {
+        if (bo.alive()
+            && this.circleCollision(a, bo, asteroidSize, this.sizeBomb,
+                                    false, noWrap)) {
             
             bo.destroy();
             if (a.hp === 0) {
