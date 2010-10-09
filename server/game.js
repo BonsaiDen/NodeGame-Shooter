@@ -375,8 +375,8 @@ Shooter.onUpdate = function() {
                     rr = mr - ((Math.PI / 3) + (Math.random() * (Math.PI / 3)));
                     rl = mr + ((Math.PI / 3) + (Math.random() * (Math.PI / 3)));
                 }
-                ar.setMovement(a.x, a.y, [0, 0, 11, 17][a.type] * dd, rr, !!a.broken);
-                al.setMovement(a.x, a.y, [0, 0, 11, 17][a.type] * dd, rl, !!a.broken); 
+                ar.setMovement(a.x, a.y, [0, 0, 11, 17][a.type] * dd, rr, a.broken);
+                al.setMovement(a.x, a.y, [0, 0, 11, 17][a.type] * dd, rl, a.broken); 
             }
         }
     }
@@ -522,9 +522,7 @@ Shooter.collideAsteroid = function(a, i, al) {
             }
             
             if (a.type < 4) {
-                if (p.armor) {
-                    a.broken = p;
-                }
+                a.broken = p;
                 a.hp = 0;
                 a.destroy();
                 return;

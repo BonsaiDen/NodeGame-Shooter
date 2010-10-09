@@ -576,12 +576,16 @@ ActorAsteroid.onCreate = function(data) {
     this.my = Math.cos(this.r) * speed;
 };
 
-ActorAsteroid.setMovement = function(x, y, dist, r, s) {
+ActorAsteroid.setMovement = function(x, y, dist, r, player) {
     this.r = this.$$.wrapAngle(r);
     this.x = x + Math.sin(r) * dist;
     this.y = y + Math.cos(r) * dist;
     
-    var speed = s ? (Math.random() * 1.25 + 2.25) : (Math.random() * 2.0 + 0.75);
+    var speed = (Math.random() * 2.0 + 0.75);
+    if (player) {
+        speed = 0.75 + Math.sqrt(player.mx * player.mx
+                                + player.my * player.my) * 0.65;
+    }
     this.mx = Math.sin(this.r) * speed;
     this.my = Math.cos(this.r) * speed;
 };
