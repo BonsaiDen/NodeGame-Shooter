@@ -534,11 +534,25 @@ ActorPlayerDef.wrap = function() {
 
 // Asteroid --------------------------------------------------------------------
 var ActorAsteroid = Client.createActorType('asteroid', 6);
+ActorAsteroid.points = [
+    [[-1, -6], [-7, -4], [-6, 4], [2, 5], [6, -2]],
+    [[-2, -13], [-13 , -8], [-12, 8], [-2, 12], [11, 10], [12, -8]],
+    [[-5, -16], [-16 , -9], [-15, 12], [-4, 16], [13, 13], [16, -5], [10, -15]],
+    
+    [[-66, -120], [-126, -56], [-92, 76], [-42, 118], [6, 102], [120, 62],
+     [148, 36], [148, -22], [58, -90]],
+     
+    [[-96, -100], [-126, -26], [-112, 75], [-32, 92], [35, 92], [110, 70],
+     [138, 36], [128, -52], [28, -120]]
+];
+
 ActorAsteroid.onCreate = function(data, complete) {
     this.r = data[0];
     this.mr = data[1]; 
     this.type = data[2];
     this.col = '#777777';
+    this.points = ActorAsteroid.points[this.type - 1];
+    this.border = this.type < 4 ? 3 : 6;
 };
 
 ActorAsteroid.onUpdate = function(data) {
@@ -546,62 +560,18 @@ ActorAsteroid.onUpdate = function(data) {
 };
 
 ActorAsteroid.onDraw = function() {
-    this.$.line(3);
-    this.$.stroke(this.col);
-    
+
     this.$.bg.save();
     this.$.bg.translate(this.x, this.y);
     this.$.bg.rotate(Math.PI - this.r);
     this.$.bg.beginPath();
-    if (this.type === 1) {
-        this.$.bg.moveTo(-1, -6);
-        this.$.bg.lineTo(-7, -4);
-        this.$.bg.lineTo(-6, 4);
-        this.$.bg.lineTo(2, 5);
-        this.$.bg.lineTo(6, -2);
+    this.$.line(this.border);
     
-    } else if (this.type === 2) {
-        this.$.bg.moveTo(-2, -13);
-        this.$.bg.lineTo(-13, -8);
-        this.$.bg.lineTo(-12, 8);
-        this.$.bg.lineTo(-2, 12);
-        this.$.bg.lineTo(11, 10);
-        this.$.bg.lineTo(12, -8);
-    
-    } else if (this.type === 3) {
-        this.$.bg.moveTo(-5, -16);
-        this.$.bg.lineTo(-16, -9);
-        this.$.bg.lineTo(-15, 12);
-        this.$.bg.lineTo(-4, 16);
-        this.$.bg.lineTo(13, 13);
-        this.$.bg.lineTo(16, -5);
-        this.$.bg.lineTo(10, -15);
-    
-    } else if (this.type === 4) {
-        this.$.line(6);
-        this.$.bg.moveTo(-66, -120);
-        this.$.bg.lineTo(-126, -56);
-        this.$.bg.lineTo(-92, 76);
-        this.$.bg.lineTo(-42, 118);
-        this.$.bg.lineTo(6, 102);
-        this.$.bg.lineTo(120, 62);
-        this.$.bg.lineTo(148, 36);
-        this.$.bg.lineTo(148, -22);
-        this.$.bg.lineTo(58, -90);
-    
-    } else if (this.type === 5) {
-        this.$.line(6);
-        this.$.bg.moveTo(-96, -100);
-        this.$.bg.lineTo(-126, -26);
-        this.$.bg.lineTo(-112,75);
-        this.$.bg.lineTo(-32, 92);
-        this.$.bg.lineTo(35, 92);
-        this.$.bg.lineTo(110, 70);
-        this.$.bg.lineTo(138, 36);
-        this.$.bg.lineTo(128, -52);
-        this.$.bg.lineTo(28, -120);
+    this.$.stroke(this.col);
+    this.$.bg.moveTo(this.points[0][0], this.points[0][1]);
+    for(var i = 1; i < this.points.length; i++) {
+        this.$.bg.lineTo(this.points[i][0], this.points[i][1]);
     }
-    
     this.$.bg.closePath();
     this.$.bg.stroke();
     this.$.bg.restore();
