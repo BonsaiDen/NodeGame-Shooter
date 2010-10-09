@@ -70,8 +70,8 @@ Shooter.onInit = function() {
     this.sizeMissile = 4;
     this.sizeDefend = 3;
     this.sizeBomb = 4;
-    this.sizeAsteroid = 16;
-    this.sizeBigAsteroid = 160;
+    this.sizeAsteroid = 19;
+    this.sizeBigAsteroid = 170;
     
     this.fullWidth = this.width + 32;
     this.fullHeight = this.height + 32;
