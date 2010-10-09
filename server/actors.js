@@ -490,7 +490,7 @@ ActorAsteroid.onCreate = function(data) {
     }
     this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
                                          ActorAsteroid.points[this.type - 1],
-                                         6);
+                                         this.type < 4 ? 3 : 6);
     
     var found = false;
     var tries = 0;
