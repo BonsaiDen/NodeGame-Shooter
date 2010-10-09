@@ -39,7 +39,7 @@ Shooter.onConnect = function(success) {
         return;
     }
     this.canvas.style.display = 'block';
-    document.getElementById('size').style.display = 'block';
+    document.getElementById('sub').style.display = 'block';
     
     document.getElementById('login').onkeypress = function(e) {
         that.onLogin(e);
@@ -49,19 +49,12 @@ Shooter.onConnect = function(success) {
     // localStorage will fail too.
     document.cookie = '';
     window.onbeforeunload = function() {
-        localStorage.setItem('small', that.small);
         localStorage.setItem('sound', that.sound.enabled);
     };
     
     // Canvas
     this.particles = [];
-    try {
-        this.small = localStorage.getItem('small') === 'true' || false;
-    
-    } catch (e) {
-        this.small = false;
-    }
-    this.scale = this.small ? 0.5 : 1;
+    this.scale = 1;
     
     // Sounds
     this.sound = new SoundPlayer(7, 'sounds', [
@@ -167,7 +160,7 @@ Shooter.onUpdate = function(data) {
 Shooter.onMessage = function(msg) {
     if (msg.playing === true) {
         this.playing = true;
-        document.getElementById('box').style.display = 'none';
+        document.getElementById('loginOverlay').style.display = 'none';
     }
     if (msg.rt !== undefined) {
         this.roundStart = this.getTime();
@@ -353,12 +346,6 @@ Shooter.renderParticles = function() {
 
 
 // Interface -------------------------------------------------------------------
-Shooter.onResize = function(data) {
-    this.small = !this.small;
-    this.scale = this.small ? 0.5 : 1;
-    this.initCanvas();
-};
-
 Shooter.onSound = function(data) {
     this.sound.enabled = !this.sound.enabled;
     document.getElementById('sound').innerHTML = (this.sound.enabled
@@ -398,19 +385,16 @@ Shooter.checkPlayers = function(data) {
         count++;
     }
     
-    var box = document.getElementById('box');
-    var controls = document.getElementById('controls'); 
-    if (!this.playing && this.roundGO) {
+    var login = document.getElementById('loginOverlay');
+    if (!this.playing) {
         if (count < data.m) {
-            if (box.style.display !== 'block') {
-                box.style.display = 'block';
-                controls.style.display = 'block';
+            if (login.style.display !== 'block') {
+                login.style.display = 'block';
                 document.getElementById('login').focus();
             }
         
         } else {
-            box.style.display = 'none';
-            controls.style.display = 'none';
+            login.style.display = 'none';
         }
     }
 };
