@@ -24,13 +24,18 @@
 function Polygon2D(x, y, r, points, border) {
     this.count = points.length;
     this.base = new Array(this.count);
+    this.radius = 0;
     for(var e = 0; e < points.length; e++) {
         var r = Math.atan2(points[e][0], points[e][1]);
         var d = Math.sqrt(points[e][0] * points[e][0]
                           + points[e][1] * points[e][1]) + border;
         
+        if (d > this.radius) {
+            this.radius = d;
+        }
         this.base[e] = [Math.sin(r) * d,  Math.cos(r) * d];
     }
+    this.radius += 3;
     this.points = new Array(this.count);
     this.transform(x, y, r);
 }
