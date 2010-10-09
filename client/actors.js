@@ -156,7 +156,7 @@ ActorPlayer.onDraw = function() {
         
         this.$.bg.beginPath();
         this.$.bg.moveTo(0, -12);
-        this.$.bg.lineTo(10 , 12);
+        this.$.bg.lineTo(10, 12);
         this.$.bg.lineTo(-10, 12);
         this.$.bg.lineTo(0, -12);
         this.$.bg.closePath();
@@ -562,7 +562,7 @@ ActorAsteroid.onDraw = function() {
     
     } else if (this.type === 2) {
         this.$.bg.moveTo(-2, -13);
-        this.$.bg.lineTo(-13 , -8);
+        this.$.bg.lineTo(-13, -8);
         this.$.bg.lineTo(-12, 8);
         this.$.bg.lineTo(-2, 12);
         this.$.bg.lineTo(11, 10);
@@ -570,7 +570,7 @@ ActorAsteroid.onDraw = function() {
     
     } else if (this.type === 3) {
         this.$.bg.moveTo(-5, -16);
-        this.$.bg.lineTo(-16 , -9);
+        this.$.bg.lineTo(-16, -9);
         this.$.bg.lineTo(-15, 12);
         this.$.bg.lineTo(-4, 16);
         this.$.bg.lineTo(13, 13);
@@ -580,7 +580,7 @@ ActorAsteroid.onDraw = function() {
     } else if (this.type === 4) {
         this.$.line(6);
         this.$.bg.moveTo(-66, -120);
-        this.$.bg.lineTo(-126 , -56);
+        this.$.bg.lineTo(-126, -56);
         this.$.bg.lineTo(-92, 76);
         this.$.bg.lineTo(-42, 118);
         this.$.bg.lineTo(6, 102);
@@ -592,7 +592,7 @@ ActorAsteroid.onDraw = function() {
     } else if (this.type === 5) {
         this.$.line(6);
         this.$.bg.moveTo(-96, -100);
-        this.$.bg.lineTo(-126 , -26);
+        this.$.bg.lineTo(-126, -26);
         this.$.bg.lineTo(-112,75);
         this.$.bg.lineTo(-32, 92);
         this.$.bg.lineTo(35, 92);
