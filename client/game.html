@@ -4,95 +4,125 @@
         <title>NodeGame: Shooter</title>
         
         <style>
-        body {
-            margin: 0px;
-            padding: 0px;
-            background-color: #202020;
-            font: 10.34px helvetica, arial, freesans, clean, sans-serif;
-            font-weight: bold;
-            color: #ffffff;
-            text-align: center;
-        }
+            /* General */
+            body {
+                margin: 0px;
+                padding: 0px;
+                background-color: #202020;
+                font: 10.34px sans-serif;
+                font-weight: bold;
+                color: #ffffff;
+            }
+            
+            canvas {
+                margin: 8px auto 2px;
+                display: block;
+                border: 3px #f0f0f0 solid;
+                background-color: #000000;
+                display: none;
+            }
+                   
+            a {
+                color: #ffffff;
+                text-decoration: none;
+            }
+            
+            a:hover {
+                color: #ffffff;
+                text-decoration: underline;
+            }
+            
+            .fork {
+                opacity: 0.15;
+            }
+            
+            .fork:hover {
+                opacity: 1;
+            }
+            
+            /* Error */
+            #error {
+                font-size: 30px;
+                width: 400px;
+                display: none;
+                text-align: center;
+                margin: 8px auto;
+            } 
+            
+            #error a {
+                font-size: 20px;
+                text-decoration: underline;
+            }
+            
+            #error a:hover {
+                text-decoration: none;
+            }
         
-        canvas {
-            margin: 8px auto;
-            display: block;
-            border: 3px #f0f0f0 solid;
-            background-color: #000000;
-            display: none;
-        }
-        
-        #box {
-            width: 150px;
-            margin: 0px auto 8px;
-            display: none;
-        }
-        
-        #controls {
-            width: 480px;
-            margin: 0px auto 8px;
-            display: none;
-        }
+            #warning {
+                font-size: 10px;
+                width: 480px;
+                display: none;
+                margin: 8px auto;
+            }
         
         
-        input {
-            border: 2px #f0f0f0 solid;
-            background-color: #000000;
-            margin-top: 2px;
-            font: 10.34px helvetica, arial, freesans, clean, sans-serif;
-            font-weight: bold;
-            color: #ffffff;
-            height: 14px;
-            padding: 2px;
-        }
-       
-        #error {
-            font-size: 30px;
-            width: 400px;
-            display: none;
-            text-align: center;
-            margin: 8px auto;
-        } 
+            /* Options */
+            #sub {
+                font-size: 10px;
+                width: 480px;
+                margin: 0px auto;
+                display: none;
+            }
+            
+            .sound {
+                width: 200px;
+                display: hidden;
+            }
+
+            .copyright {
+                float: right;
+                width: 280px;
+                text-align: right;
+            }
         
-        #error a {
-            font-size: 20px;
-            text-decoration: underline;
-        }
         
-        #error a:hover {
-            text-decoration: none;
-        }
-        
-        #warning {
-            font-size: 10px;
-            width: 480px;
-            display: none;
-            margin: 8px auto;
-        }   
-        
-        #size {
-            font-size: 10px;
-            width: 300px;
-            text-align: center;
-            margin: 8px auto;
-            display: none;
-        }
-        
-        a {
-            color: #ffffff;
-            text-decoration: none;
-        }
-        
-        a:hover {
-            color: #ffffff;
-            text-decoration: underline;
-        }  
-        
-        #copyright {
-            width: 300px;
-            text-align: center;
-            margin: 8px auto;
-        }
+            /* Login */
+            #loginOverlay {
+                position: absolute;
+                padding-top: 300px;
+                top: 0px;
+                left: 0px;
+                width: 100%;
+                display: none;
+            }
+            
+            .box {
+                text-align: center;
+                width: 240px;
+                margin: 0px auto 80px;
+
+                font-size: 15px;
+                opacity: 0.25;
+            }
+            
+            .box:hover {
+                 opacity: 1;
+            }
+            
+            input {
+                border: 2px #f0f0f0 solid;
+                background-color: #000000;
+                margin-top: 2px;
+                font-size: 25px;
+                font-weight: bold;
+                color: #ffffff;
+                width: 240px;
+                padding: 2px;
+            }
+            
+            .controls {
+                font-size: 12px; 
+            } 
         </style>
         
         <script type="text/javascript">
@@ -112,19 +142,35 @@
     </head>
     
     <body>
-        <a href="http://github.com/BonsaiDen/NodeGame-Shooter"><img style="position: absolute; top: 0; left: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_left_red_aa0000.png" alt="Fork me on GitHub" /></a>
+       <div id="loginOverlay">
+            <div class="box">
+                Join the Game!<br/>
+                <input id="login" type="text" value="" maxlength="12"/><br/>
+                <div class="controls">
+                    [WASD] | Move<br/>
+                    [SPACE] | Shoot<br/>
+                    [RETURN] | Fire / Detonate bomb
+                </div>
+            </div>
+        </div>
+        <a class="fork" href="http://github.com/BonsaiDen/NodeGame-Shooter"><img style="position: absolute; top: 0; left: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_left_red_aa0000.png" alt="Fork me on GitHub" /></a>
+        
         <div id="warning">
             OH NOES! Kittens failed to detect WebSockets nao da laggy Flash thing haz to do tha work!<br/>
             Pls grab a modern Browsa lak Chrome 5+, Firefox 4 Beta or Safari 5. THX!
         </div>
-        <canvas id="bg"></canvas>
         <div id="error">SERVER OFFLINE<br/>
             <a href="http://www.youtube.com/watch?v=0Z0QBtFo8kc">Watch the Game on YouTube!</a>
         </div>
-        <div id="size"><a href="#" onclick="Shooter.onResize()">CHANGE SIZE</a> | <a href="#" id="sound" onclick="Shooter.onSound()">DEACTIVATE SOUND</a></div>
-        <div id="box">Your Name<br/><input id="login" type="text" value="" maxlength="12"/></div>
-        <div id="controls">W/A/D or Arrow Keys control your Ship | Space shoots | M / Return fires and detonates a bomb</div>
-        <div id="copyright">Copyright (c) 2010 Ivo Wetzel | <a href="http://twitter.com/BonsaiDen">Twitter @BonsaiDen</a></div>
+        <canvas id="bg"></canvas>
+        
+        <div id="sub">
+            <div class="copyright">
+                Copyright (c) 2010 Ivo Wetzel | <a href="http://twitter.com/BonsaiDen">Twitter @BonsaiDen</a>
+            </div>
+            <div class="sound">
+                <a href="#" id="sound" onclick="Shooter.onSound()">DEACTIVATE SOUND</a>
+            </div>
     </body>
 </html>
 

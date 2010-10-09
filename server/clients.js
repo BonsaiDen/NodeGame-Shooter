@@ -68,8 +68,6 @@ Client.init = function(init) {
         this.bombLaunched = false;
         
         this.$.emitFields();
-        this.message({'playing': true});
-        
         this.player = this.$.createActor('player', {'r': 0, 'client': this});
     }
 };
@@ -120,6 +118,7 @@ Client.onMessage = function(msg) {
             
             this.playerName = msg.player;
             this.$$.playerCount += 1;
+            this.message({'playing': true});
             this.init(true);
         }
     
