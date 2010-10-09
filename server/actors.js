@@ -494,12 +494,12 @@ ActorAsteroid.onCreate = function(data) {
     for(var i = 0; i < ps.length; i++) {
         for(var e = 0; e < ps[i].length; e++) {
             if (i < 3) {
-                ps[i][e][0] *= 1.16;
-                ps[i][e][1] *= 1.16;
+                ps[i][e][0] *= 1.157;
+                ps[i][e][1] *= 1.157;
             
             } else {
-                ps[i][e][0] *= 1.035;
-                ps[i][e][1] *= 1.035;      
+                ps[i][e][0] *= 1.0325;
+                ps[i][e][1] *= 1.0325;
             }
         }
     }
@@ -566,7 +566,7 @@ ActorAsteroid.onCreate = function(data) {
     }
     
     if (this.type >= 4) {
-        this.speed = Math.random() * 1.2 + 1.20;
+        this.speed = Math.random() * 0.7 + 1.50;
         this.x += this.x < this.$$.halfWidth ? -128 : 128;
         this.y += this.y < this.$$.halfHeight ? -128 : 128;
         this.mr *= 0.125;
