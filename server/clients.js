@@ -171,7 +171,7 @@ Client.onUpdate = function() {
                 this.bomb = this.$.createActor('bomb',{
                     'r': this.$$.wrapAngle(this.player.r + this.player.mr),
                     'player': this.player,
-                    'd': 14
+                    'd': 17
                 });
                 this.bombLaunched = true;
             }
