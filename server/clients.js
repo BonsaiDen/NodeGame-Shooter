@@ -229,7 +229,9 @@ Client.onUpdate = function() {
 
 Client.onRemove = function() {
     this.leave();
-    this.log('-- [' + this.getInfo() + '] quit');
+    this.log('-- [' + this.getInfo() + '] quit ('
+             + this.$.toSize(this.bytesSend()) + ' send)');
+        
 };
 
 Client.leave = function() {

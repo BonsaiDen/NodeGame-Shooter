@@ -72,6 +72,7 @@ function Connection($, req, socket, headers, upgradeHeader) {
     // Internal Stuff
     var that = this;
     this.id = socket.remoteAddress + ':' + socket.remotePort;
+    this.bytesSend = 0;
     
     var frame = [];
     var state = 0;
@@ -124,6 +125,7 @@ function Connection($, req, socket, headers, upgradeHeader) {
                 
             }
         }
+        that.bytesSend += bytes;
         return bytes;
     }
     

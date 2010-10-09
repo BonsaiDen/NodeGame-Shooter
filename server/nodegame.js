@@ -173,6 +173,15 @@ Server.prototype.log = function(str) {
     }
 };
 
+Server.prototype.toSize = function(size) {
+    var t = 0;
+    while(size >= 1024 && t < 2) {
+        size = size / 1024;
+        t++;
+    }
+    return Math.round(size * 100) / 100 + [' bytes', ' kib', ' mib'][t];
+};
+
 Server.prototype.status = function(end) {
     if (!this.showStatus) {
         return;
@@ -186,21 +195,12 @@ Server.prototype.status = function(end) {
         return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
     }
     
-    function toSize(size) {
-        var t = 0;
-        while(size >= 1024 && t < 2) {
-            size = size / 1024;
-            t++;
-        }
-        return Math.round(size * 100) / 100 + [' bytes', ' kib', ' mib'][t];
-    }
-    
     var stats = '    Running ' + toTime(this.time) + ' | '
                 + this.clientCount
                 + ' Client(s) | ' + this.actorCount + ' Actor(s) | '
-                + toSize(this.bytesSend)
+                + this.toSize(this.bytesSend)
                 + ' send | '
-                + toSize((this.bytesSend - this.bytesSendLast) * 2)
+                + this.toSize((this.bytesSend - this.bytesSendLast) * 2)
                 + '/s\n';
     
     this.bytesSendLast = this.bytesSend;
@@ -545,6 +545,10 @@ Client.prototype.getTimeConnected = function() {
 
 Client.prototype.timeDiff = function(time) {
     return this.$.timeDiff(time);
+};
+
+Client.prototype.bytesSend = function() {
+    return this.$conn.bytesSend;
 };
 
 
