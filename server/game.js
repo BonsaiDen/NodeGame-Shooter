@@ -748,6 +748,24 @@ Shooter.destroyBomb = function(b) {
     b.player.bomb = false;
     b.player.client.bomb = null;
     
+    function Exploder(count, interval, bomb) {
+        var that = this;
+        var tick = 0;
+        this.tick = function() {
+            Shooter.explodeBomb(bomb, tick);
+            tick++;
+            count--;
+            if (count > 0) {
+                setTimeout(that.tick, interval);
+            }
+        };
+        this.tick();
+    }
+    new Exploder(25, 20, b);
+};
+
+
+Shooter.explodeBomb = function(b, tick) {
     // Bombs
     var bombs = this.getActors('bomb');
     for(var i = 0, l = bombs.length; i < l; i++) {
@@ -785,7 +803,9 @@ Shooter.destroyBomb = function(b) {
             }
         }
     }
-    b.player.client.bombLaunched = false;
+    if (tick === 0) {
+        b.player.client.bombLaunched = false;
+    }
     
     // Powerups
     var powerups = this.getActors('powerup');
@@ -828,7 +848,7 @@ Shooter.destroyBomb = function(b) {
             e.destroy();
         }
     }
-}
+};
 
 
 // Helpers ---------------------------------------------------------------------
