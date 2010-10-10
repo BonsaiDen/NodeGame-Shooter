@@ -263,8 +263,7 @@ Shooter.collidePowerUps = function(o, p) {
     
     // Armor
     } else if (o.type === 'armor') {
-        p.armor = true;
-        p.armorTime = this.getTime();
+        p.enableArmor();
     
     // Life
     } else if (o.type === 'life') {

@@ -155,35 +155,26 @@ ActorPlayer.onDraw = function() {
         this.$.bg.save();
         this.$.bg.translate(this.x, this.y);
         this.$.bg.rotate(Math.PI - this.r);
+
+        this.$.bg.beginPath();
+        this.$.bg.moveTo(0, -12);
+        this.$.bg.lineTo(10, 12);
+        this.$.bg.lineTo(-10, 12);
+        this.$.bg.lineTo(0, -12);
+        this.$.bg.closePath();
+        this.$.bg.stroke();
         
-        if (!this.armor) { 
+        if (this.armor) {
+            this.$.line(0.5);
             this.$.bg.beginPath();
-            this.$.bg.moveTo(0, -12);
-            this.$.bg.lineTo(10, 12);
-            this.$.bg.lineTo(-10, 12);
-            this.$.bg.lineTo(0, -12);
-            this.$.bg.closePath();
-            this.$.bg.stroke();
-        
-        } else {
-            this.$.line(1.25);
-            this.$.bg.beginPath();
-            this.$.bg.moveTo(0, -13.5);
-            this.$.bg.lineTo(11, 13);
-            this.$.bg.lineTo(-11, 13);
-            this.$.bg.lineTo(0, -13.5);
-            this.$.bg.closePath();
-            this.$.bg.stroke();
-            
-            this.$.bg.beginPath();
-            this.$.bg.moveTo(0, -6.5);
-            this.$.bg.lineTo(6.5, 10.1);
-            this.$.bg.lineTo(-6.5, 10.1);
-            this.$.bg.lineTo(0, -6.5);
+            this.$.bg.moveTo(0, -20.5);
+            this.$.bg.lineTo(15, 15.5);
+            this.$.bg.lineTo(-15, 15.5);
+            this.$.bg.lineTo(0, -20.5);
             this.$.bg.closePath();
             this.$.bg.stroke();
         }
-        
+
         if (this.shield) {
             this.$.strokeCircle(0, 0, 20, 3, colFaded);
         }

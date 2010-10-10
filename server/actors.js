@@ -30,6 +30,9 @@ var ActorPlayer = Server.createActorType('player', 2);
 ActorPlayer.shape = new polygon.Shape2D([[0, -12], [10, 12], [-10, 12],
                                          [0, -12]], 2.5);
 
+ActorPlayer.shapeArmor = new polygon.Shape2D([[0, -12], [10, 12], [-10, 12],
+                                              [0, -12]], 6.5);
+
 ActorPlayer.onCreate = function(data) {
     this.client = data.client;
     this.hp = 15;
@@ -102,6 +105,9 @@ ActorPlayer.onUpdate = function() {
     
     // Armor
     if (this.armor && this.timeDiff(this.armorTime) > 17500) {
+        this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
+                                             ActorPlayer.shape);
+        
         this.armor = false;
     }
     
@@ -147,6 +153,13 @@ ActorPlayer.onUpdate = function() {
         this.update();
         this.oldMr = this.mr;
     }
+};
+
+ActorPlayer.enableArmor = function() {
+    this.armor = true;
+    this.armorTime = this.getTime();
+    this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
+                                         ActorPlayer.shapeArmor);
 };
 
 ActorPlayer.onDestroy = function() {
