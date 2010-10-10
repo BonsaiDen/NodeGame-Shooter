@@ -26,22 +26,37 @@ window.onload = function() {
 };
 
 
+// Helpers ---------------------------------------------------------------------
+function show(id) {
+    $(id).style.display = 'block';
+}
+
+function hide(id) {
+    $(id).style.display = 'none';
+}
+
+function $(id) {
+    return typeof id === 'string' ? document.getElementById(id) : id;
+}
+
+
 // Game ------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 var Shooter = Client.Game(30);
 
 Shooter.onConnect = function(success) {
     var that = this;
-    this.canvas = document.getElementById('bg');
+    
+    this.canvas = $('bg');
     if (!success) {
-        document.getElementById('error').style.display = 'block';
-        this.canvas.style.display = 'none';
+        show('error');
+        hide(this.canvas);
         return;
     }
-    this.canvas.style.display = 'block';
-    document.getElementById('sub').style.display = 'block';
+    show(this.canvas);
+    show('sub');
     
-    document.getElementById('login').onkeypress = function(e) {
+    $('login').onkeypress = function(e) {
         that.onLogin(e);
     };
     
@@ -50,6 +65,7 @@ Shooter.onConnect = function(success) {
     document.cookie = '';
     window.onbeforeunload = function() {
         localStorage.setItem('sound', that.sound.enabled);
+        localStorage.setItem('color', that.colorSelected);
     };
     
     // Canvas
@@ -79,7 +95,7 @@ Shooter.onConnect = function(success) {
     } catch (e) {
         this.sound.enabled = true;
     }
-    this.onSound();   
+    this.onSound(); 
     
     // Stuff
     this.playerNames = {};
@@ -91,6 +107,32 @@ Shooter.onConnect = function(success) {
     
     this.colorCodesFaded = ['#700000', '#004080', '#707000',
                             '#007000', '#500080', '#707070'];
+    
+    
+    // Color selection
+    try {
+        this.colorSelected = parseInt(localStorage.getItem('color') || 0);
+    
+    } catch (e) {
+        this.colorSelected = 0;
+    }
+    
+    var colorBox = $('colors');
+    this.colorSelects = [];
+    for(var i = 0; i < this.colorCodes.length; i++) {
+        var d = document.createElement('div');
+        d.className = i === this.colorSelected ? 'color colorselected': 'color';
+        d.style.backgroundColor = this.colorCodes[i];
+        d.style.borderColor = this.colorCodesFaded[i];
+        
+        d.onclick = (function(e) {
+            return function() {
+                Shooter.selectColor(e);
+            }
+        })(i);
+        colorBox.appendChild(d);
+        this.colorSelects.push(d);
+    } 
     
     // Rounds
     this.roundTime = 0;
@@ -134,6 +176,14 @@ Shooter.onConnect = function(success) {
     };
 };
 
+Shooter.selectColor = function(c) {
+    for(var i = 0; i < this.colorSelects.length; i++) {
+        this.colorSelects[i].className = 'color';
+    }
+    this.colorSelected = c;
+    this.colorSelects[c].className = 'color colorselected';
+};
+
 Shooter.playSound = function(snd) {
     this.sound.play(snd, 0.5);
 };
@@ -161,7 +211,7 @@ Shooter.onUpdate = function(data) {
 Shooter.onMessage = function(msg) {
     if (msg.playing === true) {
         this.playing = true;
-        document.getElementById('loginOverlay').style.display = 'none';
+        hide('loginOverlay');
     }
     if (msg.rt !== undefined) {
         this.roundStart = this.getTime();
@@ -187,7 +237,7 @@ Shooter.onInput = function() {
 };
 
 Shooter.onWebSocketFlash = function() {
-    document.getElementById('warning').style.display = 'block';
+    show('warning');
 };
 
 
@@ -349,20 +399,18 @@ Shooter.renderParticles = function() {
 // Interface -------------------------------------------------------------------
 Shooter.onSound = function(data) {
     this.sound.enabled = !this.sound.enabled;
-    document.getElementById('sound').innerHTML = (this.sound.enabled
-                                                    ? 'DEACTIVATE'
-                                                    : 'ACTIVATE')
-                                                    + ' SOUND';
+    $('sound').innerHTML = (this.sound.enabled ? 'DEACTIVATE' : 'ACTIVATE')
+                                                  + ' SOUND';
 };
 
 Shooter.onLogin = function(e) {
     e = e || window.event;
     if (e.keyCode === 13) {
-        var playerName = document.getElementById('login').value;
+        var playerName = $('login').value;
         playerName = playerName.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '_');
         if (playerName.length >= 2 && playerName.length <= 12) {
             e.preventDefault();
-            this.send({'player': playerName});
+            this.send({'player': playerName, 'color': this.colorSelected});
         }
         return false;
     }
@@ -386,16 +434,16 @@ Shooter.checkPlayers = function(data) {
         count++;
     }
     
-    var login = document.getElementById('loginOverlay');
+    var login = $('loginOverlay');
     if (!this.playing) {
         if (count < data.m) {
             if (login.style.display !== 'block') {
-                login.style.display = 'block';
-                document.getElementById('login').focus();
+                show(login);
+                $('login').focus();
             }
         
         } else {
-            login.style.display = 'none';
+            hide(login);
         }
     }
 };
