@@ -616,9 +616,8 @@ Shooter.collidePlayer = function(p, i, l) {
     // Player / Player Defend collision
     for(var e = 0, dl = playersDefs.length; e < dl; e++) {
         var pd = playersDefs[e];
-        if (pd.alive() && this.circleCollision(p, pd,
-                                               this.sizePlayer,
-                                               this.sizeDefend)) {
+        if (pd.alive() && pd.player !== p
+            && this.circleCollision(p, pd, this.sizePlayer, this.sizeDefend)) {
             
             pd.destroy();
             p.hp -= 15;
