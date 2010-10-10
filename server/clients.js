@@ -188,7 +188,7 @@ Client.onUpdate = function() {
                 this.bomb = this.$.createActor('bomb',{
                     'r': this.$$.wrapAngle(this.player.r + this.player.mr),
                     'player': this.player,
-                    'd': 17
+                    'd': 18.25
                 });
                 this.bombLaunched = true;
             }
@@ -216,7 +216,7 @@ Client.onUpdate = function() {
             this.$.createActor('missile', {
                 'player': this.player,
                 'r': this.$$.wrapAngle(this.player.r + this.player.mr),
-                'd': 14.5
+                'd': 16
             });
             this.player.missiles--;
         
@@ -224,7 +224,7 @@ Client.onUpdate = function() {
             this.$.createActor('bullet', {
                 'player': this.player,
                 'r': this.$$.wrapAngle(this.player.r + this.player.mr),
-                'd': 12.5
+                'd': 13.5
             });
         }
         this.shotTime = this.getTime();
