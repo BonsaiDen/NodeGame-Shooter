@@ -28,6 +28,7 @@ var Client = Server.Client();
 Client.onInit = function() {
     this.playerName = '';
     this.playerColor = -1;
+    this.favoredColor = -1;
     this.log('++ [' + this.getInfo() + '] connected');
     this.$.emitFields();
     this.local = this.ip === '127.0.0.1'
@@ -35,6 +36,15 @@ Client.onInit = function() {
 
 Client.init = function(init) {
     if (this.playerName && !this.$$.roundFinished) {
+        
+        // Get favored color
+        if (this.favoredColor !== -1) {
+            if (this.$$.playerColors[this.favoredColor] === -1) {
+                this.$$.playerColors[this.favoredColor] = this.id;
+                this.playerColor = this.favoredColor;
+            }
+            this.favoredColor = -1;
+        }
         
         // Get free color
         if (this.playerColor === -1) {
@@ -119,6 +129,13 @@ Client.onMessage = function(msg) {
             this.playerName = msg.player;
             this.$$.playerCount += 1;
             this.message({'playing': true});
+            
+            if (msg.color) {
+                var color = parseInt(msg.color);
+                if (color >= 0 && color < this.$$.maxPlayers) {
+                    this.favoredColor = color;
+                }
+            }
             this.init(true);
         }
     
