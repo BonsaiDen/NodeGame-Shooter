@@ -222,7 +222,7 @@ Server.prototype.status = function(end) {
 
 // Clients ---------------------------------------------------------------------
 Server.prototype.addClient = function(conn) {
-    this.clientID += 1;
+    this.clientID++;
     this.clients[this.clientID] = new Client(this, conn);
     this.clientCount++;
     return this.clientID;
