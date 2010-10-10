@@ -27,17 +27,18 @@ var polygon = require(__dirname + '/polygon');
 // Actors ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 var ActorPlayer = Server.createActorType('player', 2);
+ActorPlayer.shape = new polygon.Shape2D([[0, -12], [10, 12], [-10, 12],
+                                         [0, -12]], 2.5);
+
 ActorPlayer.onCreate = function(data) {
     this.client = data.client;
     this.hp = 15;
     this.r = (Math.random() * Math.PI * 2) - Math.PI;
     this.mr = 0;
     
-    this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
-                                        [[0, -12], [10, 12],
-                                         [-10, 12], [0, -12]], 2.5);
-    
     this.$$.randomPosition(this, this.$$.sizePlayer);
+    this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
+                                         ActorPlayer.shape);
     
     this.thrust = false;
     this.defense = 1400;
@@ -475,16 +476,21 @@ ActorPlayerDef.onMessage = function(once) {
 
 // Asteroid --------------------------------------------------------------------
 var ActorAsteroid = Server.createActorType('asteroid', 6);
-ActorAsteroid.points = [
-    [[-1, -6], [-7, -4], [-6, 4], [2, 5], [6, -2]],
-    [[-2, -13], [-13 , -8], [-12, 8], [-2, 12], [11, 10], [12, -8]],
-    [[-5, -16], [-16 , -9], [-15, 12], [-4, 16], [13, 13], [16, -5], [10, -15]],
+ActorAsteroid.shapes = [
+    new polygon.Shape2D([[-1, -6], [-7, -4], [-6, 4], [2, 5], [6, -2]], 2.5),
+    new polygon.Shape2D([[-2, -13], [-13 , -8], [-12, 8], [-2, 12], [11, 10],
+                         [12, -8]], 2.5),
     
-    [[-66, -120], [-126, -56], [-92, 76], [-42, 118], [6, 102], [120, 62],
-     [148, 36], [148, -22], [58, -90]],
-     
-    [[-96, -100], [-126, -26], [-112, 75], [-32, 92], [35, 92], [110, 70],
-     [138, 36], [128, -52], [28, -120]]
+    new polygon.Shape2D([[-5, -16], [-16 , -9], [-15, 12], [-4, 16], [13, 13],
+                         [16, -5], [10, -15]], 2.5),
+    
+    new polygon.Shape2D([[-66, -120], [-126, -56], [-92, 76], [-42, 118],
+                         [6, 102], [120, 62], [148, 36], [148, -22], [58, -90]],
+                         5),
+    
+    new polygon.Shape2D([[-96, -100], [-126, -26], [-112, 75], [-32, 92],
+                         [35, 92], [110, 70], [138, 36], [128, -52],
+                         [28, -120]], 5)
 ];
 
 ActorAsteroid.onCreate = function(data) {    
@@ -499,8 +505,7 @@ ActorAsteroid.onCreate = function(data) {
         ty = this.$$.height / 3 + (Math.random() * (this.$$.height / 3));  
     }
     this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
-                                         ActorAsteroid.points[this.type - 1],
-                                         this.type < 4 ? 2.5 : 5);
+                                         ActorAsteroid.shapes[this.type - 1]);
     
     var found = false;
     var tries = 0;
@@ -562,9 +567,10 @@ ActorAsteroid.onCreate = function(data) {
     }
     
     if (this.type >= 4) {
-        this.speed = Math.random() * 0.7 + 1.50;
+        speed = Math.random() * 1.20 + 1.40;
         this.x += this.x < this.$$.halfWidth ? -128 : 128;
         this.y += this.y < this.$$.halfHeight ? -128 : 128;
+        this.r = this.$$.wrapAngle(Math.atan2(tx - this.x, ty - this.y));
         this.mr *= 0.125;
     }
     while (this.mr > -0.01 && this.mr < 0.01) {
