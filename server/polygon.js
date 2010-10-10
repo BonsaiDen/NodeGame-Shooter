@@ -21,7 +21,7 @@
 */
 
 
-function Polygon2D(x, y, r, points, border) {
+function Shape2D(points, border) {
     this.count = points.length;
     this.base = new Array(this.count);
     this.radius = 0;
@@ -36,6 +36,11 @@ function Polygon2D(x, y, r, points, border) {
         this.base[e] = [Math.sin(r) * d,  Math.cos(r) * d];
     }
     this.radius += 3;
+}
+
+function Polygon2D(x, y, r, shape) {
+    this.count = shape.count
+    this.base = shape.base;
     this.points = new Array(this.count);
     this.transform(x, y, r);
 }
@@ -166,5 +171,6 @@ Vector2D.prototype.perpendicular = function() {
     return new Vector2D(-this.y, this.x);
 };
 
+exports.Shape2D = Shape2D;
 exports.Polygon2D = Polygon2D;
 
