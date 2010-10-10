@@ -83,7 +83,7 @@ Shooter.onInit = function() {
     this.powerUpCount = 0;
     this.powerUpsMax = 3;
     this.initPowerUp('shield',  2, 23, 10);
-    this.initPowerUp('armor',   1, 30, 15);
+    this.initPowerUp('armor',   1, 25, 20);
     this.initPowerUp('missile', 2, 16, 15);
     this.initPowerUp('life',    2,  8,  8);
     this.initPowerUp('boost',   2, 20, 14);
@@ -520,6 +520,10 @@ Shooter.collideAsteroid = function(a, i, al) {
                 this.getPlayerStats(p.client.id).selfDestructs += 1;
             }
             
+            if (p.armor) {
+                p.stopArmor();
+            }
+            
             if (a.type < 4) {
                 a.broken = p;
                 a.hp = 0;
@@ -646,14 +650,27 @@ Shooter.collidePlayer = function(p, i, l) {
         var pp = players[e];
         if (pp.hp > 0 && pp.defense === 0) {
             if (this.circleCollision(p, pp, this.sizePlayer, this.sizePlayer)) {
-                p.hp = 0;
-                pp.hp = 0;
-                pp.client.kill(); 
-                p.client.kill();
+                if (p.armor && !pp.armor) {
+                    p.disableArmor();
+                    pp.hp = 0;
+                    pp.client.kill(false, true);
                 
-                this.getPlayerStats(p.client.id).selfDestructs += 1;
-                this.getPlayerStats(pp.client.id).selfDestructs += 1;
-                return;
+                } else if (pp.armor && !p.armor) {
+                    pp.disableArmor();
+                    p.hp = 0;
+                    p.client.kill(false, true);
+                    return;
+                
+                } else {
+                    p.hp = 0;
+                    pp.hp = 0;
+                    pp.client.kill(); 
+                    p.client.kill();
+                    
+                    this.getPlayerStats(p.client.id).selfDestructs += 1;
+                    this.getPlayerStats(pp.client.id).selfDestructs += 1;
+                    return;
+                }
             }
         }
     }

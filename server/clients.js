@@ -82,15 +82,17 @@ Client.init = function(init) {
     }
 };
 
-Client.kill = function(asteroid) {
+Client.kill = function(asteroid, armored) {
     if (this.player && !this.$$.roundFinished) {
         this.bomb = null;
         
-        if (asteroid === true) {
-            this.addScore(-2);
-        
-        } else {
-            this.addScore(this.player.camu === 2 ? -10 : -5);
+        if (!armored) {
+            if (asteroid === true) {
+                this.addScore(-2);
+            
+            } else {
+                this.addScore(this.player.camu === 2 ? -10 : -5);
+            }
         }
         
         this.reset = this.getTime();

@@ -104,11 +104,8 @@ ActorPlayer.onUpdate = function() {
     }
     
     // Armor
-    if (this.armor && this.timeDiff(this.armorTime) > 17500) {
-        this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
-                                             ActorPlayer.shape);
-        
-        this.armor = false;
+    if (this.armor && this.timeDiff(this.armorTime) > 15000) {
+        this.disableArmor();
     }
     
     // Speed
@@ -161,6 +158,18 @@ ActorPlayer.enableArmor = function() {
     this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
                                          ActorPlayer.shapeArmor);
 };
+
+ActorPlayer.disableArmor = function() {
+    this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
+                                         ActorPlayer.shape);
+    
+    this.armor = false;
+};
+
+ActorPlayer.stopArmor = function() {
+    this.armorTime = this.getTime() - 14500;
+};
+
 
 ActorPlayer.onDestroy = function() {
     this.clients();
