@@ -63,15 +63,15 @@ Shooter.onInit = function() {
     this.$.setField('m', this.maxPlayers);
     
     // Sizes
-    this.sizePlayer = 16;
+    this.sizePlayer = 19;
     this.sizeShield = 22;
     this.sizePowerUp = 10;
     this.sizeBullet = 2;
     this.sizeMissile = 4;
     this.sizeDefend = 3;
     this.sizeBomb = 4;
-    this.sizeAsteroid = 19;
-    this.sizeBigAsteroid = 170;
+    this.sizeAsteroid = 22;
+    this.sizeBigAsteroid = 165;
     
     this.fullWidth = this.width + 32;
     this.fullHeight = this.height + 32;

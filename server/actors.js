@@ -28,7 +28,7 @@ var polygon = require(__dirname + '/polygon');
 // -----------------------------------------------------------------------------
 var ActorPlayer = Server.createActorType('player', 2);
 ActorPlayer.shape = new polygon.Shape2D([[0, -12], [10, 12], [-10, 12],
-                                         [0, -12]], 2.5);
+                                         [0, -12]], 3);
 
 ActorPlayer.onCreate = function(data) {
     this.client = data.client;
@@ -477,12 +477,12 @@ ActorPlayerDef.onMessage = function(once) {
 // Asteroid --------------------------------------------------------------------
 var ActorAsteroid = Server.createActorType('asteroid', 6);
 ActorAsteroid.shapes = [
-    new polygon.Shape2D([[-1, -6], [-7, -4], [-6, 4], [2, 5], [6, -2]], 2.5),
+    new polygon.Shape2D([[-1, -6], [-7, -4], [-6, 4], [2, 5], [6, -2]], 3),
     new polygon.Shape2D([[-2, -13], [-13 , -8], [-12, 8], [-2, 12], [11, 10],
-                         [12, -8]], 2.5),
+                         [12, -8]], 3),
     
     new polygon.Shape2D([[-5, -16], [-16 , -9], [-15, 12], [-4, 16], [13, 13],
-                         [16, -5], [10, -15]], 2.5),
+                         [16, -5], [10, -15]], 3),
     
     new polygon.Shape2D([[-66, -120], [-126, -56], [-92, 76], [-42, 118],
                          [6, 102], [120, 62], [148, 36], [148, -22], [58, -90]],
