@@ -112,10 +112,12 @@ ActorPlayer.onUpdate = function(data) {
     
     // Armor
     if (this.armor && !data[8]) {
+        this.$.playSound('powerOff');
         this.emitParticles(1.0, 0.5, 4);
         this.emitParticles(1.7, 0.4, 6);
         
     } else if (!this.armor && data[8]) {
+        this.$.playSound('powerOn');
         this.emitParticles(1.25, 0.4, 4);
         this.emitParticles(2.0, 0.3, 6);
     }
