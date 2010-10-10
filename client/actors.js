@@ -109,7 +109,43 @@ ActorPlayer.onUpdate = function(data) {
         }
     }
     this.missiles = data[7];
+    
+    // Armor
+    if (this.armor && !data[8]) {
+        this.emitParticles(1.0, 0.5, 4);
+        this.emitParticles(1.7, 0.4, 6);
+        
+    } else if (!this.armor && data[8]) {
+        this.emitParticles(1.25, 0.4, 4);
+        this.emitParticles(2.0, 0.3, 6);
+    }
     this.armor = data[8];
+};
+
+
+ActorPlayer.emitParticles = function(speed, dur, step) {
+    var col = this.$.colorCodes[this.$.playerColors[this.id]];
+    var p = [[0, -12], [10, 12], [-10, 12], [0, -12]];
+    for(var i = 0, l = p.length - 1; i < p.length; l = i, i++) {
+        var a = p[i], b = p[l];
+        var dx = b[0] - a[0], dy = b[1] - a[1];
+        var r = Math.atan2(dx, dy);
+        var d = Math.sqrt(dx * dx + dy * dy);
+        
+        var rr = Math.atan2(a[0], a[1]), dd = Math.sqrt(a[0] * a[0] + a[1] * a[1]);
+        
+        var steps = d / step;
+        for(var e = 0; e < steps; e++) {
+            var x = this.x + Math.sin(Math.PI + this.r - rr) * dd;
+            var y = this.y + Math.cos(Math.PI + this.r - rr) * dd; 
+            x += Math.sin(Math.PI + this.r -r) * (e * step);
+            y += Math.cos(Math.PI + this.r -r) * (e * step);
+            
+            var cr = Math.atan2(x - this.x, y - this.y);
+            this.$.effectParticle(x, y, cr, {'s': speed, 'd': dur,
+                                             'c': col, 'a': this.alpha});
+        }
+    }
 };
 
 ActorPlayer.onInterleave = function(step) {
@@ -128,6 +164,12 @@ ActorPlayer.onDestroy = function(complete) {
                               {'n': 42, 'd': 0.6, 's': 3.25,
                                'c': col, 'a': this.alpha});
         }
+        
+        if (this.armor) {
+            this.emitParticles(1.5, 0.45, 3.5);
+            this.emitParticles(2.2, 0.35, 5.5);
+        }
+        
         for(var i = 0; i < this.missiles; i++) {
             var r = this.$.wrapAngle((Math.PI * 2 / this.mor * i) - Math.PI + this.mmr);
             var size = 26 + Math.cos(this.mmr * 2);
