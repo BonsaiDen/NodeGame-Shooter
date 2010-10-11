@@ -862,8 +862,7 @@ Shooter.asteroidCollision = function(a, e, r) {
 };
 
 Shooter.bombCollision = function(b, e, r) {
-    return (b.alive() && e.alive())
-                ? this.circleCollision(b, e, b.range, r) : false;
+    return e.alive() ? this.circleCollision(b, e, b.range, r) : false;
 };
 
 Shooter.circleCollision = function(a, b, ra, rb, circle, noWrap) {
