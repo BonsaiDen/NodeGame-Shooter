@@ -109,11 +109,11 @@
             
             #offlineBox {
                 font-size: 25px;
-                opacity: 0.75;
+                opacity: 0.25;
                 display: none;
             }
             
-            #loginBox:hover {
+            #loginBox:hover, #offlineBox:hover {
                  opacity: 1;
             }
             
@@ -202,7 +202,7 @@
        <div id="loginOverlay">
             <div id="loginBox">
                 Join the Game!<br/>
-                <input id="login" type="text" value="" maxlength="12"/><br/>
+                <input id="login" autocomplete="off" type="text" value="" maxlength="12"/><br/>
                 <div id="colors"></div>
                 <div class="controls">
                     [SPACE] | Shoot<br/>
