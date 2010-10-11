@@ -160,7 +160,7 @@ Client.prototype.checkServer = function(host, port) {
 Client.prototype.playRecording = function(record) {
     if (record) {
         this.recording = record;
-        this.recordingTime = this.getTime();
+        this.recordingTime = this.getTime() - this.recording[0][0];
         this.recordingID = 0;
         this.recordingLength = this.recording.length;
         this.playRecording();
