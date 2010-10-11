@@ -25,7 +25,9 @@ var NodeGame = require(__dirname + '/nodegame');
 // Init
 Server = new NodeGame.Server({
     'port': Math.abs(process.argv[2]) || 28785,
-    'status': true
+    'status': true,
+    'recordFile': __dirname + '/../record[date].js',
+    'record': false
 });
 Server.run();
 

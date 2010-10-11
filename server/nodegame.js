@@ -22,6 +22,8 @@
 
 
 var sys = require('sys');
+var fs= require('fs');
+
 var ws = require(__dirname + '/ws');
 var BISON = require(__dirname + '/bison');
 
@@ -66,6 +68,11 @@ function Server(options) {
     
     this.bytesSend = 0;
     this.bytesSendLast = 0;
+    
+    // Recording
+    this.record = options.record || false;
+    this.recordFile = options.recordFile || __dirname + '/record[date].js';
+    this.recordData = [];
     
     // Socket
     var that = this;
@@ -122,9 +129,14 @@ Server.prototype.start = function() {
     this.log('>> Server started');
     this.$$.start();
     this.status();
+    
+    if (this.record) {
+        this.clientID++;
+        this.clients[0] = new Client(this, null, true);
+        this.clientCount++;
+    }
     process.addListener('SIGINT', function(){that.shutdown()});
 };
-
 
 Server.prototype.shutdown = function() {
     this.$$.$running = false;
@@ -136,10 +148,39 @@ Server.prototype.shutdown = function() {
         for(var c in that.clients) {
             that.clients[c].close();
         }
+        that.saveRecording();
         that.log('>> Shutting down...');
         that.status(true);
         process.exit(0);
     }, 100);
+};
+
+Server.prototype.recordMessage = function(msg) {
+    if (msg[0] !== MSG_GAME_SHUTDOWN) {
+        this.recordData.push([this.getTime() - this.startTime,
+                              JSON.stringify(msg)]);
+    }
+};
+
+Server.prototype.saveRecording = function() {
+    if (this.record) {
+        this.log('## Saving recording...');
+        var date = new Date().toString().replace(/(\s|:)/g, '-').substr(0, 24)
+        var file = this.recordFile.replace('[date]', '.' + date);
+        var fd = fs.openSync(file, 'w+'); 
+        if (!fd) {
+            this.log('!! Failed to save recording');
+        
+        } else {
+            var str = 'var RECORD = [\n';
+            for(var i = 0, l = this.recordData.length; i < l; i++) {
+                str += '    ' + '[' + this.recordData[i] + ']'
+                              + (i < l - 1 ? ',' : '') + '\n';
+            }
+            fs.writeSync(fd, str + '];');
+            this.log('## Recording saved');
+        }
+    }
 };
 
 Server.prototype.Game = function(interval) {
@@ -223,7 +264,7 @@ Server.prototype.status = function(end) {
 // Clients ---------------------------------------------------------------------
 Server.prototype.addClient = function(conn) {
     this.clientID++;
-    this.clients[this.clientID] = new Client(this, conn);
+    this.clients[this.clientID] = new Client(this, conn, false);
     this.clientCount++;
     return this.clientID;
 };
@@ -244,23 +285,34 @@ Server.prototype.updateClients = function() {
 
 
 // Messaging -------------------------------------------------------------------
-Server.prototype.send = function(conn, type, msg) {
+Server.prototype.send = function(conn, type, msg, record) {
     msg.unshift(type);
-    this.bytesSend += conn.send(this.toBISON(msg));
+    if (!record) {
+        this.bytesSend += conn.send(this.toBISON(msg));
+    
+    } else {
+        this.recordMessage(msg);
+    }
 };
 
 Server.prototype.emit = function(type, msg) {
     msg.unshift(type);
     this.bytesSend += this.$.broadcast(this.toBISON(msg));
-};
-
-Server.prototype.toBISON = function(data) {
-    return BISON.encode(data);
+    if (this.record) {
+        this.recordMessage(msg);
+    }
 };
 
 Server.prototype.messageAll = function(msg) {
     msg = [MSG_CLIENT_MESSAGE, msg];
     this.bytesSend += this.$.broadcast(this.toBISON(msg));
+    if (this.record) {
+        this.recordMessage(msg);
+    }
+};
+
+Server.prototype.toBISON = function(data) {
+    return BISON.encode(data);
 };
 
 
@@ -473,13 +525,21 @@ Game.prototype.createActor = function(clas, data) {
 
 // Clients ---------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-function Client(srv, conn) {
-    var e = conn.id.split(':');
-    this.ip = e[0];
-    this.port = Math.abs(e[1]);
-
+function Client(srv, conn, record) {
     this.$ = srv;
     this.$$ = srv.$$;
+    
+    if (!record) {
+        var e = conn.id.split(':');
+        this.ip = e[0];
+        this.port = Math.abs(e[1]);
+    
+    } else {
+        this.ip = '127.0.0.1';
+        this.port = 'RECORD';   
+    }
+    
+    this.$record = record;
     this.$conn = conn;
     this.$.time = srv.time;
     this.id = this.$.clientID;
@@ -510,11 +570,13 @@ Client.prototype.message = function(msg) {
 };
 
 Client.prototype.send = function(type, msg) {
-    this.$.send(this.$conn, type, msg);
+    this.$.send(this.$conn, type, msg, this.$record);
 };
 
 Client.prototype.close = function() {
-    this.$conn.close();
+    if (!this.$record) {
+        this.$conn.close();
+    }
 };
 
 Client.prototype.onInit = function() {
