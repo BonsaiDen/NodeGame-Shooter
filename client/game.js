@@ -45,14 +45,14 @@ function $(id) {
 var Shooter = Client.Game(30);
 
 Shooter.onConnect = function(success) {
-    var that = this;
     
-    this.canvas = $('bg');
-    if (!success) {
-        show('error');
-        hide(this.canvas);
-        return;
+    // Force FF to show up the cookie dialog, because if cookies aren't allowed
+    // localStorage will fail too.
+    if (document.cookie !== 'SET') {
+        document.cookie = 'SET';
     }
+
+    this.canvas = $('bg');
     show(this.canvas);
     show('sub');
     
@@ -60,9 +60,6 @@ Shooter.onConnect = function(success) {
         that.onLogin(e);
     };
     
-    // Force FF to show up the cookie dialog, because if cookies aren't allowed
-    // localStorage will fail too.
-    document.cookie = '';
     window.onbeforeunload = function() {
         localStorage.setItem('sound', that.sound.enabled);
         localStorage.setItem('color', that.colorSelected);
@@ -155,6 +152,7 @@ Shooter.onConnect = function(success) {
     };
     
     // Input
+    var that = this;
     this.keys = {};
     window.onkeydown = window.onkeyup = function(e) {
         var key = e.keyCode;
@@ -174,6 +172,14 @@ Shooter.onConnect = function(success) {
     window.onblur = function(e) {
         that.keys = {};
     };
+    
+    // Play recording
+    if (!success) {
+        hide('loginBox');
+        show('offlineBox');
+        Shooter.$.playRecording(RECORD);
+        Shooter.$.checkServer(HOST, PORT);
+    }
 };
 
 Shooter.selectColor = function(c) {
@@ -240,6 +246,11 @@ Shooter.onWebSocketFlash = function() {
     show('warning');
 };
 
+Shooter.onServerOnline = function() {
+    $('serverStatus').innerHTML = 'SERVER ONLINE!';
+    hide('watching');
+    show('goplaying');
+};
 
 Shooter.onClose = function() {
     document.location.reload();

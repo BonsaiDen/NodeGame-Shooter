@@ -93,6 +93,11 @@ function Client(fps) {
     this.interleaveSteps = 0;
     this.running = false;
     
+    this.recoding = null;
+    this.recordingTime = null;
+    this.recordingID = 0;
+    this.recordingLength = 0;
+    
     this.actors = {};
     this.actorTypes = {};
 };
@@ -135,6 +140,57 @@ Client.prototype.connect = function(host, port) {
     };
 };
 
+Client.prototype.checkServer = function(host, port) {
+    var that = this;
+    var conn = new WebSocket('ws://' + host + ':' + port);
+    var online = false;
+    conn.onopen = function() {
+        online = true;
+        conn.close();
+        that.$.onServerOnline();
+    };
+    
+    conn.onclose = function() {
+        if (!online) {
+            window.setTimeout(function(){that.checkServer(host, port);}, 15000);
+        }
+    };
+};
+
+Client.prototype.playRecording = function(record) {
+    if (record) {
+        this.recording = record;
+        this.recordingTime = this.getTime();
+        this.recordingID = 0;
+        this.recordingLength = this.recording.length;
+        this.playRecording();
+     
+     } else if (this.recording) {
+        while(this.recordingID < this.recordingLength) {
+            var entry = this.recording[this.recordingID];
+            if (entry[0] > new Date().getTime() - this.recordingTime) {
+                break;
+            }
+            
+            var data = entry[1];
+            var type = data.shift();
+            this.handleMessage(type, data);
+            data.unshift(type);
+            this.recordingID++;
+        }
+        
+        var that = this;
+        if (this.recordingID < this.recordingLength) {
+            window.setTimeout(function() {that.playRecording()}, 20);
+        
+        } else {
+            window.setTimeout(function() {
+                that.playRecording(that.recording);
+            }, this.$.roundTime);
+        }
+    }
+};
+
 Client.prototype.onMessage = function(msg) {
     var that = this;
     var data = [], type = 0;
@@ -151,6 +207,10 @@ Client.prototype.onMessage = function(msg) {
         }
         return;
     }
+    this.handleMessage(type, data);  
+};
+
+Client.prototype.handleMessage = function(type, data) {
     
     // Game
     if (type === MSG_GAME_START) {

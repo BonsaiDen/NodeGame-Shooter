@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
     <head>
         <title>NodeGame: Shooter</title>
@@ -9,7 +9,7 @@
                 margin: 0px;
                 padding: 0px;
                 background-color: #202020;
-                font: 10.34px sans-serif;
+                font-family: "Tahoma", "DejaVu Sans", "Bitstream Vera Sans";
                 font-weight: bold;
                 color: #ffffff;
             }
@@ -49,26 +49,24 @@
                 margin: 8px auto;
             } 
             
-            #error a {
-                font-size: 20px;
+            a {
                 text-decoration: underline;
             }
             
-            #error a:hover {
+            a:hover {
                 text-decoration: none;
             }
         
             #warning {
-                font-size: 10px;
+                font-size: 9px;
                 width: 480px;
                 display: none;
                 margin: 8px auto;
             }
         
-        
             /* Options */
             #sub {
-                font-size: 10px;
+                font-size: 9px;
                 width: 480px;
                 margin: 0px auto;
                 display: none;
@@ -96,7 +94,7 @@
                 display: none;
             }
             
-            .box {
+            #loginBox, #offlineBox {
                 text-align: center;
                 width: 240px;
                 margin: 0px auto 0px;
@@ -104,7 +102,13 @@
                 opacity: 0.075;
             }
             
-            .box:hover {
+            #offlineBox {
+                font-size: 25px;
+                opacity: 0.75;
+                display: none;
+            }
+            
+            #loginBox:hover {
                  opacity: 1;
             }
             
@@ -112,7 +116,7 @@
                 border: 2px #f0f0f0 solid;
                 background-color: #000000;
                 margin-top: 2px;
-                font-size: 25px;
+                font-size: 23px;
                 font-weight: bold;
                 color: #ffffff;
                 width: 240px;
@@ -121,10 +125,29 @@
             
             .controls {
                 padding-top: 12px;
-                font-size: 12px;
+                font-size: 10px;
                 clear: left;
             }
             
+            .offline {
+                padding-top: 8px;
+                font-size: 12.5px;
+                clear: left;
+            }
+            
+            .offline a{
+                font-size: 10px;
+            }
+            
+            #goplaying {
+                display: none;
+            }
+            
+            #goplaying a {
+                font-size: 14px;
+                cursor: pointer;
+            }
+              
             .colors {
                 margin: 0px auto 0px;
             }
@@ -161,6 +184,7 @@
         <script type="text/javascript" src="flash/FABridge.js"></script>
         <script type="text/javascript" src="flash/web_socket.js"></script> 
         
+        <script type="text/javascript" src="record.js"></script>
         <script type="text/javascript" src="bison.js"></script>
         <script type="text/javascript" src="nodegame.client.js"></script>
         <script type="text/javascript" src="config.js"></script>
@@ -171,7 +195,7 @@
     
     <body>
        <div id="loginOverlay">
-            <div class="box">
+            <div id="loginBox">
                 Join the Game!<br/>
                 <input id="login" type="text" value="" maxlength="12"/><br/>
                 <div id="colors"></div>
@@ -180,16 +204,23 @@
                     [RETURN] | Fire / Detonate bomb
                 </div>
             </div>
+            <div id="offlineBox">
+                <div id="serverStatus">SERVER OFFLINE</div>
+                <div class="offline" id="goplaying">
+                    <a onclick="document.location.reload()">Stop watching, start playing!</a>
+                </div>
+                <div class="offline" id="watching">
+                    You are watching a recording...<br/>
+                   ...<a href="http://www.youtube.com/watch?v=0Z0QBtFo8kc">or you can check out YouTube!</a>
+                </div>
+            </div>  
         </div>
+                
         <a class="fork" href="http://github.com/BonsaiDen/NodeGame-Shooter"><img style="position: absolute; top: 0; left: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_left_red_aa0000.png" alt="Fork me on GitHub" /></a>
         
         <div id="warning">
             OH NOES! Kittens failed to detect WebSockets nao da laggy Flash thing haz to do tha work!<br/>
             Pls grab a modern Browsa lak Chrome 5+, Firefox 4 Beta or Safari 5. THX!
-        </div>
-        <div id="error">
-            SERVER OFFLINE<br/>
-            <a href="http://www.youtube.com/watch?v=0Z0QBtFo8kc">Watch the Game on YouTube!</a>
         </div>
         <canvas id="bg"></canvas>
         
