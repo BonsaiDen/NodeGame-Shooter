@@ -91,6 +91,8 @@ Shooter.onInit = function() {
     this.initPowerUp('bomb',    1, 70, 35);
     this.initPowerUp('camu',    1, 45, 20);
     
+    this.powerUpTimes = [2, 1.5, 1.25, 1.1, 1, 0.9, 0.8];
+    
     // Asteroids
     this.maxAsteroids = [8, 7, 7, 6, 6, 5, 4];
     
@@ -209,7 +211,7 @@ Shooter.createPowerUp = function(type, dec, init) {
     if (init) {
         add -= (up[4] / 2 * 1000) * (Math.random() / 2 + 0.5);
     }
-    up[1] = this.getTime() + add;
+    up[1] = this.getTime() + add * this.powerUpTimes[this.playerCount];
     if (dec) {
         this.powerUpCount--;
         up[0]--;
