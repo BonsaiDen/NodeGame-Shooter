@@ -453,6 +453,12 @@ ActorPlayerDef.onCreate = function(data) {
     this.shotTime = this.getTime();
     this.initTime = this.getTime();
     
+    this.x = this.player.x + Math.sin(this.r) * 35;
+    this.y = this.player.y + Math.cos(this.r) * 35;
+    this.$$.wrapPosition(this);
+    
+    this.mx = this.player.mx;
+    this.my = this.player.my;
     this.mxOld = this.mx;
     this.myOld = this.my;
 };
