@@ -845,22 +845,25 @@ Shooter.explodeBomb = function(b, tick) {
 // Collision -------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Shooter.playerCollision = function(p, e, r) {
-    return e.alive() ? this.circleCollision(p, e, this.sizePlayer, r) : false;
+    return (p.alive() && e.alive())
+                ? this.circleCollision(p, e, this.sizePlayer, r) : false;
 };
 
 Shooter.defendCollision = function(d, e, r) {
-    return (e.alive() && d.player.alive())
+    return (d.alive() && e.alive() && d.player.alive())
                 ? this.circleCollision(d, e, this.sizeDefend, r) : false;
 };
 
 Shooter.asteroidCollision = function(a, e, r) {
     var wr = a.type >= 4;
     var size = wr ? this.sizeBigAsteroid : this.sizeAsteroid;
-    return e.alive() ? this.circleCollision(a, e, size, r, false, wr) : false;    
+    return (a.alive() && e.alive())
+                ? this.circleCollision(a, e, size, r, false, wr) : false;    
 };
 
 Shooter.bombCollision = function(b, e, r) {
-    return e.alive() ? this.circleCollision(b, e, b.range, r) : false;
+    return (b.alive() && e.alive())
+                ? this.circleCollision(b, e, b.range, r) : false;
 };
 
 Shooter.circleCollision = function(a, b, ra, rb, circle, noWrap) {
