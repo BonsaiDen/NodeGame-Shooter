@@ -82,40 +82,6 @@ Client.init = function(init) {
     }
 };
 
-Client.kill = function(asteroid, armored) {
-    if (this.player && !this.$$.roundFinished) {
-        this.bomb = null;
-        
-        if (!armored) {
-            if (asteroid === true) {
-                this.addScore(-2);
-            
-            } else {
-                this.addScore(this.player.camu === 2 ? -10 : -5);
-            }
-        }
-        
-        this.reset = this.getTime();
-        this.player.hp = 0;
-        this.player.destroy();
-        if (this.player.bomb && !this.bombLaunched) {
-            var bomb = this.$.createActor('bomb', {
-                'r': 0,
-                'player': this.player,
-                'd': 0
-            });
-            bomb.destroy();
-        }
-        this.player = null;  
-        this.bombLaunched = false;
-    }
-};
-
-Client.addScore = function(add) {
-    this.score += add;
-    this.$.setFieldItem('c', this.id, this.score); // scores
-};
-
 Client.onMessage = function(msg) {
     // Controls
     if (this.playerName !== '' && msg.keys && msg.keys.length === 5) {
@@ -253,6 +219,35 @@ Client.onRemove = function() {
         
 };
 
+Client.kill = function(asteroid, armored) {
+    if (this.player && !this.$$.roundFinished) {
+        this.bomb = null;
+        
+        if (!armored) {
+            if (asteroid === true) {
+                this.addScore(-2);
+            
+            } else {
+                this.addScore(this.player.camu === 2 ? -10 : -5);
+            }
+        }
+        
+        this.reset = this.getTime();
+        this.player.hp = 0;
+        this.player.destroy();
+        if (this.player.bomb && !this.bombLaunched) {
+            var bomb = this.$.createActor('bomb', {
+                'r': 0,
+                'player': this.player,
+                'd': 0
+            });
+            bomb.destroy();
+        }
+        this.player = null;  
+        this.bombLaunched = false;
+    }
+};
+
 Client.leave = function() {
     if (this.playerName !== '') {
         this.$$.playerColors[this.playerColor] = -1;
@@ -268,6 +263,11 @@ Client.leave = function() {
             this.player.destroy();
         }
     }
+};
+
+Client.addScore = function(add) {
+    this.score += add;
+    this.$.setFieldItem('c', this.id, this.score); // scores
 };
 
 Client.getInfo = function() {
