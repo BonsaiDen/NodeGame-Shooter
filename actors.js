@@ -24,6 +24,8 @@
 // Actors ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 var ActorPlayer = Client.createActorType('player', 2);
+ActorPlayer.shape = [[0, -12], [10, 12], [-10, 12], [0, -12]];
+
 ActorPlayer.onCreate = function(data, complete) {
     this.r = data[0];
     this.mr = data[1]; 
@@ -122,32 +124,6 @@ ActorPlayer.onUpdate = function(data) {
         this.emitParticles(2.0, 0.3, 6);
     }
     this.armor = data[8];
-};
-
-
-ActorPlayer.emitParticles = function(speed, dur, step) {
-    var col = this.$.colorCodes[this.$.playerColors[this.id]];
-    var p = [[0, -12], [10, 12], [-10, 12], [0, -12]];
-    for(var i = 0, l = p.length - 1; i < p.length; l = i, i++) {
-        var a = p[i], b = p[l];
-        var dx = b[0] - a[0], dy = b[1] - a[1];
-        var r = Math.atan2(dx, dy);
-        var d = Math.sqrt(dx * dx + dy * dy);
-        
-        var rr = Math.atan2(a[0], a[1]), dd = Math.sqrt(a[0] * a[0] + a[1] * a[1]);
-        
-        var steps = d / step;
-        for(var e = 0; e < steps; e++) {
-            var x = this.x + Math.sin(Math.PI + this.r - rr) * dd;
-            var y = this.y + Math.cos(Math.PI + this.r - rr) * dd; 
-            x += Math.sin(Math.PI + this.r -r) * (e * step);
-            y += Math.cos(Math.PI + this.r -r) * (e * step);
-            
-            var cr = Math.atan2(x - this.x, y - this.y);
-            this.$.effectParticle(x, y, cr, {'s': speed, 'd': dur,
-                                             'c': col, 'a': this.alpha});
-        }
-    }
 };
 
 ActorPlayer.onInterleave = function(step) {
@@ -334,6 +310,29 @@ ActorPlayer.onDraw = function() {
         }
     }
     this.$.alpha(1.0);
+};
+
+ActorPlayer.emitParticles = function(speed, dur, step) {
+    var col = this.$.colorCodes[this.$.playerColors[this.id]];
+    for(var i = 0, l = ActorPlayer.shape.length - 1;
+                   i < ActorPlayer.shape.length; l = i, i++) {
+        
+        var a = ActorPlayer.shape[i], b = ActorPlayer.shape[l];
+        var dx = b[0] - a[0], dy = b[1] - a[1];
+        var r = Math.atan2(dx, dy), d = Math.sqrt(dx * dx + dy * dy);
+        var rr = Math.atan2(a[0], a[1]), dd = Math.sqrt(a[0] * a[0] + a[1] * a[1]);
+        
+        var steps = d / step;
+        for(var e = 0; e < steps; e++) {
+            var x = this.x + Math.sin(Math.PI + this.r - rr) * dd;
+            var y = this.y + Math.cos(Math.PI + this.r - rr) * dd;
+            x += Math.sin(Math.PI + this.r -r) * (e * step);
+            y += Math.cos(Math.PI + this.r -r) * (e * step);
+            this.$.effectParticle(x, y, Math.atan2(x - this.x, y - this.y),
+                                  {'s': speed, 'd': dur, 'c': col,
+                                   'a': this.alpha});
+        }
+    }
 };
 
 

@@ -16,12 +16,17 @@
             
             canvas {
                 margin: 8px auto 2px;
-                display: block;
                 border: 3px #f0f0f0 solid;
                 background-color: #000000;
                 display: none;
             }
-                   
+            
+            noscript {
+                margin: 80px auto 2px;
+                display: block;
+                width: 480px;
+            } 
+            
             a {
                 color: #ffffff;
                 text-decoration: none;
@@ -104,11 +109,11 @@
             
             #offlineBox {
                 font-size: 25px;
-                opacity: 0.75;
+                opacity: 0.25;
                 display: none;
             }
             
-            #loginBox:hover {
+            #loginBox:hover, #offlineBox:hover {
                  opacity: 1;
             }
             
@@ -197,7 +202,7 @@
        <div id="loginOverlay">
             <div id="loginBox">
                 Join the Game!<br/>
-                <input id="login" type="text" value="" maxlength="12"/><br/>
+                <input id="login" autocomplete="off" type="text" value="" maxlength="12"/><br/>
                 <div id="colors"></div>
                 <div class="controls">
                     [SPACE] | Shoot<br/>
@@ -215,13 +220,17 @@
                 </div>
             </div>  
         </div>
-                
+        
         <a class="fork" href="http://github.com/BonsaiDen/NodeGame-Shooter"><img style="position: absolute; top: 0; left: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_left_red_aa0000.png" alt="Fork me on GitHub" /></a>
         
         <div id="warning">
-            OH NOES! Kittens failed to detect WebSockets nao da laggy Flash thing haz to do tha work!<br/>
-            Pls grab a modern Browsa lak Chrome 5+, Firefox 4 Beta or Safari 5. THX!
+            Oops, looks like you're not using a modern Browser!<br/>
+            The Game works best with native WebSockets you might want to use Chrome 6, Firefox 4, Safari 5 or Opera 10.70 for the full experience.
         </div>
+        <noscript>
+            We're sorry, but this game is running fully in JavaScript.<br/>Would you please be so kind and turn it on?
+        </noscript>
+        
         <canvas id="bg"></canvas>
         
         <div id="sub">
