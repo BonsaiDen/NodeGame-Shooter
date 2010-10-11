@@ -22,7 +22,13 @@
 
 var Client = new NodeGame();
 window.onload = function() {
-    Client.connect(HOST, PORT);
+    var watch = document.location.href.split('?')[1] === 'watch';
+    if (watch) {
+        Shooter.onConnect(false);
+    
+    } else {
+        Client.connect(HOST, PORT);
+    }
 };
 
 
@@ -45,7 +51,6 @@ function $(id) {
 var Shooter = Client.Game(30);
 
 Shooter.onConnect = function(success) {
-    
     // Force FF to show up the cookie dialog, because if cookies aren't allowed
     // localStorage will fail too.
     if (document.cookie !== 'SET') {
@@ -190,6 +195,10 @@ Shooter.selectColor = function(c) {
     this.colorSelects[c].className = 'color colorselected';
 };
 
+Shooter.reloadPage = function() {
+    document.location.href = document.location.href.split('?')[0];
+};
+
 Shooter.playSound = function(snd) {
     this.sound.play(snd, 0.5);
 };
@@ -253,11 +262,11 @@ Shooter.onServerOnline = function() {
 };
 
 Shooter.onClose = function() {
-    document.location.reload();
+    this.reloadPage();
 };
 
 Shooter.onError = function(e) {
-    document.location.reload();
+    this.reloadPage();
 };
 
 

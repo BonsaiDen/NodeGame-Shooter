@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
     <head>
         <title>NodeGame: Shooter</title>
@@ -92,7 +92,7 @@
             /* Login */
             #loginOverlay {
                 position: absolute;
-                padding-top: 360px;
+                padding-top: 350px;
                 top: 0px;
                 left: 0px;
                 width: 100%;
@@ -152,9 +152,9 @@
                 font-size: 14px;
                 cursor: pointer;
             }
-              
-            .colors {
-                margin: 0px auto 0px;
+            
+            #colors {
+                margin-top: 2px;
             }
             
             .color {
@@ -177,8 +177,12 @@
             
             .colorselected:hover {
                 opacity: 1.0;
-            }     
+            }
             
+            #watch {
+                padding-top: 2px;
+                font-size: 11px;
+            }
         </style>
         
         <script type="text/javascript">
@@ -201,9 +205,9 @@
     <body>
        <div id="loginOverlay">
             <div id="loginBox">
-                Join the Game!<br/>
+                <div class="join">Join the Game</div>
                 <input id="login" autocomplete="off" type="text" value="" maxlength="12"/><br/>
-                <div id="colors"></div>
+                <div id="colors"></div><div id="watch"><a href="index.html?watch">Watch a recording!</a></div>
                 <div class="controls">
                     [SPACE] | Shoot<br/>
                     [RETURN] | Fire / Detonate bomb
@@ -212,7 +216,7 @@
             <div id="offlineBox">
                 <div id="serverStatus">SERVER OFFLINE</div>
                 <div class="offline" id="goplaying">
-                    <a onclick="document.location.reload()">Stop watching, start playing!</a>
+                    <a onclick="Shooter.reloadPage()">Stop watching, start playing!</a>
                 </div>
                 <div class="offline" id="watching">
                     You are watching a recording...<br/>
