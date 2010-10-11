@@ -104,10 +104,9 @@ Shooter.onInit = function() {
 
 
 // Rounds ----------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 Shooter.startRound = function() {
     this.roundID++;
-   // this.log('## Round #' + this.roundID + ' started!');
-    
     this.roundStart = this.getTime();
     this.roundTimeLeft = this.roundTime;
     this.roundTimeUpdate = this.getTime();
@@ -138,7 +137,6 @@ Shooter.startRound = function() {
 };
 
 Shooter.endRound = function() {
-    //this.log('## Round #' + this.roundID + ' finished!');
     
     // Reset
     this.roundStart = this.getTime();
@@ -202,7 +200,41 @@ Shooter.addPlayerStats = function(id) {
 };
 
 
-// Gameplay --------------------------------------------------------------------
+// Mainloop --------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+Shooter.onUpdate = function() {
+    
+    // Round time
+    var roundTimeLeft = this.roundTimeLeft + (this.roundStart - this.getTime());
+    if (this.getTime() > this.roundTimeUpdate + 15000 && !this.roundFinished) {
+        this.$.messageAll({'rt': roundTimeLeft});
+        this.roundTimeUpdate = this.getTime();
+    }
+    
+    this.$.setField('rt', roundTimeLeft, false);
+    if (this.roundFinished) {
+        return;
+    }
+    
+    // Updates
+    this.updatePowerUps();
+    this.updatePlayers();
+    this.updateAsteroids();
+    this.updatePlayerDefs();
+    
+    // Limit score
+    for(var i in this.$.clients) {
+        var c = this.$.clients[i];
+        if (c.score < 0) {
+            c.score = 0;
+            this.$.setFieldItem('c', c.id, c.score, true); // scores
+        }
+    }
+};
+
+
+// PowerUPs --------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 Shooter.initPowerUp = function(type, max, wait, rand) { 
     this.powerUps[type] = [0, 0, max, wait, rand];
 };
@@ -225,78 +257,7 @@ Shooter.removePowerUp = function(type) {
     this.powerUpCount--;
 };
 
-Shooter.collidePowerUps = function(o, p) {
-    
-    // Shield
-    if (o.type === 'shield') {
-        p.shield = true;
-        p.shieldTime = this.getTime();
-    
-    // Boost
-    } else if (o.type === 'boost') {
-        p.boost = true;
-        p.boostTime = this.getTime();
-    
-    // Missile
-    } else if (o.type === 'missile') {
-        p.missiles += 5;
-        if (p.missiles > 10) {
-            p.missiles = 10;
-        }
-    
-    // Bomb
-    } else if (o.type === 'bomb') {
-        p.bomb = true;
-    
-    // Camu
-    } else if (o.type === 'camu') {
-        if (p.camu === 0) {
-            p.camu = 1;
-            p.camuFade = 100;
-        }
-    
-    // Player Defense
-    } else if (o.type === 'defense') {
-        if (!p.defender) {
-            this.createActor('player_def', {'player': p});
-        
-        } else {
-            p.defender.level = 1;
-            p.defender.initTime = this.getTime();
-        }
-    
-    // Armor
-    } else if (o.type === 'armor') {
-        p.enableArmor();
-    
-    // Life
-    } else if (o.type === 'life') {
-        p.hp += 15;
-        if (p.h > 30) {
-            p.hp = 30;
-        }
-    }
-    this.createPowerUp(o.type, true, false);
-    o.destroy();
-};
-
-
-// Mainloop --------------------------------------------------------------------
-Shooter.onUpdate = function() {
-
-    // RoundTimer, make sure we keep it in sync
-    var roundTimeLeft = this.roundTimeLeft + (this.roundStart - this.getTime());
-    if (this.getTime() > this.roundTimeUpdate + 15000 && !this.roundFinished) {
-        this.$.messageAll({'rt': roundTimeLeft});
-        this.roundTimeUpdate = this.getTime();
-    }
-    
-    this.$.setField('rt', roundTimeLeft, false);
-    if (this.roundFinished) {
-        return;
-    }
-    
-    // PowerUP creation
+Shooter.updatePowerUps = function() {
     for(var p in this.powerUps) {
         var up = this.powerUps[p];
         if (this.getTime() > up[1] && up[0] < up[2]) {
@@ -312,8 +273,60 @@ Shooter.onUpdate = function() {
             }
         }
     }
-      
-    // Asteroids
+};
+
+Shooter.collidePowerUps = function(o, p) {
+    if (o.type === 'shield') {
+        p.shield = true;
+        p.shieldTime = this.getTime();
+    
+    } else if (o.type === 'boost') {
+        p.boost = true;
+        p.boostTime = this.getTime();
+    
+    } else if (o.type === 'missile') {
+        p.missiles += 5;
+        if (p.missiles > 10) {
+            p.missiles = 10;
+        }
+    
+    } else if (o.type === 'bomb') {
+        p.bomb = true;
+    
+    } else if (o.type === 'camu') {
+        if (p.camu === 0) {
+            p.camu = 1;
+            p.camuFade = 100;
+        }
+    
+    } else if (o.type === 'defense') {
+        if (!p.defender) {
+            this.createActor('player_def', {'player': p});
+        
+        } else {
+            p.defender.level = 1;
+            p.defender.initTime = this.getTime();
+        }
+    
+    } else if (o.type === 'armor') {
+        p.enableArmor();
+    
+    } else if (o.type === 'life') {
+        p.hp += 15;
+        if (p.h > 30) {
+            p.hp = 30;
+        }
+    }
+    this.createPowerUp(o.type, true, false);
+    o.destroy();
+};
+
+
+// Asteroids -------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+Shooter.updateAsteroids = function() {
+    
+    // Creation
     var asteroids = this.getActors('asteroid');
     if (asteroids.length < this.maxAsteroids[this.playerCount]
         && this.getTime() > this.nextAsteroid) {
@@ -322,6 +335,7 @@ Shooter.onUpdate = function() {
         this.nextAsteroid = this.getTime() + Math.random() * 10000;
     }
     
+    // Big Asteroid
     if (this.getTime() > this.nextBigAsteroid) {
         var bigFound = false;
         for(var i = 0, l = asteroids.length; i < l; i++) {
@@ -338,29 +352,22 @@ Shooter.onUpdate = function() {
         this.nextBigAsteroid = this.getTime() + 70000 + Math.random() * 70000;
     }
     
-    // Collision Detection
-    var players      = this.getActors('player');
-    var playersDefs  = this.getActors('player_def');
-    var powerups     = this.getActors('powerup');
-    var bombs        = this.getActors('bomb');
-    
-    // Players
-    for(var i = 0, l = players.length; i < l; i++) {
-        var p = players[i];
-        if (p.hp > 0 && p.defense === 0) {
-            this.collidePlayer(p, i, l);
-        }
-    }
-    
-    // Asteroids
+    // Collision
     for(var i = 0, l = asteroids.length; i < l; i++) {
         var a = asteroids[i];
         if (a.hp > 0) {
-            this.collideAsteroid(a, i, l);
+            this.collideAsteroidPowerUps(a)
+            
+            this.collideAsteroidPlayerDefs(a)
+                || this.collideAsteroidBombs(a)
+                || this.collideAsteroidPlayers(a)
+                || this.collideAsteroidAsteroids(a, i)
+                || this.collideAsteroidBullets(a)
+                || this.collideAsteroidMissiles(a)
         }
     }
     
-    // Split Asteroids
+    // Splitting
     for(var i = 0, l = asteroids.length; i < l; i++) {
         var a = asteroids[i];
         if (a.hp > 0 || a.bombed) {
@@ -387,17 +394,319 @@ Shooter.onUpdate = function() {
             al.setMovement(a.x, a.y, [0, 0, 11, 17][a.type] * dd, rl, a.broken); 
         }
     }
+};
+
+Shooter.collideAsteroidPowerUps = function(a) {
+    if (a.type < 4) {
+        return;
+    }
+    var powerUps = this.getActors('powerup');
+    for(var e = 0, l = powerUps.length; e < l; e++) {
+        var o = powerUps[e];
+        if (this.asteroidCollision(a, o, this.sizePowerUp)) {
+            this.removePowerUp(o.type);
+            o.destroy();
+        }
+    }
+};
+
+Shooter.collideAsteroidPlayerDefs = function(a) {
+    var playerDefs = this.getActors('player_def');
+    for(var e = 0, l = playerDefs.length; e < l; e++) {
+        var pd = playerDefs[e];
+        if (this.asteroidCollision(a, pd, this.sizeDefend)) {
+            if (a.type > 1) {
+                pd.destroy();
+            }
+            
+            if (a.type < 4) {
+                a.hp -= 15;
+                if (a.hp <= 0) {
+                    pd.player.client.addScore(1);
+                    a.destroy();
+                    return true;
+                }
+            }
+        }
+    }
+};
+
+Shooter.collideAsteroidBombs = function(a) {
+    var bombs = this.getActors('bomb');  
+    for(var e = 0, l = bombs.length; e < l; e++) {
+        var bo = bombs[e];
+        if (this.asteroidCollision(a, bo, this.sizeBomb)) {
+            bo.destroy();
+            if (a.hp === 0) {
+                a.bombed = true;
+                return true;
+            }
+        }
+    }
+};
+
+Shooter.collideAsteroidPlayers = function(a) {
+    var players = this.getActors('player');
+    for(var e = 0, l = players.length; e < l; e++) {
+        var p = players[e];
+        if (p.defense === 0 && this.asteroidCollision(a, p, this.sizePlayer)) {
+            if (!p.armor || a.type >= 4) {
+                if (a.type === 1) {
+                    p.hp -= p.armor ? 2 : 5;
+                
+                } else {
+                    p.hp = 0;
+                }
+            }
+            
+            if (p.hp <= 0) {
+                p.client.kill(true);
+                this.getPlayerStats(p.client.id).selfDestructs += 1;
+            }
+            
+            if (p.armor && a.type > 1) {
+                p.stopArmor();
+            }
+            
+            if (a.type < 4) {
+                a.broken = p;
+                a.hp = 0;
+                a.destroy();
+                return true;
+            }
+        }
+    }
+};
+
+Shooter.collideAsteroidAsteroids = function(a, i) {
+    var asteroids = this.getActors('asteroid');
+    for(var e = i + 1, l = asteroids.length; e < l; e++) {
+        var aa = asteroids[e];
+        var size = aa.type >= 4 ? this.sizeBigAsteroid : this.sizeAsteroid;
+        if (this.asteroidCollision(a, aa, size)) {
+            if (a.type === aa.type) {
+                a.hp = 0;
+                a.destroy();
+                aa.hp = 0;
+                aa.destroy();
+                return true;
+            
+            } else if (a.type <= aa.type) {
+                a.hp = 0;
+                a.destroy();
+                return true;
+            
+            } else {
+                aa.hp = 0;
+                aa.destroy();
+            }
+        }
+    }
+};
+
+Shooter.collideAsteroidBullets = function(a) {
+    var bullets = this.getActors('bullet');
+    for(var e = 0, l = bullets.length; e < l; e++) {
+        var b = bullets[e];
+        if (this.asteroidCollision(a, b, this.sizeBullet)) {
+            b.player.client.hits++;
+            b.destroy();
+            if (a.type < 4) {
+                a.hp -= 5;
+                if (a.hp <= 0) {
+                    b.player.client.addScore(1);
+                    a.destroy();
+                    return true;
+                }
+            }
+        }
+    }
+};
+
+Shooter.collideAsteroidMissiles = function(a) {
+    var missiles = this.getActors('missile');
+    for(var e = 0, l = missiles.length; e < l; e++) {
+        var m = missiles[e];
+        if (this.asteroidCollision(a, m, this.sizeMissile)) {
+            m.player.client.hits++;
+            m.destroy();
+            if (a.type < 4) {
+                a.hp -= 8;
+                if (a.hp <= 0) {
+                    m.player.client.addScore(1);
+                    a.destroy();
+                    return true;
+                }
+            }
+        }
+    }
+};
+
+
+// Players ---------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+Shooter.updatePlayers = function() {
+    var players = this.getActors('player');
+    for(var i = 0, l = players.length; i < l; i++) {
+        var p = players[i];
+        if (p.hp > 0 && p.defense === 0) {
+            this.collidePlayerPowerUps(p)
+            this.collidePlayerPlayerDefs(p)
+                || this.collidePlayerBombs(p)
+                || this.collidePlayerPlayers(p, i)
+                || this.collidePlayerBullets(p)
+                || this.collidePlayerMissiles(p)
+        }
+    }
+};
+
+Shooter.collidePlayerPlayerDefs = function(p) {
+    var playerDefs = this.getActors('player_def');
+    for(var e = 0, l = playerDefs.length; e < l; e++) {
+        var pd = playerDefs[e];
+        if (pd.player !== p && this.playerCollision(p, pd, this.sizeDefend)) {
+            pd.destroy();
+            p.hp -= 15;
+            if (p.hp <= 0) {
+                pd.player.client.addScore(10);
+                this.getPlayerStats(pd.player.client.id).kills += 1;
+                p.client.kill();
+                return true;
+            }
+        }
+    }
+};
+
+Shooter.collidePlayerBombs = function(p) {
+    var bombs = this.getActors('bomb');
+    for(var e = 0, l = bombs.length; e < l; e++) {
+        var bo = bombs[e];
+        if (this.playerCollision(p, bo, this.sizeBomb)) {
+            bo.destroy();
+            return true;
+        }
+    }
+};
+
+Shooter.collidePlayerPlayers = function(p, i) {
+    var players = this.getActors('player');
+    for(var e = i + 1, l = players.length; e < l; e++) {
+        var pp = players[e];
+        if (pp.defense === 0 && this.playerCollision(p, pp, this.sizePlayer)) {
+            if (p.armor && !pp.armor) {
+                p.disableArmor();
+                pp.client.kill(false, true);
+            
+            } else if (pp.armor && !p.armor) {
+                pp.disableArmor();
+                p.client.kill(false, true);
+                return true;
+            
+            } else {
+                pp.client.kill();
+                p.client.kill();
+                
+                this.getPlayerStats(p.client.id).selfDestructs += 1;
+                this.getPlayerStats(pp.client.id).selfDestructs += 1;
+                return true;
+            }
+        }
+    }
+};
+
+Shooter.collidePlayerPowerUps = function(p) {
+    var powerups = this.getActors('powerup');
+    for(var e = 0, l = powerups.length; e < l; e++) {
+        var o = powerups[e];
+        if (this.playerCollision(p, o, this.sizePowerUp)) {
+            this.collidePowerUps(o, p);
+        }
+    }
+};
+
+Shooter.collidePlayerBullets = function(p) {
+    var bullets  = this.getActors('bullet');
+    for(var e = 0, l = bullets.length; e < l; e++) {
+        var b = bullets[e];
+        if (!b.alive()) {
+            continue;
+        }
+        
+        // Hit on ship
+        if (!p.shield && (b.player != p || this.timeDiff(b.time) > 50)
+            && this.playerCollision(p, b, this.sizeBullet)) {
+            
+            b.player.client.hits++;
+            b.destroy();
+            p.hp -= 5;
+            if (p.hp <= 0) {
+                b.player.client.addScore(10);
+                this.getPlayerStats(b.player.client.id).kills += 1;
+                p.client.kill();
+                return true;
+            }
+        
+        // Hit on Shield
+        } else if (p.shield && (b.player != p || this.timeDiff(b.time) > 225)
+                   && this.circleCollision(p, b, this.sizeShield,
+                                                 this.sizeBullet, true)) {
+            
+            b.player.client.hits++;
+            b.destroy();
+        }
+    }
+};
+
+Shooter.collidePlayerMissiles = function(p) {
+    var missiles  = this.getActors('missile');
+    for(var e = 0, l = missiles.length; e < l; e++) {
+        var m = missiles[e];
+        if (!m.alive()) {
+            continue;
+        }
+        
+        // Hit on ship
+        if (!p.shield  && (m.player != p || this.timeDiff(m.time) > 50)
+            && this.playerCollision(p, m, this.sizeMissile)) {
+            
+            m.player.client.hits++;
+            m.destroy();
+            p.hp -= p.armor ? 2 : 4;
+            if (p.hp <= 0) {
+                m.player.client.addScore(10);
+                this.getPlayerStats(m.player.client.id).kills += 1;
+                p.client.kill();
+                return;
+            }
+        
+        // Hit on Shield
+        } else if (p.shield && (m.player != p || this.timeDiff(m.time) > 225)
+                   && this.circleCollision(p, m, this.sizeShield,
+                                                 this.sizeMissile, true)) {
+            
+            m.player.client.hits++;
+            m.destroy();
+        }
+    }
+};
+
+
+// Player Defends --------------------------------------------------------------
+// -----------------------------------------------------------------------------
+Shooter.updatePlayerDefs = function() {
+    var playersDefs = this.getActors('player_def');
+    var powerups = this.getActors('powerup');
+    var bombs = this.getActors('bomb');
     
-    // Player Defends
-    for(var i = 0, dl = playersDefs.length; i < dl; i++) {
+    for(var i = 0, l = playersDefs.length; i < l; i++) {
         var pd = playersDefs[i];
         if (!pd.alive()) {
             continue;
         }
         
         // PowerUp collision
-        for(var f = 0, lf = powerups.length; f < lf; f++) {
-            var o = powerups[f];
+        for(var e = 0, dl = powerups.length; e < dl; e++) {
+            var o = powerups[e];
             if (this.defendCollision(pd, o, this.sizePowerUp)) {
                 this.collidePowerUps(o, pd.player);
             }
@@ -427,300 +736,16 @@ Shooter.onUpdate = function() {
             }
         }
     }
-    
-    // Limit score
-    for(var i in this.$.clients) {
-        var c = this.$.clients[i];
-        if (c.score < 0) {
-            c.score = 0;
-            this.$.setFieldItem('c', c.id, c.score, true); // scores
-        }
-    }
-};
-
-Shooter.collideAsteroid = function(a, i, al) {
-    var players      = this.getActors('player');
-    var playersDefs  = this.getActors('player_def');
-    var bullets      = this.getActors('bullet');
-    var missiles     = this.getActors('missile');
-    var bombs        = this.getActors('bomb');
-    var asteroids    = this.getActors('asteroid');
-    
-    // Big Asteroid PowerUP collision
-    if (a.type >= 4) {
-        var powerups = this.getActors('powerup');
-        for(var f = 0, lf = powerups.length; f < lf; f++) {
-            var o = powerups[f];
-            if (this.asteroidCollision(a, o, this.sizePowerUp)) {
-                this.removePowerUp(o.type);
-                o.destroy();
-            }
-        }
-    }
-    
-    // Asteroid / Player Defend collision
-    for(var e = 0, dl = playersDefs.length; e < dl; e++) {
-        var pd = playersDefs[e];
-        if (this.asteroidCollision(a, pd, this.sizeDefend)) {
-            if (a.type > 1) {
-                pd.destroy();
-            }
-            
-            if (a.type < 4) {
-                a.hp -= 15;
-                if (a.hp <= 0) {
-                    pd.player.client.addScore(1);
-                    a.destroy();
-                    return;
-                }
-            }
-        }
-    }
-    
-    // Asteroid / Bomb
-    for(var e = 0, dl = bombs.length; e < dl; e++) {
-        var bo = bombs[e];
-        if (this.asteroidCollision(a, bo, this.sizeBomb)) {
-            bo.destroy();
-            if (a.hp === 0) {
-                a.bombed = true;
-                return;
-            }
-        }
-    }
-    
-    // Asteroid / Player collision
-    for(var e = 0, l = players.length; e < l; e++) {
-        var p = players[e];
-        if (p.defense === 0 && this.asteroidCollision(a, p, this.sizePlayer)) {
-            if (!p.armor || a.type >= 4) {
-                if (a.type === 1) {
-                    p.hp -= p.armor ? 2 : 5;
-                
-                } else {
-                    p.hp = 0;
-                }
-            }
-            
-            if (p.hp <= 0) {
-                p.client.kill(true);
-                this.getPlayerStats(p.client.id).selfDestructs += 1;
-            }
-            
-            if (p.armor && a.type > 1) {
-                p.stopArmor();
-            }
-            
-            if (a.type < 4) {
-                a.broken = p;
-                a.hp = 0;
-                a.destroy();
-                return;
-            }
-        }
-    }
-    
-    // Asteroid / Asteroid collision
-    for(var e = i + 1; e < al; e++) {
-        var aa = asteroids[e];
-        var size = aa.type >= 4 ? this.sizeBigAsteroid : this.sizeAsteroid;
-        if (this.asteroidCollision(a, aa, size)) {
-            if (a.type === aa.type) {
-                a.hp = 0;
-                a.destroy();
-                aa.hp = 0;
-                aa.destroy();
-                return;
-            
-            } else if (a.type <= aa.type) {
-                a.hp = 0;
-                a.destroy();
-                return;
-            
-            } else {
-                aa.hp = 0;
-                aa.destroy();
-            }
-        }
-    }
-    
-    if (a.hp <= 0) {
-        return;
-    }
-    
-    // Bullets
-    for(var f = 0, lf = bullets.length; f < lf; f++) {
-        var b = bullets[f];
-        if (this.asteroidCollision(a, b, this.sizeBullet)) {
-            b.player.client.hits++;
-            b.destroy();
-            if (a.type < 4) {
-                a.hp -= 5;
-                if (a.hp <= 0) {
-                    b.player.client.addScore(1);
-                    a.destroy();
-                    return;
-                }
-            }
-        }
-    }
-    
-    // Missiles
-    for(var f = 0, lf = missiles.length; f < lf; f++) {
-        var m = missiles[f];
-        if (this.asteroidCollision(a, m, this.sizeMissile)) {
-            m.player.client.hits++;
-            m.destroy();
-            if (a.type < 4) {
-                a.hp -= 8;
-                if (a.hp <= 0) {
-                    m.player.client.addScore(1);
-                    a.destroy();
-                    return;
-                }
-            }
-        }
-    }
-};
-
-Shooter.collidePlayer = function(p, i, l) {
-    var players      = this.getActors('player');
-    var playersDefs  = this.getActors('player_def');
-    var powerups     = this.getActors('powerup');
-    var bullets      = this.getActors('bullet');
-    var missiles     = this.getActors('missile');
-    var bombs        = this.getActors('bomb');
-    
-    // Player / Player Defend collision
-    for(var e = 0, dl = playersDefs.length; e < dl; e++) {
-        var pd = playersDefs[e];
-        if (pd.player !== p && this.playerCollision(p, pd, this.sizeDefend)) {
-            pd.destroy();
-            p.hp -= 15;
-            if (p.hp <= 0) {
-                pd.player.client.addScore(10);
-                this.getPlayerStats(pd.player.client.id).kills += 1;
-                p.client.kill();
-                return;
-            }
-        }
-    }
-    
-    // Player / Bomb
-    for(var e = 0, dl = bombs.length; e < dl; e++) {
-        var bo = bombs[e];
-        if (this.playerCollision(p, bo, this.sizeBomb)) {
-            bo.destroy();
-            return;
-        }
-    }
-    
-    // Player / Player collision
-    for(var e = i + 1; e < l; e++) {
-        var pp = players[e];
-        if (pp.defense === 0 && this.playerCollision(p, pp, this.sizePlayer)) {
-            if (p.armor && !pp.armor) {
-                p.disableArmor();
-                pp.client.kill(false, true);
-            
-            } else if (pp.armor && !p.armor) {
-                pp.disableArmor();
-                p.client.kill(false, true);
-                return;
-            
-            } else {
-                pp.client.kill(); 
-                p.client.kill();
-                
-                this.getPlayerStats(p.client.id).selfDestructs += 1;
-                this.getPlayerStats(pp.client.id).selfDestructs += 1;
-                return;
-            }
-        }
-    }
-    
-    if (p.hp <= 0) {
-        return;
-    }
-    
-    // PowerUPs
-    for(var f = 0, lf = powerups.length; f < lf; f++) {
-        var o = powerups[f];
-        if (this.playerCollision(p, o, this.sizePowerUp)) {
-            this.collidePowerUps(o, p);
-        }
-    }
-    
-    // Bullets
-    for(var f = 0, lf = bullets.length; f < lf; f++) {
-        var b = bullets[f];
-        if (!b.alive()) {
-            continue;
-        }
-        
-        // Hit on ship
-        if (!p.shield && (b.player != p || this.timeDiff(b.time) > 50)
-            && this.playerCollision(p, b, this.sizeBullet)) {
-            
-            b.player.client.hits++;
-            b.destroy();
-            p.hp -= 5;
-            if (p.hp <= 0) {
-                b.player.client.addScore(10);
-                this.getPlayerStats(b.player.client.id).kills += 1;
-                p.client.kill();
-                return;
-            }
-        
-        // Hit on Shield
-        } else if (p.shield && (b.player != p || this.timeDiff(b.time) > 225)
-                   && this.circleCollision(p, b, this.sizeShield,
-                                                 this.sizeBullet, true)) {
-            
-            b.player.client.hits++;
-            b.destroy();
-        }
-    }
-    
-    // Missiles
-    for(var f = 0, lf = missiles.length; f < lf; f++) {
-        var m = missiles[f];
-        if (!m.alive()) {
-            continue;
-        }
-            
-        // Hit on ship
-        if (!p.shield  && (m.player != p || this.timeDiff(m.time) > 50)
-            && this.playerCollision(p, m, this.sizeMissile)) {
-            
-            m.player.client.hits++;
-            m.destroy();
-            p.hp -= p.armor ? 2 : 4;
-            if (p.hp <= 0) {
-                m.player.client.addScore(10);
-                this.getPlayerStats(m.player.client.id).kills += 1;
-                p.client.kill();
-                return;
-            }
-        
-        // Hit on Shield
-        } else if (p.shield && (m.player != p || this.timeDiff(m.time) > 225)
-                   && this.circleCollision(p, m, this.sizeShield,
-                                                 this.sizeMissile, true)) {
-            
-            m.player.client.hits++;
-            m.destroy();
-        }
-    }
 };
 
 
-// Bomb ------------------------------------------------------------------------
+// Bombs -----------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 Shooter.destroyBomb = function(b) {
     b.player.bomb = false;
     b.player.client.bomb = null;
     
-    function Exploder(count, interval, bomb) {
+    function Explosion(count, interval, bomb) {
         var that = this;
         var tick = 0;
         this.tick = function() {
@@ -733,7 +758,7 @@ Shooter.destroyBomb = function(b) {
         };
         this.tick();
     }
-    new Exploder(25, 20, b);
+    new Explosion(8, 50, b);
 };
 
 Shooter.explodeBomb = function(b, tick) {
@@ -820,13 +845,14 @@ Shooter.explodeBomb = function(b, tick) {
 };
 
 
-// Helpers ---------------------------------------------------------------------
+// Collision -------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 Shooter.playerCollision = function(p, e, r) {
     return e.alive() ? this.circleCollision(p, e, this.sizePlayer, r) : false;
 };
 
 Shooter.defendCollision = function(d, e, r) {
-    return (e.alive() && e.player.alive())
+    return (e.alive() && d.player.alive())
                 ? this.circleCollision(d, e, this.sizeDefend, r) : false;
 };
 
@@ -917,6 +943,9 @@ Shooter.checkCollision = function(a, b, ra, rb, circle) {
     }
 };
 
+
+// Helpers ---------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 Shooter.wrapAngle = function(r) {
     if (r > Math.PI) {
         r -= Math.PI * 2;
