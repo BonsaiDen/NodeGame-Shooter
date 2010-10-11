@@ -93,7 +93,7 @@ Shooter.onInit = function() {
     this.initPowerUp('bomb',    1, 70, 35);
     this.initPowerUp('camu',    1, 45, 20);
     
-    this.powerUpTimes = [2, 1.5, 1.25, 1.1, 1, 0.9, 0.8];
+    this.powerUpTimes = [2, 1.35, 1.12, 1.0, 1, 0.9, 0.8];
     
     // Asteroids
     this.maxAsteroids = [8, 7, 7, 6, 6, 5, 4];
@@ -514,7 +514,6 @@ Shooter.collideAsteroidBullets = function(a) {
             if (a.type < 4) {
                 a.hp -= 5;
                 if (a.hp <= 0) {
-                    b.player.client.addScore(1);
                     a.destroy();
                     return true;
                 }
@@ -533,7 +532,6 @@ Shooter.collideAsteroidMissiles = function(a) {
             if (a.type < 4) {
                 a.hp -= 8;
                 if (a.hp <= 0) {
-                    m.player.client.addScore(1);
                     a.destroy();
                     return true;
                 }
@@ -836,7 +834,6 @@ Shooter.explodeBomb = function(b, tick) {
     for(var i = 0, l = asteroids.length; i < l; i++) {
         var e = asteroids[i];
         if (e.type < 4 && this.bombCollision(b, e, this.sizeAsteroid)) {
-            b.player.client.addScore(1);
             e.bombed = true;
             e.hp = 0;
             e.destroy();
