@@ -96,6 +96,7 @@ Client.kill = function(asteroid, armored) {
         }
         
         this.reset = this.getTime();
+        this.player.hp = 0;
         this.player.destroy();
         if (this.player.bomb && !this.bombLaunched) {
             var bomb = this.$.createActor('bomb', {
