@@ -83,10 +83,10 @@ Shooter.onInit = function() {
     this.powerUpCount = 0;
     this.powerUpsMax = 3;
     this.initPowerUp('shield',  2, 23, 10);
-    this.initPowerUp('armor',   1, 25, 20);
+    this.initPowerUp('armor',   1, 30, 20);
     this.initPowerUp('missile', 2, 16, 15);
     this.initPowerUp('life',    2,  8,  8);
-    this.initPowerUp('boost',   2, 20, 14);
+    this.initPowerUp('boost',   1, 26, 15);
     this.initPowerUp('defense', 1, 30, 30);
     this.initPowerUp('bomb',    1, 70, 35);
     this.initPowerUp('camu',    1, 45, 20);
@@ -509,7 +509,7 @@ Shooter.collideAsteroid = function(a, i, al) {
             
             if (!p.armor || a.type >= 4) {
                 if (a.type === 1) {
-                    p.hp -= 5;
+                    p.hp -= p.armor ? 2 : 5;
                 
                 } else {
                     p.hp = 0;
@@ -520,7 +520,7 @@ Shooter.collideAsteroid = function(a, i, al) {
                 this.getPlayerStats(p.client.id).selfDestructs += 1;
             }
             
-            if (p.armor) {
+            if (p.armor && a.type > 1) {
                 p.stopArmor();
             }
             

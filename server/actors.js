@@ -58,6 +58,7 @@ ActorPlayer.onCreate = function(data) {
     this.shieldTime = 0;
     
     this.armor = false;
+    this.disArmor = false;
     this.armorTime = 0;
     
     this.bomb = false;
@@ -104,7 +105,7 @@ ActorPlayer.onUpdate = function() {
     }
     
     // Armor
-    if (this.armor && this.timeDiff(this.armorTime) > 15000) {
+    if (this.disArmor && this.timeDiff(this.armorTime) > 500) {
         this.disableArmor();
     }
     
@@ -154,6 +155,7 @@ ActorPlayer.onUpdate = function() {
 
 ActorPlayer.enableArmor = function() {
     this.armor = true;
+    this.disArmor = false;
     this.armorTime = this.getTime();
     this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
                                          ActorPlayer.shapeArmor);
@@ -164,10 +166,12 @@ ActorPlayer.disableArmor = function() {
                                          ActorPlayer.shape);
     
     this.armor = false;
+    this.disArmor = false;
 };
 
 ActorPlayer.stopArmor = function() {
-    this.armorTime = this.getTime() - 14500;
+    this.armorTime = this.getTime();
+    this.disArmor = true;
 };
 
 
