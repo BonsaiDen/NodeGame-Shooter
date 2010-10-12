@@ -115,13 +115,13 @@ ActorPlayer.onUpdate = function(data) {
     // Armor
     if (this.armor && !data[8]) {
         this.$.playSound('powerOff');
-        this.emitParticles(1.0, 0.5, 4);
-        this.emitParticles(1.7, 0.4, 6);
-        
+        this.emitParticles(col, 1.0, 0.5, 4);
+        this.emitParticles(col, 1.7, 0.4, 6);
+    
     } else if (!this.armor && data[8]) {
         this.$.playSound('powerOn');
-        this.emitParticles(1.25, 0.4, 4);
-        this.emitParticles(2.0, 0.3, 6);
+        this.emitParticles(col, 1.25, 0.4, 4);
+        this.emitParticles(col, 2.0, 0.3, 6);
     }
     this.armor = data[8];
 };
@@ -144,8 +144,8 @@ ActorPlayer.onDestroy = function(complete) {
         }
         
         if (this.armor) {
-            this.emitParticles(1.5, 0.45, 3.5);
-            this.emitParticles(2.2, 0.35, 5.5);
+            this.emitParticles(col, 1.5, 0.45, 3.5);
+            this.emitParticles(col, 2.2, 0.35, 5.5);
         }
         
         for(var i = 0; i < this.missiles; i++) {
@@ -312,8 +312,7 @@ ActorPlayer.onDraw = function() {
     this.$.alpha(1.0);
 };
 
-ActorPlayer.emitParticles = function(speed, dur, step) {
-    var col = this.$.colorCodes[this.$.playerColors[this.id]];
+ActorPlayer.emitParticles = function(col, speed, dur, step) {
     for(var i = 0, l = ActorPlayer.shape.length - 1;
                    i < ActorPlayer.shape.length; l = i, i++) {
         
