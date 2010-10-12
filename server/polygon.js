@@ -54,15 +54,43 @@ Polygon2D.prototype.transform = function(x, y, r) {
     }
 };
 
+Polygon2D.prototype.bounds = function() {
+    var maxx = -9999999, minx = 9999999;
+    var maxy = -9999999, miny = 9999999; 
+    for(var i = 0; i < this.count; i++) {
+        var p = this.points[i];
+        if (p.x < minx) {
+            minx = p.x;
+        
+        } else if (p.x > maxx) {
+            maxx = p.x;
+        }
+        
+        if (p.y < miny) {
+            miny = p.y;
+        
+        } else if (p.y > maxy) {
+            maxy = p.y;
+        }
+    }
+    return [minx, miny, maxx, maxy];
+};
+
+Polygon2D.prototype.containsCircle = function(x, y, r) {
+    return this.contains(x - r, y) && this.contains(x + r, y)
+           && this.contains(x, y - r) && this.contains(x, y + r);
+};
+
 Polygon2D.prototype.contains = function(x, y) {
 	var c = false;
-	for (var i = 0, e = this.count - 1; i < this.count; e = i, i++) {
-		if (((this.points[i].y > y) != (this.points[e].y > y))
-		      && (x < (this.points[e].x - this.points[i].x) * (y - this.points[i].y)
-				  / (this.points[i].y - this.points[i].y) + this.points[i].x)) {
-			
-			c = !c;
-		}
+	for(var i = 0, e = this.count - 1; i < this.count; e = i++) {
+	    var a = this.points[i];
+	    var b = this.points[e];
+        if (a.y < y && b.y >= y || b.y < y && a.y >= y) {
+            if (a.x + (y - a.y) / (b.y - a.y) * (b.x - a.x) < x) {
+                c = !c;
+            }
+        }
 	}
 	return c;
 };
@@ -92,7 +120,7 @@ function intersectProjections(a, b) {
 }
 
 Polygon2D.prototype.intersects = function(o) {
-    for(var i = 0, e = this.count - 1; i < this.count; e = i, i++) {
+    for(var i = 0, e = this.count - 1; i < this.count; e = i++) {
         var axis = (this.points[i].sub(this.points[e])).perpendicular();
         if (!intersectProjections(this.projectAxis(axis),
                                   o.projectAxis(axis))) {
@@ -101,7 +129,7 @@ Polygon2D.prototype.intersects = function(o) {
         }
     }
     
-    for(var i = 0, e = o.count - 1; i < o.count; e = i, i++) {
+    for(var i = 0, e = o.count - 1; i < o.count; e = i++) {
         var axis = (o.points[i].sub(o.points[e])).perpendicular();
         if (!intersectProjections(o.projectAxis(axis),
                                   this.projectAxis(axis))) {
@@ -113,7 +141,7 @@ Polygon2D.prototype.intersects = function(o) {
 };
 
 Polygon2D.prototype.intersectsCircle = function(x, y, r) {
-    for(var i = 0, e = this.count - 1; i < this.count; e = i, i++) {
+    for(var i = 0, e = this.count - 1; i < this.count; e = i++) {
         var axis = (this.points[i].sub(this.points[e])).perpendicular();
         if (!intersectProjections(this.projectAxis(axis),
                                   projectCircle(axis, x, y, r))) {

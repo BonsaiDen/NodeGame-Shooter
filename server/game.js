@@ -419,13 +419,11 @@ Shooter.collideAsteroidPlayerDefs = function(a) {
                 pd.destroy();
             }
             
-            if (a.type < 4) {
-                a.hp -= 15;
-                if (a.hp <= 0) {
-                    pd.player.client.addScore(1);
-                    a.destroy();
-                    return true;
-                }
+            a.hp -= 15;
+            if (a.hp <= 0) {
+                pd.player.client.addScore(1);
+                a.destroy();
+                return true;
             }
         }
     }
@@ -473,6 +471,13 @@ Shooter.collideAsteroidPlayers = function(a) {
                 a.hp = 0;
                 a.destroy();
                 return true;
+            
+            } else {
+                a.hp -= 20;
+                if (a.hp <= 0) {
+                    a.destroy();
+                    return true;
+                }
             }
         }
     }
@@ -511,12 +516,10 @@ Shooter.collideAsteroidBullets = function(a) {
         if (this.asteroidCollision(a, b, this.sizeBullet)) {
             b.player.client.hits++;
             b.destroy();
-            if (a.type < 4) {
-                a.hp -= 5;
-                if (a.hp <= 0) {
-                    a.destroy();
-                    return true;
-                }
+            a.hp -= 5;
+            if (a.hp <= 0) {
+                a.destroy();
+                return true;
             }
         }
     }
@@ -529,12 +532,10 @@ Shooter.collideAsteroidMissiles = function(a) {
         if (this.asteroidCollision(a, m, this.sizeMissile)) {
             m.player.client.hits++;
             m.destroy();
-            if (a.type < 4) {
-                a.hp -= 8;
-                if (a.hp <= 0) {
-                    a.destroy();
-                    return true;
-                }
+            a.hp -= 8;
+            if (a.hp <= 0) {
+                a.destroy();
+                return true;
             }
         }
     }
@@ -564,7 +565,10 @@ Shooter.collidePlayerPlayerDefs = function(p) {
         var pd = playerDefs[e];
         if (pd.player !== p && this.playerCollision(p, pd, this.sizeDefend)) {
             pd.destroy();
-            p.hp -= 15;
+            p.hp -= p.armor ? 10 : 15;
+            if (p.armor) {
+                p.disableArmor();
+            }
             if (p.hp <= 0) {
                 pd.player.client.addScore(10);
                 this.getPlayerStats(pd.player.client.id).kills += 1;
@@ -833,10 +837,18 @@ Shooter.explodeBomb = function(b, tick) {
     var asteroids = this.getActors('asteroid');
     for(var i = 0, l = asteroids.length; i < l; i++) {
         var e = asteroids[i];
-        if (e.type < 4 && this.bombCollision(b, e, this.sizeAsteroid)) {
-            e.bombed = true;
-            e.hp = 0;
-            e.destroy();
+        if (this.bombCollision(b, e, this.sizeAsteroid)) {
+            if (e.type < 4) {
+                e.bombed = true;
+                e.hp = 0;
+                e.destroy();
+            
+            } else {
+                e.hp -= 200;
+                if (e.hp <= 0) {
+                    e.destroy();
+                }
+            }
         }
     }
 };
