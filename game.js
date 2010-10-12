@@ -179,6 +179,7 @@ Shooter.onConnect = function(success) {
     };
     
     // Play recording
+    this.watch = !success;
     if (!success) {
         hide('loginBox');
         show('offlineBox');
@@ -288,6 +289,9 @@ Shooter.onDraw = function() {
 
 Shooter.renderRound = function() {
     this.fill('#ffffff');
+    if (this.watch) {
+        this.text(4, 1, 'No Video. Rendered live on <canvas>.', 'left', 'top');   
+    }    
     
     var t = Math.round((this.roundTime
                        + (this.roundStart - this.getTime())) / 1000);
