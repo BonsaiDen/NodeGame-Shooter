@@ -473,7 +473,7 @@ Shooter.collideAsteroidPlayers = function(a) {
                 return true;
             
             } else {
-                a.hp -= 20;
+                a.hp -= p.armor ? 30 : 20;
                 if (a.hp <= 0) {
                     a.destroy();
                     return true;

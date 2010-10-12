@@ -41,6 +41,7 @@ function Shape2D(points, border) {
 function Polygon2D(x, y, r, shape) {
     this.count = shape.count
     this.base = shape.base;
+    this.radius = shape.radius;
     this.points = new Array(this.count);
     this.transform(x, y, r);
 }
