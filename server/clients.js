@@ -56,10 +56,6 @@ Client.init = function(init) {
                 }
             }
         }
-        if (init) {
-            this.log('++ [' + this.getInfo() + '] ' + this.playerName
-                     + ' has joined');
-        }
         
         this.$.setFieldItem('o', this.id, this.playerColor); // colors
         this.$.setFieldItem('p', this.id, this.playerName); // players
@@ -105,6 +101,10 @@ Client.onMessage = function(msg) {
                     this.favoredColor = color;
                 }
             }
+            
+            this.log('++ [' + this.getInfo() + '] ' + this.playerName
+                     + ' has joined');
+               
             this.init(true);
         }
     
