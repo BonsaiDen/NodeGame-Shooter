@@ -65,16 +65,7 @@ Shooter.onConnect = function(success) {
         that.onLogin(e);
     };
     
-    $('hint').innerHTML = 'Tip: ' + ['Asteroids kill you...',
-                                     'Those colored orbs help you...',
-                                     'Yellow\'s pretty fast...',
-                                     'Green is healthy...',
-                                     'White... press [Enter]... twice...',
-                                     'Watch out for the big ones...',
-                                     'Got bad aiming? Try red...',
-                                     'For protection, blue seems to work...',
-                                     'There\'s no barrel roll...'
-                                     ][Math.floor(Math.random() * 9)]
+    this.onTip();
     
     window.onbeforeunload = function() {
         localStorage.setItem('sound', that.sound.enabled);
@@ -287,6 +278,19 @@ Shooter.onLogin = function(e) {
         }
         return false;
     }
+};
+
+Shooter.onTip = function() {
+    $('hint').innerHTML = 'Tip: ' + ['Asteroids kill you...',
+                                     'Those colored orbs help you...',
+                                     'Yellow\'s pretty fast...',
+                                     'Green is healthy...',
+                                     'White... press [Enter]... twice...',
+                                     'Watch out for the big ones...',
+                                     'Got bad aiming? Try red...',
+                                     'For protection, blue seems to work...',
+                                     'There\'s no barrel roll...'
+                                     ][Math.floor(Math.random() * 9)];
 };
 
 

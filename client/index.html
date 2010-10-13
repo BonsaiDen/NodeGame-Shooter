@@ -186,6 +186,7 @@
             
             #hint {
                 margin-top: 8px;
+                cursor: pointer;
             }
             
         </style>
@@ -214,7 +215,7 @@
                 <input id="login" autocomplete="off" type="text" value="" maxlength="12"/><br/>
                 <div id="colors"></div><div id="watch"><a href="index.html?watch">Watch a recording!</a></div>
                 <div class="controls">
-                    <div id="hint"></div>
+                    <div id="hint" onclick="Shooter.onTip()"></div>
                 </div>
             </div>
             <div id="offlineBox">
