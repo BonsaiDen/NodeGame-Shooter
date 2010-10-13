@@ -24,8 +24,8 @@
 var sys = require('sys');
 var fs= require('fs');
 
-var ws = require(__dirname + '/ws');
-var BISON = require(__dirname + '/bison');
+var ws = require('./ws');
+var BISON = require('./bison');
 
 // Message types
 var MSG_GAME_START = 1;

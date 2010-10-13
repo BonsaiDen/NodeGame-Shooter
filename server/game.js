@@ -20,19 +20,19 @@
   
 */
 
-var NodeGame = require(__dirname + '/nodegame');
+var NodeGame = require('./nodegame');
 
 // Init
 Server = new NodeGame.Server({
     'port': Math.abs(process.argv[2]) || 28785,
     'status': true,
-    'recordFile': __dirname + '/../record[date].js',
+    'recordFile': './../record[date].js',
     'record': false
 });
 Server.run();
 
-require(__dirname + '/clients');
-require(__dirname + '/actors');
+require('./clients');
+require('./actors');
 
 
 // Game ------------------------------------------------------------------------
@@ -532,7 +532,7 @@ Shooter.collideAsteroidMissiles = function(a) {
         if (this.asteroidCollision(a, m, this.sizeMissile)) {
             m.player.client.hits++;
             m.destroy();
-            a.hp -= 8;
+            a.hp -= 10;
             if (a.hp <= 0) {
                 a.destroy();
                 return true;

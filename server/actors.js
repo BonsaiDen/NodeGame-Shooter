@@ -21,7 +21,7 @@
 */
 
 
-var polygon = require(__dirname + '/polygon');
+var polygon = require('./polygon');
 
 
 // Actors ----------------------------------------------------------------------
