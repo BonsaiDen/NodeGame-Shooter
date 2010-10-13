@@ -205,7 +205,7 @@ Server.prototype.timeDiff = function(time) {
 Server.prototype.log = function(str) {
     if (this.showStatus) {
         this.logs.push([this.getTime(), str]);
-        if (this.logs.length > 18) {
+        if (this.logs.length > 20) {
             this.logs.shift();
         }
 
