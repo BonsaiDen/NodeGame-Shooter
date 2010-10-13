@@ -52,11 +52,11 @@ var Shooter = Client.Game(30);
 
 Shooter.onConnect = function(success) {
     // Force FF to show up the cookie dialog, because if cookies aren't allowed
-    // localStorage will fail too.
+    // localStorage will fail
     if (document.cookie !== 'SET') {
         document.cookie = 'SET';
     }
-
+    
     this.canvas = $('bg');
     show(this.canvas);
     show('sub');
@@ -64,6 +64,8 @@ Shooter.onConnect = function(success) {
     $('login').onkeypress = function(e) {
         that.onLogin(e);
     };
+    
+    this.onTip();
     
     window.onbeforeunload = function() {
         localStorage.setItem('sound', that.sound.enabled);
@@ -109,7 +111,6 @@ Shooter.onConnect = function(success) {
     
     this.colorCodesFaded = ['#700000', '#004080', '#707000',
                             '#007000', '#500080', '#707070'];
-    
     
     // Color selection
     try {
@@ -184,24 +185,8 @@ Shooter.onConnect = function(success) {
         hide('loginBox');
         show('offlineBox');
         Shooter.$.playRecording(RECORD);
-        Shooter.$.checkServer(HOST, PORT);
+        this.checkServer(HOST, PORT);
     }
-};
-
-Shooter.selectColor = function(c) {
-    for(var i = 0; i < this.colorSelects.length; i++) {
-        this.colorSelects[i].className = 'color';
-    }
-    this.colorSelected = c;
-    this.colorSelects[c].className = 'color colorselected';
-};
-
-Shooter.reloadPage = function() {
-    document.location.href = document.location.href.split('?')[0];
-};
-
-Shooter.playSound = function(snd) {
-    this.sound.play(snd, 0.5);
 };
 
 Shooter.onInit = function(data) {
@@ -252,7 +237,7 @@ Shooter.onInput = function() {
     return keys;
 };
 
-Shooter.onWebSocketFlash = function() {
+Shooter.onFlashSocket = function() {
     show('warning');
 };
 
@@ -260,6 +245,12 @@ Shooter.onServerOnline = function() {
     $('serverStatus').innerHTML = 'SERVER ONLINE!';
     hide('watching');
     show('goplaying');
+};
+
+Shooter.onServerOffline = function() {
+    $('serverStatus').innerHTML = 'SERVER OFFLINE';
+    show('watching');
+    hide('goplaying');
 };
 
 Shooter.onClose = function() {
@@ -270,8 +261,40 @@ Shooter.onError = function(e) {
     this.reloadPage();
 };
 
+Shooter.onSound = function(data) {
+    this.sound.enabled = !this.sound.enabled;
+    $('sound').innerHTML = (this.sound.enabled ? 'DEACTIVATE' : 'ACTIVATE')
+                                                  + ' SOUND';
+};
 
-// Renderimg -------------------------------------------------------------------
+Shooter.onLogin = function(e) {
+    e = e || window.event;
+    if (e.keyCode === 13) {
+        var playerName = $('login').value;
+        playerName = playerName.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '_');
+        if (playerName.length >= 2 && playerName.length <= 12) {
+            e.preventDefault();
+            this.send({'player': playerName, 'color': this.colorSelected});
+        }
+        return false;
+    }
+};
+
+Shooter.onTip = function() {
+    $('hint').innerHTML = 'Tip: ' + ['Asteroids kill you...',
+                                     'Those colored orbs help you...',
+                                     'Yellow\'s pretty fast...',
+                                     'Green is healthy...',
+                                     'White... press [Enter]... twice...',
+                                     'Watch out for the big ones...',
+                                     'Got bad aiming? Try red...',
+                                     'For protection, blue seems to work...',
+                                     'There\'s no barrel roll...'
+                                     ][Math.floor(Math.random() * 9)];
+};
+
+
+// Rendering -------------------------------------------------------------------
 Shooter.onDraw = function() {
     
     // Clear
@@ -290,7 +313,7 @@ Shooter.onDraw = function() {
 Shooter.renderRound = function() {
     this.fill('#ffffff');
     if (this.watch) {
-        this.text(4, 1, 'No Video. Rendered live on <canvas>.', 'left', 'top');   
+        this.text(4, 1, 'No Video, just <canvas>!', 'left', 'top');   
     }    
     
     var t = Math.round((this.roundTime
@@ -419,29 +442,25 @@ Shooter.renderParticles = function() {
 };
 
 
-
-// Interface -------------------------------------------------------------------
-Shooter.onSound = function(data) {
-    this.sound.enabled = !this.sound.enabled;
-    $('sound').innerHTML = (this.sound.enabled ? 'DEACTIVATE' : 'ACTIVATE')
-                                                  + ' SOUND';
-};
-
-Shooter.onLogin = function(e) {
-    e = e || window.event;
-    if (e.keyCode === 13) {
-        var playerName = $('login').value;
-        playerName = playerName.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '_');
-        if (playerName.length >= 2 && playerName.length <= 12) {
-            e.preventDefault();
-            this.send({'player': playerName, 'color': this.colorSelected});
+// Checks ----------------------------------------------------------------------
+Shooter.checkServer = function(host, port) {
+    var that = this;
+    var conn = new WebSocket('ws://' + host + ':' + port);
+    var online = false;
+    conn.onopen = function() {
+        online = true;
+        conn.close();
+        that.onServerOnline();
+    };
+    
+    conn.onclose = function() {
+        if (!online) {
+            that.onServerOffline();
         }
-        return false;
-    }
+        window.setTimeout(function(){that.checkServer(host, port);}, 15000);
+    };
 };
 
-
-// Rounds & Players ------------------------------------------------------------
 Shooter.checkRound = function(data) {
     if (this.roundGO !== !!data.rg) {
         this.roundID = data.ri;
@@ -470,14 +489,6 @@ Shooter.checkPlayers = function(data) {
             hide(login);
         }
     }
-};
-
-Shooter.playerColor = function(id) {
-    return this.colorCodes[this.playerColors[id]];
-};
-
-Shooter.playerColorFaded = function(id) {
-    return this.colorCodesFaded[this.playerColors[id]];
 };
 
 
@@ -536,7 +547,7 @@ Shooter.effectRing = function(x, y, size, obj) {
 };
 
 
-// Helpers ---------------------------------------------------------------------
+// Drawing ---------------------------------------------------------------------
 Shooter.initCanvas = function() {
     this.canvas.width = this.width * this.scale;
     this.canvas.height = this.height * this.scale;
@@ -588,6 +599,32 @@ Shooter.fill = function(color) {
 
 Shooter.stroke = function(color) {
     this.bg.strokeStyle = color;
+};
+
+
+// Helpers ---------------------------------------------------------------------
+Shooter.selectColor = function(c) {
+    for(var i = 0; i < this.colorSelects.length; i++) {
+        this.colorSelects[i].className = 'color';
+    }
+    this.colorSelected = c;
+    this.colorSelects[c].className = 'color colorselected';
+};
+
+Shooter.playerColor = function(id) {
+    return this.colorCodes[this.playerColors[id]];
+};
+
+Shooter.playerColorFaded = function(id) {
+    return this.colorCodesFaded[this.playerColors[id]];
+};
+
+Shooter.reloadPage = function() {
+    document.location.href = document.location.href.split('?')[0];
+};
+
+Shooter.playSound = function(snd) {
+    this.sound.play(snd, 0.5);
 };
 
 Shooter.timeScale = function(time, scale) {

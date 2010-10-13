@@ -69,7 +69,7 @@ Game.prototype.onClose = function() {
 Game.prototype.onError = function(e) {
 };
 
-Game.prototype.onWebSocketError = function() {
+Game.prototype.onFlashSocket = function() {
 };
 
 Game.prototype.getTime = function() {
@@ -104,7 +104,7 @@ function Client(fps) {
 
 Client.prototype.connect = function(host, port) {
     if (WebSocket.prototype.__createFlash) {
-        this.$.onWebSocketFlash();
+        this.$.onFlashSocket();
     }
     
     var that = this;
@@ -137,23 +137,6 @@ Client.prototype.connect = function(host, port) {
     
     window.onbeforeunload = window.onunload = function() {
         that.conn.close();
-    };
-};
-
-Client.prototype.checkServer = function(host, port) {
-    var that = this;
-    var conn = new WebSocket('ws://' + host + ':' + port);
-    var online = false;
-    conn.onopen = function() {
-        online = true;
-        conn.close();
-        that.$.onServerOnline();
-    };
-    
-    conn.onclose = function() {
-        if (!online) {
-            window.setTimeout(function(){that.checkServer(host, port);}, 15000);
-        }
     };
 };
 
