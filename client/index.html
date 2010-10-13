@@ -92,7 +92,7 @@
             /* Login */
             #loginOverlay {
                 position: absolute;
-                padding-top: 350px;
+                padding-top: 370px;
                 top: 0px;
                 left: 0px;
                 width: 100%;
@@ -183,6 +183,11 @@
                 padding-top: 2px;
                 font-size: 11px;
             }
+            
+            #hint {
+                margin-top: 8px;
+            }
+            
         </style>
         
         <script type="text/javascript">
@@ -209,8 +214,7 @@
                 <input id="login" autocomplete="off" type="text" value="" maxlength="12"/><br/>
                 <div id="colors"></div><div id="watch"><a href="index.html?watch">Watch a recording!</a></div>
                 <div class="controls">
-                    [SPACE] | Shoot<br/>
-                    [RETURN] | Fire / Detonate bomb
+                    <div id="hint"></div>
                 </div>
             </div>
             <div id="offlineBox">
