@@ -648,7 +648,7 @@ ActorAsteroid.onUpdate = function() {
 };
 
 ActorAsteroid.onDestroy = function() {
-    if (this.type < 4 || this.$.roundFinished) {
+    if (this.type < 4 || this.$$.roundFinished) {
         return;
     }
     
