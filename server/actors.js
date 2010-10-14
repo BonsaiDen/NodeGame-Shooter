@@ -610,19 +610,19 @@ ActorAsteroid.onCreate = function(data) {
     this.my = Math.cos(this.r) * speed;
 };
 
-ActorAsteroid.setMovement = function(x, y, dist, r, player, big) {
+ActorAsteroid.setMovement = function(x, y, dist, r, player, bigSpeed) {
     this.r = this.$$.wrapAngle(r);
     this.x = x + Math.sin(r) * dist;
     this.y = y + Math.cos(r) * dist;
     
-    var speed = (Math.random() * 2.0 + 0.75);
+    var speed = Math.random() * 2.0 + 0.75;
     if (player) {
         speed = 0.75 + Math.sqrt(player.mx * player.mx
                                 + player.my * player.my) * 0.65;
     }
     
-    if (big) {
-        speed *= 1.75;
+    if (bigSpeed !== undefined) {
+        speed = bigSpeed;
     }
     
     this.mx = Math.sin(this.r) * speed;
@@ -662,12 +662,17 @@ ActorAsteroid.onDestroy = function() {
             if (x > -16 && x < this.$$.width + 16
                 && y > -16 && y < this.$$.height + 16) {
                 
+ 
                 if (this.polygon.containsCircle(x, y, this.$$.sizeAsteroid)) {
+                    var dx = x - this.x, dy = y - this.y;
+                    var dist = Math.sqrt(dx * dx + dy * dy); 
                     var type = 2 + Math.round(Math.random(1));
-                    
                     var a = this.$$.createActor('asteroid', {'type': type});  
                     var r = this.$$.wrapAngle(Math.atan2(x - this.x, y - this.y));
-                    a.setMovement(x, y, 0, r, null, true);
+                    var speed = (Math.random() * 1.0 + 1.75) * 4.5;
+                    var coreDist = this.polygon.radius - dist;
+                    var distPercent = 100 / this.polygon.radius * coreDist;
+                    a.setMovement(x, y, 0, r, null, 0.5 + speed / (1.0 + distPercent / 20));   
                     asteroids.push(a);
                 }
             }
@@ -686,7 +691,8 @@ ActorAsteroid.onDestroy = function() {
                 }
                 
                 var dx = x - this.x, dy = y - this.y;
-                if (Math.sqrt(dx * dx + dy * dy) < this.polygon.radius / 2) {
+                var dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < this.polygon.radius / 2) {
                     continue;
                 }
                 
@@ -701,7 +707,10 @@ ActorAsteroid.onDestroy = function() {
                 if (place) {
                     var a = this.$$.createActor('asteroid', {'type': 1});  
                     var r = this.$$.wrapAngle(Math.atan2(x - this.x, y - this.y));
-                    a.setMovement(x, y, 0, r, null, true);
+                    var speed = (Math.random() * 1.0 + 1.75) * 4.5;
+                    var coreDist = this.polygon.radius - dist;
+                    var distPercent = 100 / this.polygon.radius * coreDist;
+                    a.setMovement(x, y, 0, r, null, 0.5 + speed / (1.0 + distPercent / 20));
                 }
             }
         }
