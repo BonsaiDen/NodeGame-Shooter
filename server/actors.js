@@ -371,6 +371,7 @@ ActorBomb.onCreate = function(data) {
     this.player = data.player;
     this.player.client.shots++;
     this.range = 120;
+    this.fired = false;
     
     var r = data.r;
     this.x = this.player.x + Math.sin(r) * 12;

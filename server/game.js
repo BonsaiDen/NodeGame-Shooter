@@ -746,13 +746,12 @@ Shooter.updatePlayerDefs = function() {
 Shooter.destroyBomb = function(b) {
     b.player.bomb = false;
     b.player.client.bomb = null;
+    b.player.client.bombLaunched = false;
     
     function Explosion(count, interval, bomb) {
         var that = this;
-        var tick = 0;
         this.tick = function() {
-            Shooter.explodeBomb(bomb, tick);
-            tick++;
+            Shooter.explodeBomb(bomb);
             count--;
             if (count > 0) {
                 setTimeout(that.tick, interval);
@@ -763,7 +762,7 @@ Shooter.destroyBomb = function(b) {
     new Explosion(8, 50, b);
 };
 
-Shooter.explodeBomb = function(b, tick) {
+Shooter.explodeBomb = function(b) {
     // Bombs
     var bombs = this.getActors('bomb');
     for(var i = 0, l = bombs.length; i < l; i++) {
@@ -788,7 +787,7 @@ Shooter.explodeBomb = function(b, tick) {
         var e = players[i];
         if (this.bombCollision(b, e, this.sizePlayer)) {
             e.client.kill();
-            if (b.player && b.player.client.bombLaunched) {
+            if (b.fired) {
                 if (e != b.player) {
                     b.player.client.addScore(10);
                     b.player.client.hits++;
@@ -800,9 +799,6 @@ Shooter.explodeBomb = function(b, tick) {
                 }
             }
         }
-    }
-    if (tick === 0) {
-        b.player.client.bombLaunched = false;
     }
     
     // Powerups
@@ -837,7 +833,8 @@ Shooter.explodeBomb = function(b, tick) {
     var asteroids = this.getActors('asteroid');
     for(var i = 0, l = asteroids.length; i < l; i++) {
         var e = asteroids[i];
-        if (this.bombCollision(b, e, this.sizeAsteroid)) {
+        var size = e.type < 4 ? this.sizeAsteroid : this.sizeBigAsteroid;
+        if (this.bombCollision(b, e, size)) {
             if (e.type < 4) {
                 e.bombed = true;
                 e.hp = 0;

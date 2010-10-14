@@ -157,6 +157,7 @@ Client.onUpdate = function() {
                     'player': this.player,
                     'd': 18.25 + (this.player.armor ? 3 : 0)
                 });
+                this.bomb.fired = true;
                 this.bombLaunched = true;
             }
         }
