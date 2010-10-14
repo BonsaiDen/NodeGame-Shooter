@@ -30,7 +30,6 @@ Client.onInit = function() {
     this.playerColor = -1;
     this.favoredColor = -1;
     this.log('++ [' + this.getInfo() + '] connected');
-    this.$.emitFields();
     this.local = this.ip === '127.0.0.1'
 };
 
@@ -73,7 +72,6 @@ Client.init = function(init) {
         this.bomb = null;
         this.bombLaunched = false;
         
-        this.$.emitFields();
         this.player = this.$.createActor('player', {'r': 0, 'client': this});
     }
 };
