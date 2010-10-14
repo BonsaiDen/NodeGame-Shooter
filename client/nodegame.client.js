@@ -29,6 +29,7 @@ var MSG_GAME_SHUTDOWN = 3;
 var MSG_ACTORS_INIT = 4;
 var MSG_ACTORS_CREATE = 5;
 var MSG_ACTORS_UPDATE = 6;
+var MSG_ACTORS_EVENT = 0;;
 var MSG_ACTORS_REMOVE = 7;
 var MSG_ACTORS_DESTROY = 8;
 
@@ -74,6 +75,10 @@ Game.prototype.onFlashSocket = function() {
 
 Game.prototype.getTime = function() {
     return this.$.time;
+};
+
+Game.prototype.timeDiff = function(time) {
+    return this.$.time - time;
 };
 
 Game.prototype.send = function(msg) {
@@ -235,6 +240,14 @@ Client.prototype.handleMessage = function(type, data) {
             }
         }
     
+    } else if (type === MSG_ACTORS_EVENT) {
+        for(var i = 0, l = data.length; i < l; i++) {
+            var a = data[i];
+            if (this.actors[a[0]]) {
+                this.actors[a[0]].onEvent(a[1]);
+            }
+        } 
+    
     } else if (type === MSG_ACTORS_REMOVE) {
         for(var i = 0, l = data.length; i < l; i++) {
             var a = data[i];
@@ -311,6 +324,7 @@ Client.prototype.createActorType = function(id, rate) {
         this.updateRate = rate;
         this.onCreate = function(data, complete) {};
         this.onUpdate = function(data) {};
+        this.onEvent = function(data) {};
         this.onInterleave = function() {};
         this.onDraw = function() {};
         this.onDestroy = function(complete) {};
@@ -383,6 +397,10 @@ Actor.prototype.remove = function() {
 
 Actor.prototype.getTime = function() {
     return new Date().getTime();
+};
+
+Actor.prototype.timeDiff = function(time) {
+    return this.$.timeDiff(time);
 };
 
 // Exports
