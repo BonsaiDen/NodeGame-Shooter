@@ -320,7 +320,7 @@ Shooter.collidePowerUps = function(o, p) {
     
     } else if (o.type === 'life') {
         p.hp += 15;
-        if (p.h > 30) {
+        if (p.hp > 30) {
             p.hp = 30;
         }
     }
