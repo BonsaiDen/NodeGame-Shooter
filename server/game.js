@@ -247,26 +247,32 @@ Shooter.createPowerUp = function(type, dec, init) {
     }
     up[1] = this.getTime() + add * this.powerUpTimes[this.playerCount];
     if (dec) {
-        this.powerUpCount--;
+        if (type !== 'life') {
+            this.powerUpCount--;
+        }
         up[0]--;
     }
 };
 
 Shooter.removePowerUp = function(type) { 
     this.powerUps[type][0]--;
-    this.powerUpCount--;
+    if (type !== 'life') {
+        this.powerUpCount--;
+    }
 };
 
 Shooter.updatePowerUps = function() {
-    for(var p in this.powerUps) {
-        var up = this.powerUps[p];
+    for(var type in this.powerUps) {
+        var up = this.powerUps[type];
         if (this.getTime() > up[1] && up[0] < up[2]) {
             if (this.powerUpCount < this.powerUpsMax) {
-                this.createActor('powerup', {'type': p});
-                this.createPowerUp(p, false, false);
+                this.createActor('powerup', {'type': type});
+                this.createPowerUp(type, false, false);
                 
                 up[0]++;
-                this.powerUpCount++;
+                if (type !== 'life') {
+                    this.powerUpCount++;
+                } 
             
             } else {
                 up[1] += up[4] * (Math.random() / 2 + 0.5) * 1000;
