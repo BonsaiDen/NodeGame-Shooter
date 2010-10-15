@@ -56,10 +56,12 @@ ActorPlayer.onCreate = function(data) {
     
     this.shield = false;
     this.shieldTime = 0;
+    this.shieldHP = 0;
     
     this.armor = false;
-    this.disArmor = false;
+    this.armorDis = false;
     this.armorTime = 0;
+    this.armorHP = 0;
     
     this.bomb = false;
     this.defender = null;
@@ -100,12 +102,13 @@ ActorPlayer.onUpdate = function() {
     }
     
     // Shield
-    if (this.shield && this.timeDiff(this.shieldTime) > 12500) {
+    if (this.shield && this.timeDiff(this.shieldTime) > 15000) {
+        this.shieldHP = 0;
         this.shield = false;
     }
     
     // Armor
-    if (this.disArmor && this.timeDiff(this.armorTime) > 500) {
+    if (this.armorDis && this.timeDiff(this.armorTime) > 500) {
         this.disableArmor();
     }
     
@@ -154,8 +157,9 @@ ActorPlayer.onUpdate = function() {
 };
 
 ActorPlayer.enableArmor = function() {
+    this.armorHP = 16;
     this.armor = true;
-    this.disArmor = false;
+    this.armorDis = false;
     this.armorTime = this.getTime();
     this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
                                          ActorPlayer.shapeArmor);
@@ -166,14 +170,14 @@ ActorPlayer.disableArmor = function() {
                                          ActorPlayer.shape);
     
     this.armor = false;
-    this.disArmor = false;
+    this.armorDis = false;
+    this.armorHP = 0;
 };
 
 ActorPlayer.stopArmor = function() {
     this.armorTime = this.getTime();
-    this.disArmor = true;
+    this.armorDis = true;
 };
-
 
 ActorPlayer.onDestroy = function() {
     this.clients();
@@ -663,7 +667,6 @@ ActorAsteroid.onDestroy = function() {
             if (x > -16 && x < this.$$.width + 16
                 && y > -16 && y < this.$$.height + 16) {
                 
- 
                 if (this.polygon.containsCircle(x, y, this.$$.sizeAsteroid)) {
                     var dx = x - this.x, dy = y - this.y;
                     var dist = Math.sqrt(dx * dx + dy * dy); 
@@ -687,7 +690,7 @@ ActorAsteroid.onDestroy = function() {
             if (x > -16 && x < this.$$.width + 16
                 && y > -16 && y < this.$$.height + 16) {
                 
-                if(!this.polygon.containsCircle(x, y, this.$$.sizeAsteroid / 2.5)) {
+                if (!this.polygon.containsCircle(x, y, this.$$.sizeAsteroid / 2.5)) {
                     continue;
                 }
                 

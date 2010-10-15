@@ -277,6 +277,7 @@ Shooter.updatePowerUps = function() {
 
 Shooter.collidePowerUps = function(o, p) {
     if (o.type === 'shield') {
+        p.shieldHP = 50;
         p.shield = true;
         p.shieldTime = this.getTime();
     
@@ -655,6 +656,11 @@ Shooter.collidePlayerBullets = function(p) {
             
             b.player.client.hits++;
             b.destroy();
+            
+            p.shieldHP -= 5;
+            if (p.shieldHP <= 0) {
+                p.shield = false;
+            }  
         }
     }
 };
@@ -673,7 +679,18 @@ Shooter.collidePlayerMissiles = function(p) {
             
             m.player.client.hits++;
             m.destroy();
-            p.hp -= p.armor ? 2 : 4;
+            
+            if (p.armor) {
+                p.armorHP -= 4;
+                if (p.armorHP <= 0) {
+                    p.disableArmor();
+                }
+                p.hp -= 1;
+            
+            } else {
+                p.hp -= 4;
+            }
+            
             if (p.hp <= 0) {
                 m.player.client.addScore(10);
                 this.getPlayerStats(m.player.client.id).kills += 1;
@@ -688,6 +705,11 @@ Shooter.collidePlayerMissiles = function(p) {
             
             m.player.client.hits++;
             m.destroy();
+            
+            p.shieldHP -= 4;
+            if (p.shieldHP <= 0) {
+                p.shield = false;
+            }
         }
     }
 };
