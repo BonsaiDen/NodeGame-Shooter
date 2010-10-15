@@ -43,6 +43,9 @@ function Game(client) {
     this.id = -1; 
 };
 
+Game.prototype.onCreate = function() {
+};
+
 Game.prototype.onConnect = function(success) {
 };
 
@@ -108,6 +111,8 @@ function Client(fps) {
 };
 
 Client.prototype.connect = function(host, port) {
+    this.$.onCreate();
+    
     if (WebSocket.prototype.__createFlash) {
         this.$.onFlashSocket();
     }

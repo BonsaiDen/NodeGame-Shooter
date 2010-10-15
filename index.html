@@ -12,6 +12,8 @@
                 font-family: "Tahoma", "DejaVu Sans", "Bitstream Vera Sans";
                 font-weight: bold;
                 color: #ffffff;
+                -webkit-user-select: none;
+                -moz-user-select: none;  
             }
             
             canvas {
@@ -208,7 +210,7 @@
         <script type="text/javascript" src="actors.js"></script>
     </head>
     
-    <body>
+    <body onload="initGame()">
        <div id="loginOverlay">
             <div id="loginBox">
                 <div class="join">Join the Game</div>
@@ -230,7 +232,9 @@
             </div>  
         </div>
         
-        <a class="fork" href="http://github.com/BonsaiDen/NodeGame-Shooter"><img style="position: absolute; top: 0; left: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_left_red_aa0000.png" alt="Fork me on GitHub" /></a>
+        <a class="fork" href="http://github.com/BonsaiDen/NodeGame-Shooter">
+            <img style="position: absolute; top: 0; left: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_left_red_aa0000.png" alt="Fork me on GitHub" />
+        </a>
         
         <div id="warning">
             Oops, looks like you're not using a modern Browser!<br/>
