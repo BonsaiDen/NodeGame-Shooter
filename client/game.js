@@ -20,61 +20,28 @@
   
 */
 
-var Client = new NodeGame();
-window.onload = function() {
-    var watch = document.location.href.split('?')[1] === 'watch';
-    if (watch) {
-        Shooter.onConnect(false);
-    
-    } else {
-        Client.connect(HOST, PORT);
-    }
-};
-
-
-// Helpers ---------------------------------------------------------------------
-function show(id) {
-    $(id).style.display = 'block';
-}
-
-function hide(id) {
-    $(id).style.display = 'none';
-}
-
-function $(id) {
-    return typeof id === 'string' ? document.getElementById(id) : id;
-}
-
 
 // Game ------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+var Client = new NodeGame();
 var Shooter = Client.Game(30);
 
-Shooter.onConnect = function(success) {
+Shooter.onCreate = function() {
     // Force FF to show up the cookie dialog, because if cookies aren't allowed
     // localStorage will fail
     if (document.cookie !== 'SET') {
         document.cookie = 'SET';
     }
     
-    this.canvas = $('bg');
-    show(this.canvas);
-    show('sub');
-    
-    $('login').onkeypress = function(e) {
-        that.onLogin(e);
-    };
-    
-    this.onTip();
-    
     window.onbeforeunload = function() {
-        localStorage.setItem('sound', that.sound.enabled);
-        localStorage.setItem('color', that.colorSelected);
+        localStorage.setItem('sound', Shooter.sound.enabled);
+        localStorage.setItem('color', Shooter.colorSelected);
     };
     
     // Canvas
     this.particles = [];
     this.scale = 1;
+    this.canvas = $('bg');
     
     // Sounds
     this.sound = new SoundPlayer(7, 'sounds', [
@@ -99,12 +66,30 @@ Shooter.onConnect = function(success) {
     } catch (e) {
         this.sound.enabled = true;
     }
-    this.onSound(); 
+    this.onSound();
     
-    // Stuff
+    // General
+    this.roundTime = 0;
+    this.roundStart = 0;
+    this.roundID = 0;
+    this.roundStats = {};
+    this.roundGO = null;
+    this.playing = false;
     this.playerNames = {};
     this.playerScores = {};
     this.playerColors = {};
+    
+    // Colors
+    this.powerUpColors = {
+        'shield':  '#0060c0', // blue
+        'armor':   '#00c9ff', // teal
+        'missile': '#d00000', // red
+        'life':    '#00b000', // green
+        'boost':   '#f0c000', // yellow
+        'defense': '#9c008c', // purple
+        'bomb':    '#d0d0d0', // light gray
+        'camu':    '#808080'  // camu
+    };  
     
     this.colorCodes      = ['#f00000', '#0080ff', '#f0f000',
                             '#00f000', '#9000ff', '#f0f0f0'];
@@ -112,7 +97,6 @@ Shooter.onConnect = function(success) {
     this.colorCodesFaded = ['#700000', '#004080', '#707000',
                             '#007000', '#500080', '#707070'];
     
-    // Color selection
     try {
         this.colorSelected = parseInt(localStorage.getItem('color') || 0);
     
@@ -127,7 +111,6 @@ Shooter.onConnect = function(success) {
         d.className = i === this.colorSelected ? 'color colorselected': 'color';
         d.style.backgroundColor = this.colorCodes[i];
         d.style.borderColor = this.colorCodesFaded[i];
-        
         d.onclick = (function(e) {
             return function() {
                 Shooter.selectColor(e);
@@ -135,27 +118,16 @@ Shooter.onConnect = function(success) {
         })(i);
         colorBox.appendChild(d);
         this.colorSelects.push(d);
-    } 
-    
-    // Rounds
-    this.roundTime = 0;
-    this.roundStart = 0;
-    this.roundID = 0;
-    this.roundStats = {};
-    this.roundGO = null;
-    this.playing = false;
-    
-    // Power UPs
-    this.powerUpColors = {
-        'shield':  '#0060c0', // blue
-        'armor':   '#00c9ff', // teal
-        'missile': '#d00000', // red
-        'life':    '#00b000', // green
-        'boost':   '#f0c000', // yellow
-        'defense': '#9c008c', // purple
-        'bomb':    '#d0d0d0', // light gray
-        'camu':    '#808080'  // camu
+    }
+};
+
+Shooter.onConnect = function(success) {
+    show(this.canvas);
+    show('sub');
+    $('login').onkeypress = function(e) {
+        that.onLogin(e);
     };
+    this.onTip();
     
     // Input
     var that = this;
@@ -181,10 +153,10 @@ Shooter.onConnect = function(success) {
     
     // Play recording
     this.watch = !success;
-    if (!success) {
+    if (this.watch) {
         hide('loginBox');
         show('offlineBox');
-        Shooter.$.playRecording(RECORD);
+        this.$.playRecording(RECORD);
         this.checkServer(HOST, PORT);
     }
 };
@@ -254,11 +226,19 @@ Shooter.onServerOffline = function() {
 };
 
 Shooter.onClose = function() {
-    this.reloadPage();
+    var that = this;
+    window.setTimeout(function() {
+        that.reloadPage();
+    
+    }, 50);
 };
 
 Shooter.onError = function(e) {
-    this.reloadPage();
+    var that = this;
+    window.setTimeout(function() {
+        that.reloadPage();
+    
+    }, 50);
 };
 
 Shooter.onSound = function(data) {
@@ -620,7 +600,10 @@ Shooter.playerColorFaded = function(id) {
 };
 
 Shooter.reloadPage = function() {
-    document.location.href = document.location.href.split('?')[0];
+    if (!this.pageReloaded) {
+        document.location.href = document.location.href.split('?')[0];
+        this.pageReloaded = true;
+    }
 };
 
 Shooter.playSound = function(snd) {
@@ -661,4 +644,29 @@ Shooter.wrapPosition = function(obj) {
         obj.updated = true;
     }
 };
+
+
+// Utility ---------------------------------------------------------------------
+function initGame() {
+    var path = document.location.href.split('?')[1];
+    if (path && path.substr(0, 5) === 'watch') {
+        Shooter.onCreate();
+        Shooter.onConnect(false);
+    
+    } else {
+        Client.connect(HOST, PORT);
+    }
+}
+
+function show(id) {
+    $(id).style.display = 'block';
+}
+
+function hide(id) {
+    $(id).style.display = 'none';
+}
+
+function $(id) {
+    return typeof id === 'string' ? document.getElementById(id) : id;
+}
 
