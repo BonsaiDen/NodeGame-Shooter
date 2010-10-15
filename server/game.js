@@ -89,9 +89,9 @@ Shooter.onInit = function() {
     this.initPowerUp('missile', 2, 16, 15);
     this.initPowerUp('life',    2,  8,  8);
     this.initPowerUp('boost',   1, 26, 15);
-    this.initPowerUp('defense', 1, 30, 30);
-    this.initPowerUp('bomb',    1, 70, 35);
-    this.initPowerUp('camu',    1, 45, 20);
+    this.initPowerUp('defense', 2, 30, 30);
+    this.initPowerUp('bomb',    1, 65, 35);
+    this.initPowerUp('camu',    1, 40, 20);
     
     this.powerUpTimes = [2, 1.35, 1.12, 1.0, 1, 0.9, 0.8];
     
