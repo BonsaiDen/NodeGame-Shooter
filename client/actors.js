@@ -260,10 +260,10 @@ ActorPlayer.onDraw = function() {
         // Missile Ring
         if (this.missiles > 0) {
             if (this.mor < this.missiles) {
-                this.mor += 0.05;
+                this.mor += 0.0625;
             
             } else if (this.mor > this.missiles) {
-                this.mor -= 0.05;
+                this.mor -= 0.0625;
             }
             for(var i = 0; i < this.missiles; i++) {
                 var r = (Math.PI * 2 / this.mor * i) - Math.PI + this.mmr;
