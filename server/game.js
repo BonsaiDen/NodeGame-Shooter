@@ -129,7 +129,6 @@ Shooter.startRound = function() {
     this.roundFinished = false;
     for(var c in this.$.clients) {
         this.$.clients[c].init(false);
-        this.addPlayerStats(c);
     }
     
     var that = this;
@@ -147,21 +146,16 @@ Shooter.endRound = function() {
     
     // Stats
     var sorted = [];
-    for(var c in this.$.clients) {
-        if (this.$.clients[c].playerName != '') {
-            var stats = this.roundStats[c];
-            sorted.push([this.$.clients[c].score,
-                         stats.kills, this.$.clients[c].playerName,
-                         stats.selfDestructs,
-                         this.$.clients[c].playerColor,
-                         this.$.clients[c].shots > 0 ? 
-                                    Math.round(100 / this.$.clients[c].shots
-                                                   * this.$.clients[c].hits)
-                                                      : -1]);
+    for(var e in this.$.clients) {
+        var c = this.$.clients[e];
+        if (c.playerName != '') {
+            var hits = c.shots > 0 ? Math.round(100 / c.shots * c.hits) : -1;
+            sorted.push([c.score, c.kills, c.playerName, c.selfDestructs,
+                         c.playerColor, hits]);
         }
     }
     
-    function sortScore(a, b) {
+    sorted.sort(function(a, b) {
         var d = b[0] - a[0];
         if (d === 0) {
             d = b[1] - a[1];
@@ -170,8 +164,7 @@ Shooter.endRound = function() {
             }
         }
         return d;
-    }
-    sorted.sort(sortScore);
+    });
     
     this.$.setField('rt', this.roundWait);
     this.$.setField('rg', 0);
@@ -180,23 +173,6 @@ Shooter.endRound = function() {
     
     var that = this;
     setTimeout(function(){that.startRound();}, this.roundWait);
-};
-
-Shooter.removePlayerStats = function(id) {
-    if (this.roundStats[id]) {
-        delete this.roundStats[id];
-    }
-};
-
-Shooter.getPlayerStats = function(id) {
-    return this.roundStats[id];
-};
-
-Shooter.addPlayerStats = function(id) {
-    this.roundStats[id] = {
-        'kills': 0,
-        'selfDestructs': 0
-    };
 };
 
 
@@ -292,10 +268,7 @@ Shooter.collidePowerUps = function(o, p) {
         p.boostTime = this.getTime();
     
     } else if (o.type === 'missile') {
-        p.missiles += 5;
-        if (p.missiles > 10) {
-            p.missiles = 10;
-        }
+        p.missiles = Math.min(10, p.missiles + 5);
     
     } else if (o.type === 'bomb') {
         p.bomb = true;
@@ -319,10 +292,7 @@ Shooter.collidePowerUps = function(o, p) {
         p.enableArmor();
     
     } else if (o.type === 'life') {
-        p.hp += 15;
-        if (p.hp > 30) {
-            p.hp = 30;
-        }
+        p.hp = Math.min(30, p.hp + 15);
     }
     this.createPowerUp(o.type, true, false);
     o.destroy();
@@ -465,8 +435,7 @@ Shooter.collideAsteroidPlayers = function(a) {
             }
             
             if (p.hp <= 0) {
-                p.client.kill(true);
-                this.getPlayerStats(p.client.id).selfDestructs += 1;
+                p.client.killByAsteroid(a);
             }
             
             if (p.armor && a.type > 1) {
@@ -475,7 +444,6 @@ Shooter.collideAsteroidPlayers = function(a) {
             
             if (a.type < 4) {
                 a.broken = p;
-                a.hp = 0;
                 a.destroy();
                 return true;
             
@@ -497,19 +465,15 @@ Shooter.collideAsteroidAsteroids = function(a, i) {
         var size = aa.type >= 4 ? this.sizeBigAsteroid : this.sizeAsteroid;
         if (this.asteroidCollision(a, aa, size)) {
             if (a.type === aa.type) {
-                a.hp = 0;
                 a.destroy();
-                aa.hp = 0;
                 aa.destroy();
                 return true;
             
             } else if (a.type <= aa.type) {
-                a.hp = 0;
                 a.destroy();
                 return true;
             
             } else {
-                aa.hp = 0;
                 aa.destroy();
             }
         }
@@ -577,9 +541,7 @@ Shooter.collidePlayerPlayerDefs = function(p) {
                 p.disableArmor();
             }
             if (p.hp <= 0) {
-                pd.player.client.addScore(10);
-                this.getPlayerStats(pd.player.client.id).kills += 1;
-                p.client.kill();
+                p.client.killByProjectile(pd);
                 return true;
             }
         }
@@ -603,20 +565,17 @@ Shooter.collidePlayerPlayers = function(p, i) {
         var pp = players[e];
         if (pp.defense === 0 && this.playerCollision(p, pp, this.sizePlayer)) {
             if (p.armor && !pp.armor) {
+                pp.client.killByPlayer(p);
                 p.disableArmor();
-                pp.client.kill(false, true);
             
             } else if (pp.armor && !p.armor) {
+                p.client.killByPlayer(pp);
                 pp.disableArmor();
-                p.client.kill(false, true);
                 return true;
             
             } else {
-                pp.client.kill();
-                p.client.kill();
-                
-                this.getPlayerStats(p.client.id).selfDestructs += 1;
-                this.getPlayerStats(pp.client.id).selfDestructs += 1;
+                pp.client.killByPlayer(p);
+                p.client.killByPlayer(pp);
                 return true;
             }
         }
@@ -649,9 +608,7 @@ Shooter.collidePlayerBullets = function(p) {
             b.destroy();
             p.hp -= 5;
             if (p.hp <= 0) {
-                b.player.client.addScore(10);
-                this.getPlayerStats(b.player.client.id).kills += 1;
-                p.client.kill();
+                p.client.killByProjectile(b);
                 return true;
             }
         
@@ -698,9 +655,7 @@ Shooter.collidePlayerMissiles = function(p) {
             }
             
             if (p.hp <= 0) {
-                m.player.client.addScore(10);
-                this.getPlayerStats(m.player.client.id).kills += 1;
-                p.client.kill();
+                p.client.killByProjectile(m);
                 return;
             }
         
@@ -775,22 +730,23 @@ Shooter.destroyBomb = function(b) {
     b.player.bomb = false;
     b.player.client.bomb = null;
     b.player.client.bombLaunched = false;
-    
-    function Explosion(count, interval, bomb) {
-        var that = this;
-        this.tick = function() {
-            Shooter.explodeBomb(bomb);
-            count--;
-            if (count > 0) {
-                setTimeout(that.tick, interval);
-            }
-        };
-        this.tick();
-    }
-    new Explosion(8, 50, b);
+    this.bombExplosion(8, 50, b);
+};
+
+Shooter.bombExplosion = function(count, interval, bomb) {
+    var that = this;
+    var tick = function() {
+        that.explodeBomb(bomb);
+        count--;
+        if (count > 0) {
+            setTimeout(tick, interval);
+        }
+    };
+    tick();
 };
 
 Shooter.explodeBomb = function(b) {
+    
     // Bombs
     var bombs = this.getActors('bomb');
     for(var i = 0, l = bombs.length; i < l; i++) {
@@ -813,19 +769,8 @@ Shooter.explodeBomb = function(b) {
     var players = this.getActors('player');
     for(var i = 0, l = players.length; i < l; i++) {
         var e = players[i];
-        if (this.bombCollision(b, e, this.sizePlayer)) {
-            e.client.kill();
-            if (b.fired) {
-                if (e != b.player) {
-                    b.player.client.addScore(10);
-                    b.player.client.hits++;
-                    this.getPlayerStats(b.player.client.id).kills += 1;
-                
-                } else {
-                    b.player.client.addScore(-5);
-                    this.getPlayerStats(b.player.client.id).selfDestructs += 1;
-                }
-            }
+        if (e.defense === 0 && this.bombCollision(b, e, this.sizePlayer)) {
+            e.client.killByBomb(b);
         }
     }
     
@@ -865,7 +810,6 @@ Shooter.explodeBomb = function(b) {
         if (this.bombCollision(b, e, size)) {
             if (e.type < 4) {
                 e.bombed = true;
-                e.hp = 0;
                 e.destroy();
             
             } else {
@@ -979,6 +923,28 @@ Shooter.checkCollision = function(a, b, ra, rb, circle) {
     }
 };
 
+Shooter.checkOverlap = function(objs, o, size, osize) {
+    for(var i = 0, l = objs.length; i < l; i++) {
+        if (this.checkCollision(objs[i], o, size * 2, osize, true)) {
+            return true;
+        }
+    }
+    return false;
+};
+
+Shooter.checkOverlapAsteroids = function(objs, o, osize) {
+    for(var i = 0, l = objs.length; i < l; i++) {
+        var big = objs[i].type >= 4;
+        var size = big ? this.sizeBigAsteroid * 1.1
+                         : this.sizeAsteroid * 2;
+        
+        if (this.checkCollision(objs[i], o, size, osize, true, big)) {
+            return true;
+        }
+    }
+    return false;
+};
+
 
 // Helpers ---------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -993,55 +959,81 @@ Shooter.wrapAngle = function(r) {
 };
 
 Shooter.randomPosition = function(obj, size) {
-    var players      = this.getActors('player');
-    var powerups     = this.getActors('powerup');
-    var asteroids    = this.getActors('asteroid');
+    var players = this.getActors('player');
+    var powerups = this.getActors('powerup');
+    var asteroids = this.getActors('asteroid');
     
     var found = false;
     var tries = 0;
-    while(!found && tries < 25) {
+    while(!found && tries++ < 25) {
+        found = true;
         obj.x = (Math.random() * (this.width - 50)) + 25;
         obj.y = (Math.random() * (this.height - 50)) + 25;
         
-        found = true;
-        for(var i = 0, l = players.length; i < l; i++) {
-            if (this.checkCollision(players[i], obj,
-                                    this.sizePlayer * 2, size * 2,
-                                    true)) {
-                
-                found = false;
-                break;
-            }
-        }
+        if (this.checkOverlap(players, obj, this.sizePlayer, size * 2)) {
+            found = false;
         
-        if (found) {
-            for(var i = 0, l = powerups.length; i < l; i++) {
-                if (this.checkCollision(powerups[i], obj,
-                                        this.sizePowerUp * 2, size * 2,
-                                        true)) {
-                    
-                    found = false;
-                    break;
-                }
-            }
-        }
+        } else if (this.checkOverlap(powerups, obj, this.sizePowerUp, size * 2)) {
+            found = false;
         
-        if (found) {
-            for(var i = 0, l = asteroids.length; i < l; i++) {
-                var asize = asteroids[i].type >= 4 ? this.sizeBigAsteroid
-                                                   : this.sizeAsteroid * 2;
-                
-                if (this.checkCollision(asteroids[i], obj, asize, size * 2,
-                                        true,
-                                        asteroids[i].type >= 4)) {
-                    
-                    found = false;
-                    break;
-                }
-            }
+        } else if (this.checkOverlapAsteroids(asteroids, obj, size * 2)) {
+            found = false;
         }
-        tries++;
     }
+};
+
+Shooter.randomPositionAsteroid = function(obj, size) {
+    var asteroids = this.getActors('asteroid'); 
+    var players = this.getActors('player'); 
+    
+    var found = false;
+    var tries = 0;
+    while(!found && tries++ < 15) {
+        found = true;
+        
+        var rx = (Math.random() * this.width + 32) - 16;
+        var ry = (Math.random() * this.height + 32) - 16;
+        var top = Math.random() * 10 < 5;
+        var left = Math.random() * 10 < 5;
+        if (Math.random() * 10 < 5) {
+            obj.x = left ? rx / 2 : rx / 2 + this.width / 2;
+            if (obj.x < -16 || obj.x > this.width + 16) {
+                obj.y = top ? ry / 2 : ry / 2 + this.height / 2;
+            
+            } else {
+                obj.y = top ? -16 : this.height + 16;
+            }
+        
+        } else {
+            obj.y = top ? ry / 2 : ry / 2 + this.height / 2;
+            if (obj.y < -16 || obj.y > this.height + 16) {
+                obj.x = left ? rx / 2 : rx / 2 + this.width / 2;
+            
+            } else {
+                obj.y = top ? -16 : this.height + 16;
+            }
+        }
+        
+        if (this.checkOverlap(players, obj, this.sizePlayer, size)) {
+            found = false;
+        
+        } else if (this.checkOverlapAsteroids(asteroids, obj, size)) {
+            found = false;
+        }
+    }
+};
+
+Shooter.launchAt = function(a, d, r, min, max) {
+    a.mx = a.player.mx + Math.sin(r) * d;
+    a.my = a.player.my + Math.cos(r) * d;
+    
+    var speed = Math.sqrt(Math.pow(a.x - (a.x + a.mx), 2)
+                        + Math.pow(a.y - (a.y + a.my), 2));
+    
+    speed = Math.min(max, Math.max(min, speed));
+    a.mx = Math.sin(r) * speed;
+    a.my = Math.cos(r) * speed;
+    return speed;
 };
 
 Shooter.wrapPosition = function(obj) {

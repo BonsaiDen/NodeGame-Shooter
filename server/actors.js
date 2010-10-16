@@ -21,34 +21,30 @@
 */
 
 
-var polygon = require('./polygon');
+var Shape2D = require('./polygon').Shape2D;
+var Polygon2D = require('./polygon').Polygon2D;
 
 
 // Actors ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 var ActorPlayer = Server.createActorType('player', 2);
-ActorPlayer.shape = new polygon.Shape2D([[0, -12], [10, 12], [-10, 12],
-                                         [0, -12]], 2.5);
-
-ActorPlayer.shapeArmor = new polygon.Shape2D([[0, -12], [10, 12], [-10, 12],
-                                              [0, -12]], 6.5);
+ActorPlayer.baseShape = [[0, -12], [10, 12], [-10, 12], [0, -12]];
+ActorPlayer.shape = new Shape2D(ActorPlayer.baseShape, 2.5);
+ActorPlayer.shapeArmor = new Shape2D(ActorPlayer.baseShape, 6.5);
 
 ActorPlayer.onCreate = function(data) {
     this.client = data.client;
     this.hp = 15;
     this.r = (Math.random() * Math.PI * 2) - Math.PI;
     this.mr = 0;
+    this.oldMr = 0;
     
     this.$$.randomPosition(this, this.$$.sizePlayer);
-    this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
-                                         ActorPlayer.shape);
-    
+    this.polygon = new Polygon2D(this.x, this.y, this.r, ActorPlayer.shape);
     this.thrust = false;
     this.defense = 1400;
     this.defenseTime = this.getTime();
     this.defMode = true;
-    
-    this.oldMr = 0;
     
     // PowerUPS
     this.boost = false;
@@ -90,8 +86,6 @@ ActorPlayer.onUpdate = function() {
     this.x += this.mx;
     this.y += this.my;
     this.polygon.transform(this.x, this.y, this.r);
-    
-    // Wrap
     this.$$.wrapPosition(this);
     
     // Invincibility
@@ -161,14 +155,11 @@ ActorPlayer.enableArmor = function() {
     this.armor = true;
     this.armorDis = false;
     this.armorTime = this.getTime();
-    this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
-                                         ActorPlayer.shapeArmor);
+    this.polygon = new Polygon2D(this.x, this.y, this.r, ActorPlayer.shapeArmor);
 };
 
 ActorPlayer.disableArmor = function() {
-    this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
-                                         ActorPlayer.shape);
-    
+    this.polygon = new Polygon2D(this.x, this.y, this.r, ActorPlayer.shape);
     this.armor = false;
     this.armorDis = false;
     this.armorHP = 0;
@@ -215,30 +206,13 @@ ActorMissile.onCreate = function(data) {
     this.player = data.player;
     this.player.client.shots++;
     
-    var r = data.r;
-    this.mx = this.player.mx + Math.sin(r) * 4.0;
-    this.my = this.player.my + Math.cos(r) * 4.0;
-    
-    var speed = Math.sqrt(Math.pow(this.x - (this.x + this.mx), 2)
-                        + Math.pow(this.y - (this.y + this.my), 2));
-    
-    if (speed < 4) {
-        speed = 4;
-    
-    } else if (speed > 7) {
-        speed = 7;
-    }
-    this.mx = Math.sin(r) * speed;
-    this.my = Math.cos(r) * speed;
-    
-    this.x = this.player.x + Math.sin(this.$$.wrapAngle(r)) * data.d;
-    this.y = this.player.y + Math.cos(this.$$.wrapAngle(r)) * data.d;
-    this.r = r;
+    this.r = data.r;
+    this.speed = this.$$.launchAt(this, 4, this.r, 4, 7);
+    this.x = this.player.x + Math.sin(this.$$.wrapAngle(this.r)) * data.d;
+    this.y = this.player.y + Math.cos(this.$$.wrapAngle(this.r)) * data.d;
     
     this.time = this.getTime();
     this.tick = this.getTime() - 500;
-    
-    this.speed = speed;
     this.target = null;
 };
         
@@ -288,7 +262,8 @@ ActorMissile.onUpdate = function() {
         this.tick = this.getTime();
     }
     
-    if (this.target) {
+    // Steer
+    if (this.target && this.target.alive()) {
         var dr = this.$$.getAngle(this, this.target);
         dr = this.$$.wrapAngle(this.r - dr);
         if (dr < 0) {
@@ -326,27 +301,10 @@ ActorBullet.onCreate = function(data) {
     this.player = data.player;
     this.player.client.shots++;
     
-    var r = data.r;
-    this.x = this.player.x + Math.sin(r) * 12;
-    this.y = this.player.y + Math.cos(r) * 12;
-    
-    this.mx = this.player.mx + Math.sin(r) * 4.0;
-    this.my = this.player.my + Math.cos(r) * 4.0;
-    
-    var speed = Math.sqrt(Math.pow(this.x - (this.x + this.mx), 2)
-                        + Math.pow(this.y - (this.y + this.my), 2));
-    
-    if (speed < 4) {
-        speed = 4;
-    
-    } else if (speed > 7) {
-        speed = 7;
-    }
-    this.mx = Math.sin(r) * speed;
-    this.my = Math.cos(r) * speed;
-    
-    this.x = this.player.x + Math.sin(this.$$.wrapAngle(r)) * data.d;
-    this.y = this.player.y + Math.cos(this.$$.wrapAngle(r)) * data.d;
+    this.r = data.r;
+    this.$$.launchAt(this, 4, this.r, 4, 7);    
+    this.x = this.player.x + Math.sin(this.$$.wrapAngle(this.r)) * data.d;
+    this.y = this.player.y + Math.cos(this.$$.wrapAngle(this.r)) * data.d;
     this.time = this.getTime();
 };
         
@@ -377,27 +335,10 @@ ActorBomb.onCreate = function(data) {
     this.range = 120;
     this.fired = false;
     
-    var r = data.r;
-    this.x = this.player.x + Math.sin(r) * 12;
-    this.y = this.player.y + Math.cos(r) * 12;
-    
-    this.mx = this.player.mx + Math.sin(r) * 4.0;
-    this.my = this.player.my + Math.cos(r) * 4.0;
-    
-    var speed = Math.sqrt(Math.pow(this.x - (this.x + this.mx), 2)
-                        + Math.pow(this.y - (this.y + this.my), 2));
-    
-    if (speed < 6) {
-        speed = 6;
-    
-    } else if (speed > 9) {
-        speed = 9;
-    }
-    this.mx = Math.sin(r) * speed;
-    this.my = Math.cos(r) * speed;
-    
-    this.x = this.player.x + Math.sin(this.$$.wrapAngle(r)) * data.d;
-    this.y = this.player.y + Math.cos(this.$$.wrapAngle(r)) * data.d;
+    this.r = data.r;
+    this.$$.launchAt(this, 4, this.r, 6, 9);        
+    this.x = this.player.x + Math.sin(this.$$.wrapAngle(this.r)) * data.d;
+    this.y = this.player.y + Math.cos(this.$$.wrapAngle(this.r)) * data.d;
     this.time = this.getTime();       
 };
 
@@ -510,84 +451,37 @@ ActorPlayerDef.onMessage = function(once) {
 // Asteroid --------------------------------------------------------------------
 var ActorAsteroid = Server.createActorType('asteroid', 6);
 ActorAsteroid.shapes = [
-    new polygon.Shape2D([[-1, -6], [-7, -4], [-6, 4], [2, 5], [6, -2]], 2.5),
-    new polygon.Shape2D([[-2, -13], [-13 , -8], [-12, 8], [-2, 12], [11, 10],
-                         [12, -8]], 2.5),
+    new Shape2D([[-1, -6], [-7, -4], [-6, 4], [2, 5], [6, -2]], 2.5),
+    new Shape2D([[-2, -13], [-13 , -8], [-12, 8], [-2, 12], [11, 10], [12, -8]],
+                  2.5),
     
-    new polygon.Shape2D([[-5, -16], [-16 , -9], [-15, 12], [-4, 16], [13, 13],
-                         [16, -5], [10, -15]], 2.5),
+    new Shape2D([[-5, -16], [-16 , -9], [-15, 12], [-4, 16], [13, 13], [16, -5],
+                 [10, -15]], 2.5),
     
-    new polygon.Shape2D([[-66, -120], [-126, -56], [-92, 76], [-42, 118],
-                         [6, 102], [120, 62], [148, 36], [148, -22], [58, -90]],
-                         5),
+    new Shape2D([[-66, -120], [-126, -56], [-92, 76], [-42, 118], [6, 102],
+                 [120, 62], [148, 36], [148, -22], [58, -90]], 5),
     
-    new polygon.Shape2D([[-96, -100], [-126, -26], [-112, 75], [-32, 92],
-                         [35, 92], [110, 70], [138, 36], [128, -52],
-                         [28, -120]], 5)
+    new Shape2D([[-96, -100], [-126, -26], [-112, 75], [-32, 92], [35, 92],
+                 [110, 70], [138, 36], [128, -52], [28, -120]], 5)
 ];
 
 ActorAsteroid.onCreate = function(data) {    
-    var tx = this.$$.width / 4 + (Math.random() * (this.$$.width / 2));
-    var ty = this.$$.height / 4 + (Math.random() * (this.$$.height / 2));
     this.type = data.type;
     this.hp = [1, 5, 10, 20, 200, 200][this.type];
     this.broken = null;
+    var size = this.$$.sizeAsteroid * 2;
     
+    var tx = this.$$.width / 4 + (Math.random() * (this.$$.width / 2));
+    var ty = this.$$.height / 4 + (Math.random() * (this.$$.height / 2));
     if (this.type >= 4) {
         tx = this.$$.width / 3 + (Math.random() * (this.$$.width / 3));
-        ty = this.$$.height / 3 + (Math.random() * (this.$$.height / 3));  
+        ty = this.$$.height / 3 + (Math.random() * (this.$$.height / 3));
+        size = this.$$.sizeBigAsteroid * 1.1;
     }
-    this.polygon = new polygon.Polygon2D(this.x, this.y, this.r,
-                                         ActorAsteroid.shapes[this.type - 1]);
     
-    var found = false;
-    var tries = 0;
-    while(!found && tries < 15) {
-        found = true;
-        
-        // Choose a random location outside of the play field
-        var rx = (Math.random() * this.$$.width + 32) - 16;
-        var ry = (Math.random() * this.$$.height + 32) - 16;
-        var top = Math.random() * 10 < 5;
-        var left = Math.random() * 10 < 5;
-        if (Math.random() * 10 < 5) {
-            this.x = left ? rx / 2 : rx / 2 + this.$$.width / 2;
-            if (this.x < -16 || this.x > this.$$.width + 16) {
-                this.y = top ? ry / 2 : ry / 2 + this.$$.height / 2;
-            
-            } else {
-                this.y = top ? -16 : this.$$.height + 16;
-            }
-        
-        } else {
-            this.y = top ? ry / 2 : ry / 2 + this.$$.height / 2;
-            if (this.y < -16 || this.y > this.$$.height + 16) {
-                this.x = left ? rx / 2 : rx / 2 + this.$$.width / 2;
-            
-            } else {
-                this.y = top ? -16 : this.$$.height + 16;
-            }
-        }
-        
-        // Find free spot
-        var size = this.type >= 4 ? this.$$.sizeBigAsteroid
-                                  : this.$$.sizeAsteroid * 2;
-        
-        var asteroids = this.$$.getActors('asteroid');
-        for(var i = 0, l = asteroids.length; i < l; i++) {
-            var asize = asteroids[i].type >= 4 ? this.$$.sizeBigAsteroid
-                                               : this.$$.sizeAsteroid * 2;
-            
-            if (this.$$.checkCollision(asteroids[i], this, asize, size,
-                                       true,
-                                       asteroids[i].type >= 4)) {
-                
-                found = false;
-                break;
-            }
-        }
-        tries++;
-    }
+    this.$$.randomPositionAsteroid(this, size);
+    this.polygon = new Polygon2D(this.x, this.y, this.r,
+                                 ActorAsteroid.shapes[this.type - 1]);
     
     var speed = Math.random() * 2.0 + 0.75;
     this.r = this.$$.wrapAngle(Math.atan2(tx - this.x, ty - this.y));
@@ -653,6 +547,7 @@ ActorAsteroid.onUpdate = function() {
 };
 
 ActorAsteroid.onDestroy = function() {
+    this.hp = 0;
     if (this.type < 4 || this.$$.roundFinished) {
         return;
     }

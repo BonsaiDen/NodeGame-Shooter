@@ -33,7 +33,7 @@ Client.onInit = function() {
     this.local = this.ip === '127.0.0.1'
 };
 
-Client.init = function(init) {
+Client.init = function() {
     if (this.playerName && !this.$$.roundFinished) {
         
         // Get favored color
@@ -56,16 +56,20 @@ Client.init = function(init) {
             }
         }
         
-        this.$.setFieldItem('o', this.id, this.playerColor); // colors
-        this.$.setFieldItem('p', this.id, this.playerName); // players
+        // Stuff
         this.reset = -1;
-        
         this.shots = 0;
         this.hits = 0;
         this.score = 0;
-        this.$.setFieldItem('c', this.id, this.score); // scores
-        this.$$.addPlayerStats(this.id);
+        this.kills = 0;
+        this.selfDestructs = 0;
         
+        // Fields
+        this.$.setFieldItem('c', this.id, this.score); // scores
+        this.$.setFieldItem('o', this.id, this.playerColor); // colors
+        this.$.setFieldItem('p', this.id, this.playerName); // players  
+        
+        // More
         this.moveTime = this.getTime();
         this.keys = [0, 0, 0, 0, 0];
         this.shotTime = this.getTime() + 1000;
@@ -102,8 +106,8 @@ Client.onMessage = function(msg) {
             
             this.log('++ [' + this.getInfo() + '] ' + this.playerName
                      + ' has joined');
-               
-            this.init(true);
+            
+            this.init();
         }
     
     // Leave the game
@@ -117,6 +121,7 @@ Client.onUpdate = function() {
         return;
     }
     
+    // Respawn
     if (this.reset !== -1) {
         if (this.timeDiff(this.reset) > 3000) {
             this.shotTime = this.getTime();
@@ -218,35 +223,6 @@ Client.onRemove = function() {
         
 };
 
-Client.kill = function(asteroid, armored) {
-    if (this.player && !this.$$.roundFinished) {
-        this.bomb = null;
-        
-        if (!armored) {
-            if (asteroid === true) {
-                this.addScore(-2);
-            
-            } else {
-                this.addScore(this.player.camu === 2 ? -10 : -5);
-            }
-        }
-        
-        this.reset = this.getTime();
-        this.player.hp = 0;
-        this.player.destroy();
-        if (this.player.bomb && !this.bombLaunched) {
-            var bomb = this.$.createActor('bomb', {
-                'r': 0,
-                'player': this.player,
-                'd': 0
-            });
-            bomb.destroy();
-        }
-        this.player = null;  
-        this.bombLaunched = false;
-    }
-};
-
 Client.leave = function() {
     if (this.playerName !== '') {
         this.$$.playerColors[this.playerColor] = -1;
@@ -257,14 +233,80 @@ Client.leave = function() {
         this.playerName = '';
         this.$.delFieldItem('p', this.id); // players
         this.$.delFieldItem('c', this.id); // scores
-        this.$$.removePlayerStats(this.id);
         if (this.player) {
             this.player.destroy();
         }
     }
 };
 
+Client.killByAsteroid = function(a) {
+    if (this.player && !this.$$.roundFinished) {
+        this.selfDestructs++;
+        this.addScore(-2);
+        this.kill();
+    }
+};
+
+Client.killByProjectile = function(o) {
+    if (this.player && !this.$$.roundFinished) {
+        this.addScore(-5);
+        o.player.client.addScore(10);
+        o.player.client.kills++;
+        this.kill();
+    }
+};
+
+Client.killByPlayer = function(p) {
+    if (this.player && !this.$$.roundFinished) {
+        if (!p.armor) {
+            this.selfDestructs++;
+            this.addScore(-5);
+        }
+        this.kill();
+    }
+};
+
+Client.killByBomb = function(b) {
+    if (this.player && !this.$$.roundFinished) {
+        if (this.player != b.player) {
+            if (b.fired) {
+                b.player.client.addScore(10);
+                b.player.client.hits++;
+                b.player.client.kills++;
+            }
+            this.addScore(-5);
+        
+        } else {
+            b.player.client.addScore(-5);
+            b.player.client.selfDestructs++;
+        }
+        this.kill();
+    }
+};
+
+Client.kill = function(armored) {    
+    this.player.hp = 0;
+    this.player.destroy();
+    
+    if (this.player.bomb && !this.bombLaunched) {
+        var bomb = this.$.createActor('bomb', {
+            'r': 0,
+            'player': this.player,
+            'd': 0
+        });
+        bomb.destroy();
+    }
+    this.bomb = null;
+    this.bombLaunched = false;
+    
+    this.player = null;  
+    this.reset = this.getTime();
+};
+
 Client.addScore = function(add) {
+    if (add < 0 && this.player.camu === 2) {
+        add *= 2;
+    }
     this.score += add;
     this.$.setFieldItem('c', this.id, this.score); // scores
 };
