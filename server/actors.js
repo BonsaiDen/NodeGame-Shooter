@@ -467,7 +467,7 @@ ActorAsteroid.shapes = [
 
 ActorAsteroid.onCreate = function(data) {    
     this.type = data.type;
-    this.hp = [1, 5, 10, 20, 200, 200][this.type];
+    this.hp = [1, 5, 10, 20, 150, 150][this.type];
     this.broken = null;
     var size = this.$$.sizeAsteroid * 2;
     
