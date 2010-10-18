@@ -276,12 +276,11 @@ Client.prototype.update = function() {
             if (a.$updateRate > 0) {
                 var step = 100.0 / (this.interval * a.$updateRate);
                 var delta = 1 - step * ((a.$t - this.time) / 100);
-                if (!a.onInterleave(delta)) {
-                    a.x = a.ox + Math.sin(a.$r) * a.$d * delta;
-                    a.y = a.oy + Math.cos(a.$r) * a.$d * delta;
-                }
+                a.x = a.ox + Math.sin(a.$r) * a.$d * delta;
+                a.y = a.oy + Math.cos(a.$r) * a.$d * delta;
+                a.onInterleave(delta);
             }
-            this.actors[c].onDraw();
+            a.onDraw();
         }
         
         var that = this;

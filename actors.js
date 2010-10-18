@@ -568,7 +568,6 @@ ActorPlayerDef.onInterleave = function(delta) {
     this.x = this.ox + this.mx * delta;
     this.y = this.oy + this.my * delta;
     this.wrap();
-    return true;
 };
 
 ActorPlayerDef.wrap = function() {
@@ -618,7 +617,6 @@ ActorAsteroid.onUpdate = function(data) {
 };
 
 ActorAsteroid.onDraw = function() {
-
     this.$.bg.save();
     this.$.bg.translate(this.x, this.y);
     this.$.bg.rotate(Math.PI - this.r);
