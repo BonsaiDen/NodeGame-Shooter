@@ -96,9 +96,8 @@ function Client(fps) {
     this.connected = false;
     this.lastState = '';
     this.time = new Date().getTime();
-    this.lastTime = 0;
-    this.lastRender = 0;
-    this.interleaveSteps = 0;
+    this.messageTime = 0;
+    this.interval = 0;
     this.running = false;
     
     this.recoding = null;
@@ -185,34 +184,21 @@ Client.prototype.playRecording = function(record) {
 };
 
 Client.prototype.onMessage = function(msg) {
-    var that = this;
-    var data = [], type = 0;
-    try {
-        data = BISON.decode(msg.data);
-        type = data.shift();
-    
-    } catch(e) {
-        try {
-            console.log('BISON Error:', msg);
-        
-        } catch(e) {
-            
-        }
-        return;
-    }
-    this.handleMessage(type, data);  
+    var data = BISON.decode(msg.data);
+    this.handleMessage(data.shift(), data);  
 };
 
 Client.prototype.handleMessage = function(type, data) {
+    this.messageTime = new Date().getTime();
     
     // Game
     if (type === MSG_GAME_START) {
+        var that = this; 
         this.$.id = data[0];
-        this.lastTime = this.lastRender = this.getTime();
-        this.interleaveSteps = data[1] / 10;
-        this.running = true;
+        this.interval = data[1];
         this.$.onInit(data[2]);
-        this.update();
+        this.running = true;
+        window.setTimeout(function(){that.update();}, 0);
     
     } else if (type === MSG_GAME_FIELDS) {
         this.$.onUpdate(data[0]);
@@ -240,18 +226,14 @@ Client.prototype.handleMessage = function(type, data) {
     } else if (type === MSG_ACTORS_UPDATE) {
         for(var i = 0, l = data.length; i < l; i++) {
             var a = data[i];
-            if (this.actors[a[0][0]]) {
-                this.actors[a[0][0]].update(a);
-            }
+            this.actors[a[0][0]].update(a);
         }
     
     } else if (type === MSG_ACTORS_EVENT) {
         for(var i = 0, l = data.length; i < l; i++) {
             var a = data[i];
-            if (this.actors[a[0]]) {
-                this.actors[a[0]].onEvent(a[1]);
-            }
-        } 
+            this.actors[a[0]].onEvent(a[1]);
+        }
     
     } else if (type === MSG_ACTORS_REMOVE) {
         for(var i = 0, l = data.length; i < l; i++) {
@@ -285,42 +267,34 @@ Client.prototype.Game = function(fps) {
 
 // Mainloop --------------------------------------------------------------------
 Client.prototype.update = function() {
-    if (this.running) {
-        this.time = new Date().getTime();
+    if (this.running) { 
+        this.$.onDraw();
         
-        // Update
-        var diff = (this.time - this.lastTime) / 10;
-        if (diff > 1.0) {
-            this.lastTime = this.time;
-            for(var c in this.actors) {
-                var a = this.actors[c];
-                if (a.$updateRate > 0) {
-                    var step = a.$updateRate * this.interleaveSteps / diff;
-                    a.x += a.mx / step;
-                    a.y += a.my / step; 
-                    a.onInterleave(step);
+        this.time = new Date().getTime();
+        for(var c in this.actors) {
+            var a = this.actors[c];
+            if (a.$updateRate > 0) {
+                var step = 100.0 / (this.interval * a.$updateRate);
+                var delta = 1 - step * ((a.$t - this.time) / 100);
+                if (!a.onInterleave(delta)) {
+                    a.x = a.ox + Math.sin(a.$r) * a.$d * delta;
+                    a.y = a.oy + Math.cos(a.$r) * a.$d * delta;
                 }
             }
-        }
-        
-        // Render
-        if (this.time - this.lastRender > this.fpsTime) {
-            this.$.onDraw();
-            for(var c in this.actors) {
-                this.actors[c].onDraw();
-            }
-            
-            this.lastRender = this.time;
-            
-            var msg = BISON.encode(this.$.onInput());
-            if (this.$.playing && msg !== this.lastState) {
-                this.conn.send(msg);
-                this.lastState = msg;
-            } 
+            this.actors[c].onDraw();
         }
         
         var that = this;
-        setTimeout(function() {that.update()}, 5);
+        setTimeout(function() {that.update()},
+                   this.fpsTime - (new Date().getTime() - this.time)); 
+        
+        if (this.$.playing) {
+            var msg = BISON.encode(this.$.onInput());
+            if (msg !== this.lastState) {
+                this.conn.send(msg);
+                this.lastState = msg;
+            }
+        }
     }
 };
 
@@ -351,15 +325,12 @@ Client.prototype.getTime = function() {
 // -----------------------------------------------------------------------------
 function Actor(client, data, create) {
     this.$ = client.$;
+    this.$client = client;
     
-    var d = data[0]
+    var d = data[0];
     this.id = d[0];
-    this.x = d[1];
-    this.y = d[2];
-    
     this.$updateRate = client.actorTypes[d[5]].updateRate;
-    this.mx = d[3] - this.x;
-    this.my = d[4] - this.y;
+    this.move(d);
     
     for(var m in client.actorTypes[d[5]]) {
         if (m !== 'update' && m !== 'destroy' && m !== 'remove') {
@@ -369,24 +340,18 @@ function Actor(client, data, create) {
     this.onCreate(data[1], create);
 }
 
+Actor.prototype.move = function(data) {
+    this.x = this.ox = data[1];
+    this.y = this.oy = data[2];
+    this.mx = data[3] - this.x;
+    this.my = data[4] - this.y;
+    this.$r = Math.atan2(this.mx, this.my);
+    this.$d = Math.sqrt(this.mx * this.mx + this.my * this.my);
+    this.$t = this.$client.messageTime + (this.$client.interval * this.$updateRate);
+};
+
 Actor.prototype.update = function(data) {
-    var d = data[0];
-    var dx = this.x - d[1];
-    var dy = this.y - d[2];
-    
-    var r = Math.atan2(dx, dy);
-    var dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist < 1.5) {
-        this.x = this.x - Math.sin(r) * dist * 0.5;
-        this.y = this.y - Math.cos(r) * dist * 0.5;
-        
-    } else {
-        this.x = d[1];
-        this.y = d[2];
-    }
-    
-    this.mx = d[3] - this.x;
-    this.my = d[4] - this.y;
+    this.move(data[0]);
     this.onUpdate(data[1]);
 };
 
