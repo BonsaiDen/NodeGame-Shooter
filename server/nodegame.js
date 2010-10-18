@@ -282,7 +282,7 @@ Server.prototype.removeClient = function(id) {
 
 Server.prototype.updateClients = function() {
     for(var c in this.clients) {
-        this.clients[c].onUpdate();
+        this.clients[c].update();
     }
 };
 
@@ -552,7 +552,7 @@ function Client(srv, conn, record) {
     this.$destroyMessages = [];
     this.$eventMessages = [];
     
-    this.send(MSG_GAME_START, [this.id, this.$$.$interval, this.$.fields]);
+    this.$initiated = false;
     for(var t in this.$.actors) {
         for(var i = 0, l = this.$.actors[t].length; i < l; i++) {
             this.$.actors[t][i].$emit(MSG_ACTORS_INIT);
@@ -565,6 +565,14 @@ function Client(srv, conn, record) {
     }
     this.onInit();
 }
+
+Client.prototype.update = function() {
+    if (!this.$initiated) {
+        this.send(MSG_GAME_START, [this.id, this.$$.$interval, this.$.fields]);
+        this.$initiated = true;
+    }
+    this.onUpdate();
+};
 
 Client.prototype.message = function(msg) {
     this.send(MSG_CLIENT_MESSAGE, [msg]);
