@@ -104,6 +104,12 @@ Shooter.onCreate = function() {
         this.colorSelected = 0;
     }
     
+    // Firefox race condition with the colors div...
+    var that = this;
+    window.setTimeout(function(){that.createColors();}, 0);
+};
+
+Shooter.createColors = function() {
     var colorBox = $('colors');
     this.colorSelects = [];
     for(var i = 0; i < this.colorCodes.length; i++) {
@@ -122,13 +128,6 @@ Shooter.onCreate = function() {
 };
 
 Shooter.onConnect = function(success) {
-    show(this.canvas);
-    show('sub');
-    $('login').onkeypress = function(e) {
-        that.onLogin(e);
-    };
-    this.onTip();
-    
     // Input
     var that = this;
     this.keys = {};
@@ -147,17 +146,25 @@ Shooter.onConnect = function(success) {
             }
         }
     };
+    
     window.onblur = function(e) {
         that.keys = {};
     };
     
-    // Play recording
+    $('login').onkeypress = function(e) {
+        that.onLogin(e);
+    };
+    
     this.watch = !success;
     if (this.watch) {
         hide('loginBox');
         show('offlineBox');
         this.$.playRecording(RECORD);
         this.checkServer(HOST, PORT);
+    
+    } else {
+        show('loginBox');
+        this.onTip();
     }
 };
 
@@ -171,6 +178,8 @@ Shooter.onInit = function(data) {
     this.checkRound(data);
     this.checkPlayers(data);
     this.initCanvas();
+    show('sub'); 
+    show(this.canvas);
 };
 
 Shooter.onUpdate = function(data) {

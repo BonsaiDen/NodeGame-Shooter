@@ -27,7 +27,7 @@ var ActorPlayer = Client.createActorType('player', 2);
 ActorPlayer.shape = [[0, -12], [10, 12], [-10, 12], [0, -12]];
 
 ActorPlayer.onCreate = function(data, complete) {
-    this.r = data[0];
+    this.or = this.r = data[0];
     this.mr = data[1]; 
     this.defense = data[2];
     this.thrust = data[3];
@@ -44,7 +44,7 @@ ActorPlayer.onCreate = function(data, complete) {
 };
 
 ActorPlayer.onUpdate = function(data) {
-    this.r = data[0];
+    this.or = this.r = data[0];
     this.mr = data[1]; 
     this.defense = data[2];
     this.thrust = data[3];
@@ -126,8 +126,8 @@ ActorPlayer.onUpdate = function(data) {
     this.armor = data[8];
 };
 
-ActorPlayer.onInterleave = function(step) {
-    this.r = this.$.wrapAngle(this.r + this.mr / step);
+ActorPlayer.onInterleave = function(delta) {
+    this.r = this.$.wrapAngle(this.or + this.mr * delta);
     this.$.wrapPosition(this);
 };
 
@@ -532,10 +532,10 @@ ActorPowerUp.onDraw = function() {
 var ActorPlayerDef = Client.createActorType('player_def', 6);
 ActorPlayerDef.onCreate = function(data, complete) {
     this.id = data[0];
-    this.r = data[1];
+    this.or = this.r = data[1];
     this.mr = data[2];
-    this.x = data[3];
-    this.y = data[4];
+    this.ox = this.x = data[3];
+    this.oy = this.y = data[4];
     this.wrap();
     
     this.col = this.$.playerColor(this.id);
@@ -558,14 +558,17 @@ ActorPlayerDef.onDraw = function() {
 };
 
 ActorPlayerDef.onUpdate = function(data) {
-    this.r = data[0];
-    this.x = data[1];
-    this.y = data[2];
+    this.or = this.r = data[0];
+    this.ox = this.x = data[1];
+    this.oy = this.y = data[2];
 };
 
-ActorPlayerDef.onInterleave = function(step) {
-    this.r = this.$.wrapAngle(this.r + this.mr / step);
+ActorPlayerDef.onInterleave = function(delta) {
+    this.r = this.$.wrapAngle(this.or + this.mr * delta);
+    this.x = this.ox + this.mx * delta;
+    this.y = this.oy + this.my * delta;
     this.wrap();
+    return true;
 };
 
 ActorPlayerDef.wrap = function() {
@@ -602,7 +605,7 @@ ActorAsteroid.points = [
 ];
 
 ActorAsteroid.onCreate = function(data, complete) {
-    this.r = data[0];
+    this.or = this.r = data[0];
     this.mr = data[1]; 
     this.type = data[2];
     this.col = '#777777';
@@ -611,7 +614,7 @@ ActorAsteroid.onCreate = function(data, complete) {
 };
 
 ActorAsteroid.onUpdate = function(data) {
-    this.r = data[0];
+    this.or = this.r = data[0];
 };
 
 ActorAsteroid.onDraw = function() {
@@ -632,12 +635,13 @@ ActorAsteroid.onDraw = function() {
     this.$.bg.restore();
 };
 
-ActorAsteroid.onInterleave = function(step) {
-    this.r = this.$.wrapAngle(this.r + this.mr / step);
+ActorAsteroid.onInterleave = function(delta) {
+    this.r = this.$.wrapAngle(this.or + this.mr * delta);
     if (this.type < 4) {
         this.$.wrapPosition(this);
     }
 };
+
 
 ActorAsteroid.onDestroy = function(complete) {
     if (complete) {
