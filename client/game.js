@@ -628,20 +628,16 @@ Shooter.wrapAngle = function(r) {
 Shooter.wrapPosition = function(obj) {
     if (obj.x < -16) {
         obj.x += this.width + 32;
-        obj.updated = true;
     
     } else if (obj.x > this.width + 16) {
         obj.x -= this.width + 32;
-        obj.updated = true;
     }
     
     if (obj.y < -16) {
         obj.y += this.height + 32
-        obj.updated = true;
     
     } else if (obj.y > this.height + 16) {
         obj.y -= this.height + 32;
-        obj.updated = true;
     }
 };
 
