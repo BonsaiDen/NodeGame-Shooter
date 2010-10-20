@@ -40,7 +40,6 @@ Shooter.onCreate = function() {
     
     // Canvas
     this.particles = [];
-    this.scale = 1;
     this.canvas = $('bg');
     
     // Sounds
@@ -323,7 +322,7 @@ Shooter.renderRound = function() {
                   + this.roundID + ' finished', 'right', 'top');
         
         // Scores
-        this.font((this.scale === 1 ? 15 : 17.5));
+        this.font(15);
         var ypos = 60;
         var xpos = 130;
         this.text(xpos, ypos, 'Name', 'right', 'top');
@@ -343,7 +342,7 @@ Shooter.renderRound = function() {
             this.text(xpos + 260, ypos, p[5] >= 0 ? (p[5] + '%') : '--', 'right', 'top');
             ypos += 18;
         }
-        this.font((this.scale === 1 ? 12 : 17));
+        this.font(12);
     
     } else {
         this.text(this.width - 4, 1, m + ':' + s + ' left | Round #'
@@ -482,7 +481,7 @@ Shooter.checkPlayers = function(data) {
 
 
 // Effects ---------------------------------------------------------------------
-Shooter.effectArea = function(x, y, obj) {
+Shooter.fxArea = function(x, y, obj) {
     this.particles.push({
         'x': x, 'y': y,
         'size': obj.s,
@@ -493,7 +492,7 @@ Shooter.effectArea = function(x, y, obj) {
     });
 };
 
-Shooter.effectParticle = function(x, y, r, obj) {
+Shooter.fxParticle = function(x, y, r, obj) {
     this.particles.push({
         'x': x , 'y': y,
         'r': this.wrapAngle(r),
@@ -506,43 +505,42 @@ Shooter.effectParticle = function(x, y, r, obj) {
     });
 };
 
-Shooter.effectExplosion = function(x, y, count, obj) {
+Shooter.fxExplosion = function(x, y, count, obj) {
     var r = (Math.PI * 2 * Math.random());
     var rs = Math.PI * 2 / (count * 2);
     for(var i = 0; i < count * 2; i++) {
-        this.effectParticle(x, y, (r + rs * i) - Math.PI,
-                            {'s':  0.35 + Math.random() * obj.s,
-                             'd': (1 * obj.d) + Math.random() * (0.5 * obj.d),
-                             'c': obj.c,
-                             'a': 1,
-                             'n': obj.n});
+        this.fxParticle(x, y, (r + rs * i) - Math.PI,
+                        {'s':  0.35 + Math.random() * obj.s,
+                         'd': (1 * obj.d) + Math.random() * (0.5 * obj.d),
+                         'c': obj.c,
+                         'a': 1,
+                         'n': obj.n});
     }
 };
 
-Shooter.effectRing = function(x, y, size, obj) {
+Shooter.fxRing = function(x, y, size, obj) {
     for(var i = 0; i < obj.n; i++) {
         var r = (Math.PI * 2 / obj.n * i) - Math.PI;
         var e = Math.random() / 2 + 0.5;
         var ox = x + Math.sin(r) * size;
         var oy = y + Math.cos(r) * size;
-        this.effectParticle(ox, oy, r + e / 2,
-                            {'s':  obj.s * 0.5 * e, 'd': obj.d,
-                             'c': obj.c, 'a': obj.a});
+        this.fxParticle(ox, oy, r + e / 2,
+                        {'s':  obj.s * 0.5 * e, 'd': obj.d,
+                         'c': obj.c, 'a': obj.a});
         
-        this.effectParticle(ox, oy, r - e,
-                            {'s':  obj.s * e, 'd': obj.d * 2,
-                             'c': obj.c, 'a': obj.a});
+        this.fxParticle(ox, oy, r - e,
+                        {'s':  obj.s * e, 'd': obj.d * 2,
+                         'c': obj.c, 'a': obj.a});
     }
 };
 
 
 // Drawing ---------------------------------------------------------------------
 Shooter.initCanvas = function() {
-    this.canvas.width = this.width * this.scale;
-    this.canvas.height = this.height * this.scale;
+    this.canvas.width = this.width;
+    this.canvas.height = this.height;
     this.bg = this.canvas.getContext('2d');
-    this.bg.scale(this.scale, this.scale);
-    this.font((this.scale === 1 ? 12 : 17));
+    this.font(12);
 };
 
 Shooter.font = function(size) {
@@ -568,6 +566,12 @@ Shooter.fillCircle = function(x, y, size, color) {
     this.bg.fill();
 };
 
+Shooter.fillRect = function(x, y, w, h, color) {
+    this.fill(color);
+    this.bg.fillRect(x, y, w, h);
+};
+
+
 Shooter.line = function(width) {
     this.bg.lineWidth = width;
 };
@@ -588,6 +592,58 @@ Shooter.fill = function(color) {
 
 Shooter.stroke = function(color) {
     this.bg.strokeStyle = color;
+};
+
+Shooter.local = function(x, y, r, xs, ys) {
+    this.bg.save();
+    this.bg.translate(x, y);
+    if (r !== undefined && r !== 0) {
+        this.bg.rotate(r);
+    }
+    if (xs !== undefined && xs !== 1) {
+        this.bg.scale(xs, ys);
+    }
+};
+
+Shooter.unlocal = function() {
+    this.bg.restore();
+};
+
+
+Shooter.scale = function(x, y) {
+    this.bg.scale(x, y);
+};
+
+Shooter.strokePolygon = function(col, line, points, scale) {
+    this.stroke(col);
+    this.line(line);
+    if (scale !== undefined && scale !== 1) {
+        this.bg.scale(scale, scale);
+    }
+    
+    this.bg.beginPath();
+    this.bg.moveTo(points[0][0], points[0][1]);
+    for(var i = 1; i < points.length; i++) {
+        this.bg.lineTo(points[i][0], points[i][1]);
+    }
+    this.bg.closePath();
+    this.bg.stroke();
+};
+
+Shooter.fillPolygon = function(col, line, points, scale) {
+    this.fill(col);
+    this.line(line);
+    if (scale !== undefined && scale !== 1) {
+        this.bg.scale(scale, scale);
+    }
+    
+    this.bg.beginPath();
+    this.bg.moveTo(points[0][0], points[0][1]);
+    for(var i = 1; i < points.length; i++) {
+        this.bg.lineTo(points[i][0], points[i][1]);
+    }
+    this.bg.closePath();
+    this.bg.fill();
 };
 
 
