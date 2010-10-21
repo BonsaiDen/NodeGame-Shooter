@@ -58,7 +58,7 @@ Shooter.onInit = function() {
     this.roundFinished = false;
     this.roundStats = {};
     
-    this.maxPlayers = 6;
+    this.maxPlayers = 5;
     this.playerCount = 0;
     this.playerColors = [-1, -1, -1, -1, -1, -1, -1];
     

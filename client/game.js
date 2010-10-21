@@ -83,10 +83,10 @@ Shooter.onCreate = function() {
     };  
     
     this.colorCodes      = ['#f00000', '#0080ff', '#f0f000',
-                            '#00f000', '#9000ff', '#f0f0f0'];
+                            '#00f000', '#9000ff'];
     
     this.colorCodesFaded = ['#700000', '#004080', '#707000',
-                            '#007000', '#500080', '#707070'];
+                            '#007000', '#500080'];
     
     this.colorSelected = this.getItemInt('color');
     
