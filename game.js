@@ -152,9 +152,8 @@ Shooter.onInit = function(data) {
     show(this.canvas);
     
     $('gameInfo').style.width = this.width + 'px';
-    
-    var tw = (this.width - 16) / 2  + 'px';
-    $('gameInfoRight').style.width = $('gameInfoLeft').style.width = tw;
+    $('gameInfoRight').style.width = 260 + 'px';
+    $('gameInfoLeft').style.width = (this.width - 16 - 260)  + 'px';
 };
 
 Shooter.onUpdate = function(data) {
