@@ -124,7 +124,7 @@ ActorPlayer.onInterleave = function(delta) {
 ActorPlayer.onDestroy = function(complete) {
     if (complete) {
         this.$.fxExplosion(this.x, this.y, 20, {'d': 0.9, 's': 1.4, 'c': this.col});
-        this.$.fxArea(this.x, this.y, {'s': 20, 'd': 0.5, 'c': this.ol});
+        this.$.fxArea(this.x, this.y, {'s': 20, 'd': 0.5, 'c': this.col});
         
         if (this.shield) {
             this.$.fxRing(this.x, this.y, 20, {'n': 42, 'd': 0.6, 's': 3.25,

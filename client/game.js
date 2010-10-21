@@ -70,6 +70,9 @@ Shooter.onCreate = function() {
     this.playerScores = {};
     this.playerColors = {};
     
+    this.infoLeftText = '';
+    this.infoRightText = '';
+    
     // Colors
     this.powerUpColors = {
         'shield':  '#0060c0', // blue
@@ -147,6 +150,11 @@ Shooter.onInit = function(data) {
     this.initCanvas();
     show('sub'); 
     show(this.canvas);
+    
+    $('gameInfo').style.width = this.width + 'px';
+    
+    var tw = (this.width - 16) / 2  + 'px';
+    $('gameInfoRight').style.width = $('gameInfoLeft').style.width = tw;
 };
 
 Shooter.onUpdate = function(data) {
@@ -330,7 +338,7 @@ Shooter.checkPlayers = function(data) {
     var login = $('loginOverlay');
     if (!this.playing) {
         if (count < data.m) {
-            if (login.style.display !== 'block') {
+            if (login.style.display !== 'block' && !this.watch) {
                 show(login);
                 $('login').focus();
             }
@@ -345,19 +353,30 @@ Shooter.checkPlayers = function(data) {
 // Tutorial --------------------------------------------------------------------
 Shooter.tutorials = {
     'start': ['Welcome to NodeGame: Shooter!\nUse WASD or the Arrow Keys to control your ship.', 'asteroids'],
-    'asteroids': ['Watch out for the asteroids!\nBigger ones will destroy you in one hit...', 'shoot'],
+    'asteroids': ['Watch out for the asteroids!\nBigger ones will destroy you in one hit.', 'shoot'],
     'shoot': ['Press SPACE to shoot.\nTry shooting other players to score points!', 'powerups'],
-    'powerups': ['See these colored orbs?\nThose are PowerUPs, try collecting some of them.', 'powerups1'],
-    'powerups1': ['BLUE gives you a SHIELD, RED some HOMING MISSILES while GREEN replenishes your HEALTH.', 'powerups2'],
-    'powerups2': ['The WHITE item is a BOMB. To shoot it press RETURN, hit RETURN again to make it EXPLODE!!!', 'powerups3'],
-    'powerups3': ['There are even more PowerUPs...\nBOOST and INVISIBILITY are two of them.', 'finish'],
+    'powerups': ['See these colored orbs?\nThose are PowerUPs, they include things like...', 'powerups1'],
+    'powerups1': ['...<span style="color: #0060c0">SHIELD</span>, '
+                  + '<span style="color: #00c9ff">ARMOR</span>, '
+                  + '<span style="color: #d00000">MISSILES</span> and '
+                  + '<span style="color: #00b000">HEALTH</span>.\n'
+                  + 'As well as <span style="color: #f0c000">BOOST</span>, '
+                  + '<span style="color: #808080">INVISIBILITY</span> and '
+                  + '<span style="color: #9c008c">DEFEND</span>.',
+                   'bomb'],
+        
+    'bomb': ['There is also the <span style="color: #d0d0d0">BOMB</span>.\n'
+                  + 'Hit RETURN or M to shoot and detonate it.', 'finish'],
+    
     'finish': ['But enough talk, enjoy the game!', 'done']
 };
+
 
 Shooter.tutorial = function(id) {
     var that = this;
     if (this.tutorialEnabled && id in Shooter.tutorials) {
         show('tutorial');
+        show('tutorialOverlay');
         $('tutorial').innerHTML = Shooter.tutorials[id][0].replace(/\n/g, '<br/>');
         this.tutorialFadeIn();
         
@@ -379,6 +398,7 @@ Shooter.tutorial = function(id) {
     } else if (id === 'done') {
         this.onTutorial(false);
         hide('tutorial');
+        hide('tutorialOverlay');
     }
 };
 
