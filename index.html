@@ -67,10 +67,9 @@
             }
         
             #warning {
-                font-size: 9px;
-                width: 480px;
+                padding-top: 7px;
+                font-size: 11px;
                 display: none;
-                margin: 8px auto;
             }
         
             /* Options */
@@ -270,6 +269,10 @@
                 <div class="join">Join the Game</div>
                 <input id="login" autocomplete="off" type="text" value="" maxlength="12"/><br/>
                 <div id="colors"></div><div id="watch"><a href="index.html?watch">Watch a recording!</a></div>
+                <div id="warning">
+                    WebSockets = More Fun<br/>
+                    Use Chrome 6, Firefox 4, Opera 10.70!
+                </div>
             </div>
             <div id="offlineBox">
                 <div id="serverStatus">SERVER OFFLINE</div>
@@ -280,17 +283,13 @@
                     You are watching a recording...<br/>
                    ...<a href="http://www.youtube.com/watch?v=0Z0QBtFo8kc">or you can check out YouTube!</a>
                 </div>
-            </div>  
+            </div>
         </div>
         
         <a class="fork" href="http://github.com/BonsaiDen/NodeGame-Shooter">
             <img style="position: absolute; top: 0; left: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_left_red_aa0000.png" alt="Fork me on GitHub" />
         </a>
         
-        <div id="warning">
-            Oops, looks like you're not using a modern Browser!<br/>
-            The Game works best with native WebSockets you might want to use Chrome 6, Firefox 4, Safari 5 or Opera 10.70 for the full experience.
-        </div>
         <noscript>
             Sorry, but this game is running fully in JavaScript.<br/>Would you please be so kind and turn it on?
         </noscript>
