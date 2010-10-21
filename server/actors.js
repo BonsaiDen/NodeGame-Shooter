@@ -330,16 +330,24 @@ ActorBullet.onMessage = function(once) {
 var ActorBomb = Server.createActorType('bomb', 6);
 ActorBomb.onCreate = function(data) {
     this.time = this.getTime();
-    this.player = data.player;
-    this.player.client.shots++;
     this.range = 120;
     this.fired = false;
-    
     this.r = data.r;
-    this.$$.launchAt(this, 4, this.r, 6, 9);        
-    this.x = this.player.x + Math.sin(this.$$.wrapAngle(this.r)) * data.d;
-    this.y = this.player.y + Math.cos(this.$$.wrapAngle(this.r)) * data.d;
-    this.time = this.getTime();       
+    
+    this.player = data.player;
+    
+    if (this.player) {
+        this.color = this.player.client.id;
+        this.player.client.shots++;
+        this.$$.launchAt(this, 4, this.r, 6, 9);
+        this.x = this.player.x + Math.sin(this.$$.wrapAngle(this.r)) * data.d;
+        this.y = this.player.y + Math.cos(this.$$.wrapAngle(this.r)) * data.d;
+    
+    } else {
+        this.color = 0;
+        this.x = data.obj.x;
+        this.y = data.obj.y;
+    }    
 };
 
 ActorBomb.onUpdate = function() {
@@ -360,7 +368,7 @@ ActorBomb.onDestroy = function() {
 };
 
 ActorBomb.onMessage = function(once) {
-    return once ? [this.player.client.id, this.range] : [];
+    return once ? [this.color, this.range] : [];
 };
 
 
@@ -370,12 +378,30 @@ ActorPowerUp.onCreate = function(data) {
     this.$$.randomPosition(this, this.$$.sizePowerUp);
     this.type = data.type;
     this.time = this.getTime() + 15000 + Math.ceil(Math.random() * 5000);
+    this.timed = false;
+};
+
+ActorPowerUp.collect = function() {
+    this.timed = true;
+    this.destroy();
 };
 
 ActorPowerUp.onUpdate = function() {
     if (this.getTime() > this.time) {
         this.$$.removePowerUp(this.type);
+        this.timed = true;
         this.destroy();
+    }
+};
+
+ActorPowerUp.onDestroy = function() {
+    if (!this.timed && this.type === 'bomb') {
+        var bomb = this.$.createActor('bomb', {
+            'r': 0,
+            'obj': this,
+            'd': 0
+        });
+        bomb.destroy();
     }
 };
 

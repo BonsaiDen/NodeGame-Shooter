@@ -268,15 +268,15 @@ Client.killByPlayer = function(p) {
 
 Client.killByBomb = function(b) {
     if (this.player && !this.$$.roundFinished) {
-        if (this.player != b.player) {
-            if (b.fired) {
+        if (this.player !== b.player) {
+            if (b.fired && b.player) {
                 b.player.client.addScore(10);
                 b.player.client.hits++;
                 b.player.client.kills++;
             }
             this.addScore(-5);
         
-        } else {
+        } else if (b.player) {
             b.player.client.addScore(-5);
             b.player.client.selfDestructs++;
         }

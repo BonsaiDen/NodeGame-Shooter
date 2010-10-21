@@ -295,7 +295,7 @@ Shooter.collidePowerUps = function(o, p) {
         p.hp = Math.min(30, p.hp + 15);
     }
     this.createPowerUp(o.type, true, false);
-    o.destroy();
+    o.collect();
 };
 
 
@@ -727,9 +727,11 @@ Shooter.updatePlayerDefs = function() {
 // Bombs -----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Shooter.destroyBomb = function(b) {
-    b.player.bomb = false;
-    b.player.client.bomb = null;
-    b.player.client.bombLaunched = false;
+    if (b.player) {
+        b.player.bomb = false;
+        b.player.client.bomb = null;
+        b.player.client.bombLaunched = false;
+    }
     this.bombExplosion(8, 50, b);
 };
 

@@ -379,8 +379,12 @@ var ActorBomb = Client.createActorType('bomb', 6);
 ActorBomb.onCreate = function(data, complete) {
     this.id = data[0];
     this.radius = data[1];
-    this.col = this.$.playerColor(this.id);
+    if (this.id !== 0) {
+        this.col = this.$.playerColor(this.id);
     
+    } else {
+        this.col = '#F0F0F0';
+    }
     if (complete) {
         this.$.playSound('launchBig');
     }
