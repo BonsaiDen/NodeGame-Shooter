@@ -25,8 +25,8 @@
 // -----------------------------------------------------------------------------
 Shooter.renderRound = function() {
     this.fill('#ffffff');
-    if (this.watch) {
-        this.text(4, 1, 'No Video, just <canvas>!', 'left', 'top');   
+    if (this.watch && !this.infoLeftText) {
+        $('gameInfoLeft').innerHTML = this.infoLeftText = 'No Video, just &lt;canvas&gt;!';
     }    
     
     var t = Math.round((this.roundTime
@@ -43,8 +43,12 @@ Shooter.renderRound = function() {
     }
     
     if (!this.roundGO) {
-        this.text(this.width - 4, 1, 'Next in ' + m + ':' + s + ' | Round #'
-                  + this.roundID + ' finished', 'right', 'top');
+        var text = 'Next in ' + m + ':' + s + ' | Round #'
+                    + this.roundID + ' finished';
+        
+        if (text !== this.infoRightText) {
+            $('gameInfoRight').innerHTML = this.infoRightText = text;
+        }
         
         // Scores
         this.font(15);
@@ -70,8 +74,10 @@ Shooter.renderRound = function() {
         this.font(12);
     
     } else {
-        this.text(this.width - 4, 1, m + ':' + s + ' left | Round #'
-                  + this.roundID, 'right', 'top');
+        var text = m + ':' + s + ' left | Round #' + this.roundID;
+        if (text !== this.infoRightText) {
+            $('gameInfoRight').innerHTML = this.infoRightText = text;
+        }
     }
 };
 

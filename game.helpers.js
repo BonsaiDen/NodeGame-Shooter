@@ -33,9 +33,12 @@ Shooter.tutorialFadeIn = function() {
     var opacity = this.tutorialOpacity();
     function fade() {
         if (opacity < 1 && that.roundGO && that.tutorialEnabled) {
+            show('tutorialOverlay');
             opacity = Math.min(opacity + 0.05, 1);
             $('tutorial').style.opacity = opacity;
-            window.setTimeout(fade, 75);
+            if (opacity < 1) {
+                window.setTimeout(fade, 75);
+            }
         }
     }
     fade();
@@ -47,7 +50,12 @@ Shooter.tutorialFadeOut = function() {
         if (opacity > 0) {
             opacity = Math.max(opacity - 0.05, 0);
             $('tutorial').style.opacity = opacity;
-            window.setTimeout(fade, 75);
+            if (opacity === 0) {
+                hide('tutorialOverlay');
+            
+            } else {
+                window.setTimeout(fade, 75);
+            }
         }
     }
     fade();
@@ -69,7 +77,7 @@ Shooter.getItem = function(id, def) {
         }
         
     } catch (e) {
-        return true;
+        return def;
     }
 };
 

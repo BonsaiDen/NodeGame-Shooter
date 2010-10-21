@@ -13,11 +13,12 @@
                 font-weight: bold;
                 color: #ffffff;
                 -webkit-user-select: none;
-                -moz-user-select: none;  
+                -moz-user-select: none;
+                background-image: url('img/bg.png');
             }
             
             canvas {
-                margin: 8px auto 2px;
+                margin: 8px auto 4px;
                 border: 3px #f0f0f0 solid;
                 background-color: #000000;
                 display: none;
@@ -109,7 +110,7 @@
                 margin: 0px auto 0px;
                 font-size: 15px;
                 opacity: 0.075;
-                text-shadow: 0px 0px 4px #000000, 0px 0px 4px #000000;
+
             }
             
             #offlineBox {
@@ -190,6 +191,7 @@
             }
             
             #tutorialOverlay {
+                display: none;
                 opacity: 0.9;
                 position: absolute;
                 padding-top: 280px;
@@ -199,15 +201,36 @@
             }
             
             #tutorial {
-                opacity: 0.0;
+                opacity: 0;
                 display: none;
                 text-align: center;
                 width: 460px;
                 margin: 0px auto 0px;
                 font-size: 15px;
-                text-shadow: 0px 0px 6px #000000, 0px 0px 8px #000000;
             }
             
+            #gameOverlay {
+                position: absolute;
+                padding-top: 13px;
+                top: 0px;
+                left: 0px;
+                width: 100%;
+            }
+            
+            #gameInfo {
+                margin: 0px auto 0px;
+                font-size: 12px;
+            }
+            
+            #gameInfoRight {
+                float: right;
+                text-align: right;
+                padding-right: 4px;
+            }
+            
+            #gameInfoLeft {
+                padding-left: 4px;
+            }
         </style>
         
         <script type="text/javascript">
@@ -230,6 +253,13 @@
     </head>
     
     <body onload="initGame()">
+        <div id="gameOverlay">
+            <div id="gameInfo">
+                <div id="gameInfoRight"></div>
+                <div id="gameInfoLeft"></div>
+            </div>
+        </div>
+    
         <div id="tutorialOverlay">
             <div id="tutorial">
             </div>
