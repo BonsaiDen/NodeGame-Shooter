@@ -33,14 +33,8 @@ Shooter.onCreate = function() {
         document.cookie = 'SET';
     }
     
-    window.onbeforeunload = function() {
-        localStorage.setItem('sound', Shooter.sound.enabled);
-        localStorage.setItem('color', Shooter.colorSelected);
-    };
-    
     // Canvas
     this.particles = [];
-    this.scale = 1;
     this.canvas = $('bg');
     
     // Sounds
@@ -59,14 +53,11 @@ Shooter.onCreate = function() {
         'powerOn',
         'powerSound'
     ]);
+    this.onSound(this.getItem('sound', false));
     
-    try {
-        this.sound.enabled = !(localStorage.getItem('sound') === 'true' || false);
-        
-    } catch (e) {
-        this.sound.enabled = true;
-    }
-    this.onSound();
+    // Tutorial
+    this.tutorialTimers = [null, null];
+    this.onTutorial(this.getItem('tutorial', true));
     
     // General
     this.roundTime = 0;
@@ -92,39 +83,16 @@ Shooter.onCreate = function() {
     };  
     
     this.colorCodes      = ['#f00000', '#0080ff', '#f0f000',
-                            '#00f000', '#9000ff', '#f0f0f0'];
+                            '#00f000', '#9000ff'];
     
     this.colorCodesFaded = ['#700000', '#004080', '#707000',
-                            '#007000', '#500080', '#707070'];
+                            '#007000', '#500080'];
     
-    try {
-        this.colorSelected = parseInt(localStorage.getItem('color') || 0);
-    
-    } catch (e) {
-        this.colorSelected = 0;
-    }
+    this.colorSelected = this.getItemInt('color');
     
     // Firefox race condition with the colors div...
     var that = this;
     window.setTimeout(function(){that.createColors();}, 0);
-};
-
-Shooter.createColors = function() {
-    var colorBox = $('colors');
-    this.colorSelects = [];
-    for(var i = 0; i < this.colorCodes.length; i++) {
-        var d = document.createElement('div');
-        d.className = i === this.colorSelected ? 'color colorselected': 'color';
-        d.style.backgroundColor = this.colorCodes[i];
-        d.style.borderColor = this.colorCodesFaded[i];
-        d.onclick = (function(e) {
-            return function() {
-                Shooter.selectColor(e);
-            }
-        })(i);
-        colorBox.appendChild(d);
-        this.colorSelects.push(d);
-    }
 };
 
 Shooter.onConnect = function(success) {
@@ -164,7 +132,6 @@ Shooter.onConnect = function(success) {
     
     } else {
         show('loginBox');
-        this.onTip();
     }
 };
 
@@ -188,6 +155,15 @@ Shooter.onUpdate = function(data) {
     this.playerColors = data.o;
     this.checkRound(data);
     this.checkPlayers(data);
+    
+    // Start tutorial
+    if (this.playing && !this.tutorialStarted && this.roundGO) {
+        this.tutorial(this.tutorialNext);
+        this.tutorialStarted = true;
+    
+    } else if (!this.roundGO && $('tutorial').style.display !== 'none') {
+        this.tutorialFadeOut();
+    }
 };
 
 Shooter.onMessage = function(msg) {
@@ -251,9 +227,40 @@ Shooter.onError = function(e) {
 };
 
 Shooter.onSound = function(data) {
-    this.sound.enabled = !this.sound.enabled;
+    if (data !== undefined) {
+        this.sound.enabled = data;
+    
+    } else {
+        this.sound.enabled = !this.sound.enabled;
+    }
+    this.setItem('sound', this.sound.enabled);
     $('sound').innerHTML = (this.sound.enabled ? 'DEACTIVATE' : 'ACTIVATE')
                                                   + ' SOUND';
+};
+
+Shooter.onTutorial = function(data) {
+    if (data !== undefined) {
+        this.tutorialEnabled = data;
+    
+    } else {
+        this.tutorialEnabled = !this.tutorialEnabled;
+    }
+    this.tutorialStarted = !this.tutorialEnabled;
+    this.tutorialNext = 'start';
+    window.clearTimeout(this.tutorialTimers[0]);
+    window.clearTimeout(this.tutorialTimers[1]);
+    if (!this.tutorialStarted && this.playing) {
+        this.tutorial(this.tutorialNext);
+        this.tutorialStarted = true;
+    }
+    
+    this.setItem('tutorial', this.tutorialEnabled);
+    $('tut').innerHTML = (this.tutorialEnabled ? 'DISABLE' : 'RE-ENABLE')
+                                                  + ' TUTORIAL';
+                                                  
+    if (!this.tutorialEnabled && $('tutorial').style.display !== 'none') {
+        this.tutorialFadeOut();
+    }
 };
 
 Shooter.onLogin = function(e) {
@@ -269,21 +276,6 @@ Shooter.onLogin = function(e) {
     }
 };
 
-Shooter.onTip = function() {
-    $('hint').innerHTML = 'Tip: ' + ['Asteroids kill you...',
-                                     'Those colored orbs help you...',
-                                     'Yellow\'s pretty fast...',
-                                     'Green is healthy...',
-                                     'White... press [Enter]... twice...',
-                                     'Watch out for the big ones...',
-                                     'Got bad aiming? Try red...',
-                                     'For protection, blue seems to work...',
-                                     'There\'s no barrel roll...'
-                                     ][Math.floor(Math.random() * 9)];
-};
-
-
-// Rendering -------------------------------------------------------------------
 Shooter.onDraw = function() {
     
     // Clear
@@ -297,137 +289,6 @@ Shooter.onDraw = function() {
     
     // Info
     this.renderRound();
-};
-
-Shooter.renderRound = function() {
-    this.fill('#ffffff');
-    if (this.watch) {
-        this.text(4, 1, 'No Video, just <canvas>!', 'left', 'top');   
-    }    
-    
-    var t = Math.round((this.roundTime
-                       + (this.roundStart - this.getTime())) / 1000);
-    
-    if (t < 0) {
-        t = 0;
-    }
-    
-    var m = Math.floor(t / 60);
-    var s = t % 60;
-    if (s < 10) {
-        s = '0' + s;
-    }
-    
-    if (!this.roundGO) {
-        this.text(this.width - 4, 1, 'Next in ' + m + ':' + s + ' | Round #'
-                  + this.roundID + ' finished', 'right', 'top');
-        
-        // Scores
-        this.font((this.scale === 1 ? 15 : 17.5));
-        var ypos = 60;
-        var xpos = 130;
-        this.text(xpos, ypos, 'Name', 'right', 'top');
-        this.text(xpos + 70, ypos, 'Points', 'right', 'top');
-        this.text(xpos + 135, ypos, 'Kills', 'right', 'top');
-        this.text(xpos + 195, ypos, 'Self', 'right', 'top');
-        this.text(xpos + 260, ypos, 'Hit', 'right', 'top');
-        
-        ypos += 22;
-        for(var i = 0; i < this.roundStats.length; i++) {
-            var p = this.roundStats[i];
-            this.fill(this.colorCodes[p[4]]);
-            this.text(xpos, ypos, p[2], 'right', 'top');
-            this.text(xpos + 70, ypos, p[0], 'right', 'top');
-            this.text(xpos + 135, ypos, p[1], 'right', 'top');
-            this.text(xpos + 195, ypos, p[3], 'right', 'top');
-            this.text(xpos + 260, ypos, p[5] >= 0 ? (p[5] + '%') : '--', 'right', 'top');
-            ypos += 18;
-        }
-        this.font((this.scale === 1 ? 12 : 17));
-    
-    } else {
-        this.text(this.width - 4, 1, m + ':' + s + ' left | Round #'
-                  + this.roundID, 'right', 'top');
-    }
-};
-
-Shooter.renderParticles = function() {
-    for(var i = 0, l = this.particles.length; i < l; i++) {
-        var p = this.particles[i];
-        
-        // Normal particles
-        if (!p.size) {
-            p.x += Math.sin(p.r) * p.speed;
-            p.y += Math.cos(p.r) * p.speed;
-            if (!p.nowrap) {
-                if (p.x < -16) {
-                    p.x += this.width + 32;
-                
-                } else if (p.x > this.width + 16) {
-                    p.x -= this.width + 32;
-                }
-                
-                if (p.y < -16) {
-                    p.y += this.height + 32;
-                
-                } else if (p.y > this.height + 16) {
-                    p.y -= this.height + 32;
-                }
-            }
-        }
-        
-        // Kill
-        if (this.getTime() > p.time) {
-            this.particles.splice(i, 1);
-            l--;
-            i--;
-        
-        } else {
-            this.fill(p.col || '#ffffff');
-            var scale = this.timeScale(p.time, p.d);
-            if (!p.size) {
-                var a = Math.round((0 - scale) * p.a * 100) / 100;
-                this.alpha(Math.min(a * 2, 1.0));
-                this.bg.fillRect(p.x - 2, p.y - 2, 4, 4);
-            
-            } else {
-                var a = Math.round(((0 - scale) * 0.5) * 100) / 100;
-                this.alpha(Math.min(a * 1.25, 1.0));
-                this.fillCircle(p.x, p.y, p.size, p.col || '#ffffff');
-                
-                // Overlap
-                if (!p.nowrap) {
-                    var x = p.x;
-                    var y = p.y;
-                    if (p.x - p.size < -16) {
-                        x = p.x + 32 + this.width;
-                    
-                    } else if (p.x + p.size > this.width + 16) {
-                        x = p.x - 32 - this.width;
-                    }
-                    if (x !== p.x) {
-                        this.fillCircle(x, p.y, p.size, p.col || '#ffffff');
-                    }
-                    
-                    if (p.y - p.size < -16) {
-                        y = p.y + 32 + this.height;
-                    
-                    } else if (p.y + p.size > this.height + 16) {
-                        y = p.y - 32 - this.height;
-                    }
-                    
-                    if (y !== p.y) {
-                        this.fillCircle(p.x, y, p.size, p.col || '#ffffff');
-                    }
-                    
-                    if (y !== p.y && x !== p.x) {
-                        this.fillCircle(x, y, p.size, p.col || '#ffffff');
-                    }
-                }
-            }
-        }
-    }
-    this.alpha(1.0);
 };
 
 
@@ -481,172 +342,43 @@ Shooter.checkPlayers = function(data) {
 };
 
 
-// Effects ---------------------------------------------------------------------
-Shooter.effectArea = function(x, y, obj) {
-    this.particles.push({
-        'x': x, 'y': y,
-        'size': obj.s,
-        'time': this.getTime() + obj.d * 1500,
-        'd': obj.d * 1500,
-        'col': obj.c,
-        'nowrap': obj.n || false
-    });
+// Tutorial --------------------------------------------------------------------
+Shooter.tutorials = {
+    'start': ['Welcome to NodeGame: Shooter!\nUse WASD or the Arrow Keys to control your ship.', 'asteroids'],
+    'asteroids': ['Watch out for the asteroids!\nBigger ones will destroy you in one hit...', 'shoot'],
+    'shoot': ['Press SPACE to shoot.\nTry shooting other players to score points!', 'powerups'],
+    'powerups': ['See these colored orbs?\nThose are PowerUPs, try collecting some of them.', 'powerups1'],
+    'powerups1': ['BLUE gives you a SHIELD, RED some HOMING MISSILES while GREEN replenishes your HEALTH.', 'powerups2'],
+    'powerups2': ['The WHITE item is a BOMB. To shoot it press RETURN, hit RETURN again to make it EXPLODE!!!', 'powerups3'],
+    'powerups3': ['There are even more PowerUPs...\nBOOST and INVISIBILITY are two of them.', 'finish'],
+    'finish': ['But enough talk, enjoy the game!', 'done']
 };
 
-Shooter.effectParticle = function(x, y, r, obj) {
-    this.particles.push({
-        'x': x , 'y': y,
-        'r': this.wrapAngle(r),
-        'speed': obj.s,
-        'time': this.getTime() + obj.d * 1500,
-        'd': obj.d * 1500,
-        'col': obj.c,
-        'a': obj.a,
-        'nowrap': obj.n || false
-    });
-};
-
-Shooter.effectExplosion = function(x, y, count, obj) {
-    var r = (Math.PI * 2 * Math.random());
-    var rs = Math.PI * 2 / (count * 2);
-    for(var i = 0; i < count * 2; i++) {
-        this.effectParticle(x, y, (r + rs * i) - Math.PI,
-                            {'s':  0.35 + Math.random() * obj.s,
-                             'd': (1 * obj.d) + Math.random() * (0.5 * obj.d),
-                             'c': obj.c,
-                             'a': 1,
-                             'n': obj.n});
-    }
-};
-
-Shooter.effectRing = function(x, y, size, obj) {
-    for(var i = 0; i < obj.n; i++) {
-        var r = (Math.PI * 2 / obj.n * i) - Math.PI;
-        var e = Math.random() / 2 + 0.5;
-        var ox = x + Math.sin(r) * size;
-        var oy = y + Math.cos(r) * size;
-        this.effectParticle(ox, oy, r + e / 2,
-                            {'s':  obj.s * 0.5 * e, 'd': obj.d,
-                             'c': obj.c, 'a': obj.a});
+Shooter.tutorial = function(id) {
+    var that = this;
+    if (this.tutorialEnabled && id in Shooter.tutorials) {
+        show('tutorial');
+        $('tutorial').innerHTML = Shooter.tutorials[id][0].replace(/\n/g, '<br/>');
+        this.tutorialFadeIn();
         
-        this.effectParticle(ox, oy, r - e,
-                            {'s':  obj.s * e, 'd': obj.d * 2,
-                             'c': obj.c, 'a': obj.a});
-    }
-};
-
-
-// Drawing ---------------------------------------------------------------------
-Shooter.initCanvas = function() {
-    this.canvas.width = this.width * this.scale;
-    this.canvas.height = this.height * this.scale;
-    this.bg = this.canvas.getContext('2d');
-    this.bg.scale(this.scale, this.scale);
-    this.font((this.scale === 1 ? 12 : 17));
-};
-
-Shooter.font = function(size) {
-    this.bg.font = 'bold ' + size+ 'px'
-                   + ' "Tahoma", "DejaVu Sans Mono", "Bitstream Vera Sans Mono"';
-};
-
-Shooter.strokeCircle = function(x, y, size, line, color) {
-    this.line(line);
-    this.stroke(color);
-    this.bg.beginPath();
-    this.bg.arc(x, y, size, 0, Math.PI * 2, true);
-    this.bg.closePath();
-    this.bg.stroke();
-};
-
-Shooter.fillCircle = function(x, y, size, color) {
-    this.line(0.5);
-    this.fill(color);
-    this.bg.beginPath();
-    this.bg.arc(x, y, size, 0, Math.PI * 2, true);
-    this.bg.closePath();
-    this.bg.fill();
-};
-
-Shooter.line = function(width) {
-    this.bg.lineWidth = width;
-};
-
-Shooter.alpha = function(value) {
-    this.bg.globalAlpha = value;
-};
-
-Shooter.text = function(x, y, text, align, baseline) {
-    this.bg.textAlign = align;
-    this.bg.textBaseline = baseline;
-    this.bg.fillText(text, x, y);   
-};
-
-Shooter.fill = function(color) {
-    this.bg.fillStyle = color;
-};
-
-Shooter.stroke = function(color) {
-    this.bg.strokeStyle = color;
-};
-
-
-// Helpers ---------------------------------------------------------------------
-Shooter.selectColor = function(c) {
-    for(var i = 0; i < this.colorSelects.length; i++) {
-        this.colorSelects[i].className = 'color';
-    }
-    this.colorSelected = c;
-    this.colorSelects[c].className = 'color colorselected';
-};
-
-Shooter.playerColor = function(id) {
-    return this.colorCodes[this.playerColors[id]];
-};
-
-Shooter.playerColorFaded = function(id) {
-    return this.colorCodesFaded[this.playerColors[id]];
-};
-
-Shooter.reloadPage = function() {
-    if (!this.pageReloaded) {
-        document.location.href = document.location.href.split('?')[0];
-        this.pageReloaded = true;
-    }
-};
-
-Shooter.playSound = function(snd) {
-    this.sound.play(snd, 0.5);
-};
-
-Shooter.timeScale = function(time, scale) {
-    var diff = this.getTime() - time;
-    return diff < scale ? d = 1 / scale * diff : 1;         
-};
-
-Shooter.wrapAngle = function(r) {
-    if (r > Math.PI) {
-        r -= Math.PI * 2;
-    }
-    if (r < 0 - Math.PI) {
-        r += Math.PI * 2;
-    }
-    return r;
-};
-
-Shooter.wrapPosition = function(obj) {
-    if (obj.x < -16) {
-        obj.x += this.width + 32;
+        this.tutorialNext = this.tutorials[id][1];
+        this.tutorialTimers[0] = window.setTimeout(function() {that.tutorialFadeOut();}, 7500); 
+        
+        var showNext = function() {
+            if (that.tutorialEnabled) {
+                if (that.roundGO) {
+                    that.tutorial(that.tutorialNext);
+                
+                } else {
+                    that.tutorialTimers[1] = window.setTimeout(showNext, 500); 
+                }
+            }
+        };
+        this.tutorialTimers[1] = window.setTimeout(showNext, 9000); 
     
-    } else if (obj.x > this.width + 16) {
-        obj.x -= this.width + 32;
-    }
-    
-    if (obj.y < -16) {
-        obj.y += this.height + 32;
-    
-    } else if (obj.y > this.height + 16) {
-        obj.y -= this.height + 32;
+    } else if (id === 'done') {
+        this.onTutorial(false);
+        hide('tutorial');
     }
 };
 

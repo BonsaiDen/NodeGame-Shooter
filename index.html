@@ -32,6 +32,7 @@
             a {
                 color: #ffffff;
                 text-decoration: none;
+                cursor: pointer;
             }
             
             a:hover {
@@ -80,13 +81,13 @@
             }
             
             .sound {
-                width: 200px;
+                width: 220px;
                 display: hidden;
             }
 
             .copyright {
                 float: right;
-                width: 280px;
+                width: 260px;
                 text-align: right;
             }
         
@@ -108,6 +109,7 @@
                 margin: 0px auto 0px;
                 font-size: 15px;
                 opacity: 0.075;
+                text-shadow: 0px 0px 4px #000000, 0px 0px 4px #000000;
             }
             
             #offlineBox {
@@ -117,7 +119,7 @@
             }
             
             #loginBox:hover, #offlineBox:hover {
-                 opacity: 1;
+                 opacity: 0.9;
             }
             
             input {
@@ -187,9 +189,23 @@
                 font-size: 11px;
             }
             
-            #hint {
-                margin-top: 8px;
-                cursor: pointer;
+            #tutorialOverlay {
+                opacity: 0.9;
+                position: absolute;
+                padding-top: 280px;
+                top: 0px;
+                left: 0px;
+                width: 100%;
+            }
+            
+            #tutorial {
+                opacity: 0.0;
+                display: none;
+                text-align: center;
+                width: 460px;
+                margin: 0px auto 0px;
+                font-size: 15px;
+                text-shadow: 0px 0px 6px #000000, 0px 0px 8px #000000;
             }
             
         </style>
@@ -208,18 +224,22 @@
         <script type="text/javascript" src="config.js"></script>
         <script type="text/javascript" src="sound.js"></script>
         <script type="text/javascript" src="game.js"></script>
+        <script type="text/javascript" src="game.draw.js"></script>
+        <script type="text/javascript" src="game.helpers.js"></script>
         <script type="text/javascript" src="actors.js"></script>
     </head>
     
     <body onload="initGame()">
-       <div id="loginOverlay">
+        <div id="tutorialOverlay">
+            <div id="tutorial">
+            </div>
+        </div>
+        
+        <div id="loginOverlay">
             <div id="loginBox">
                 <div class="join">Join the Game</div>
                 <input id="login" autocomplete="off" type="text" value="" maxlength="12"/><br/>
                 <div id="colors"></div><div id="watch"><a href="index.html?watch">Watch a recording!</a></div>
-                <div class="controls">
-                    <div id="hint" onclick="Shooter.onTip()"></div>
-                </div>
             </div>
             <div id="offlineBox">
                 <div id="serverStatus">SERVER OFFLINE</div>
@@ -242,7 +262,7 @@
             The Game works best with native WebSockets you might want to use Chrome 6, Firefox 4, Safari 5 or Opera 10.70 for the full experience.
         </div>
         <noscript>
-            We're sorry, but this game is running fully in JavaScript.<br/>Would you please be so kind and turn it on?
+            Sorry, but this game is running fully in JavaScript.<br/>Would you please be so kind and turn it on?
         </noscript>
         
         <canvas id="bg"></canvas>
@@ -252,7 +272,8 @@
                 Copyright (c) 2010 Ivo Wetzel | <a href="http://twitter.com/BonsaiDen">Twitter @BonsaiDen</a>
             </div>
             <div class="sound">
-                <a href="#" id="sound" onclick="Shooter.onSound()">DEACTIVATE SOUND</a>
+                <a id="sound" onclick="Shooter.onSound()">DEACTIVATE SOUND</a> | 
+                <a id="tut" onclick="Shooter.onTutorial()">RE-ENABLE TUTORIAL</a>
             </div>
         </div>
     </body>

@@ -1,1 +1,1 @@
-var HOST = 'bonsaiden.dyndns.org', PORT = 28785;
+var HOST = '127.0.0.1', PORT = 28785;
