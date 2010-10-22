@@ -90,7 +90,9 @@ Shooter.achievementFadeOut = function(callback) {
             $('achievement').style.opacity = opacity;
             if (opacity === 0) {
                 hide('achievementOverlay');
-                callback();
+                if (callback) {
+                    callback();
+                }
             
             } else {
                 that.achievementFadeTimer = window.setTimeout(fade, 50);
