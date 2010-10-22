@@ -90,7 +90,7 @@ Shooter.onInit = function() {
     this.initPowerUp('life',    2,  8,  8);
     this.initPowerUp('boost',   1, 26, 15);
     this.initPowerUp('defense', 2, 30, 30);
-    this.initPowerUp('bomb',    1, 5, 3);
+    this.initPowerUp('bomb',    1, 65, 35);
     this.initPowerUp('camu',    1, 40, 20);
     
     this.powerUpTimes = [2, 1.35, 1.12, 1.0, 1, 0.9, 0.8];
@@ -317,7 +317,7 @@ Shooter.updateAsteroids = function() {
     
     // Creation
     var asteroids = this.getActors('asteroid');
-    if (false && asteroids.length < this.maxAsteroids[this.playerCount]
+    if (asteroids.length < this.maxAsteroids[this.playerCount]
         && this.getTime() > this.nextAsteroid) {
         
         this.createActor('asteroid', {'type': Math.ceil(Math.random() * 2) + 1});
