@@ -192,11 +192,12 @@ Client.prototype.playRecording = function(record) {
         var that = this;
         if (this.recordingID < this.recordingLength) {
             this.recordingTimer = window.setTimeout(function() {
-                                        that.playRecording();
-                                    }, 20);
+                                                        that.playRecording();
+                                                    }, 20);
         
         } else {
             this.recordingTimer = window.setTimeout(function() {
+                that.quit();
                 that.playRecording(that.recording);
             }, this.$.roundTime);
         }
