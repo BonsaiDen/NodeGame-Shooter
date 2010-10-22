@@ -23,43 +23,121 @@
 
 // Helpers ---------------------------------------------------------------------
 //------------------------------------------------------------------------------
-Shooter.tutorialOpacity = function() {
-    var o = $('tutorial').style.opacity;
+Shooter.getOpacity = function(id) {
+    var o = $(id).style.opacity;
     return o === '' ? 0 : parseFloat(o.toString().replace(',', '.'));
 };
 
 Shooter.tutorialFadeIn = function() {
     var that = this;
-    var opacity = this.tutorialOpacity();
+    var opacity = this.getOpacity('tutorial');
     function fade() {
         if (opacity < 1 && that.roundGO && that.tutorialEnabled) {
             show('tutorialOverlay');
-            opacity = Math.min(opacity + 0.05, 1);
+            opacity = Math.min(opacity + 0.075, 1);
             $('tutorial').style.opacity = opacity;
             if (opacity < 1) {
-                window.setTimeout(fade, 75);
+                that.tutorialFadeTimer = window.setTimeout(fade, 75);
             }
         }
     }
+    window.clearTimeout(this.tutorialFadeTimer);
     fade();
 };
 
 Shooter.tutorialFadeOut = function() {
-    var opacity = this.tutorialOpacity();
+    var that = this;
+    var opacity = this.getOpacity('tutorial');
     function fade() {
         if (opacity > 0) {
-            opacity = Math.max(opacity - 0.05, 0);
+            opacity = Math.max(opacity - 0.075, 0);
             $('tutorial').style.opacity = opacity;
             if (opacity === 0) {
                 hide('tutorialOverlay');
             
             } else {
-                window.setTimeout(fade, 75);
+                that.tutorialFadeTimer = window.setTimeout(fade, 75);
             }
         }
     }
+    window.clearTimeout(this.tutorialFadeTimer);
     fade();
 };
+
+Shooter.achievementFadeIn = function() {
+    var that = this;
+    var opacity = this.getOpacity('achievement');
+    function fade() {
+        if (opacity < 1) {
+            show('achievementOverlay');
+            opacity = Math.min(opacity + 0.075, 1);
+            $('achievement').style.opacity = opacity;
+            if (opacity < 1) {
+                that.achievementFadeTimer = window.setTimeout(fade, 50);
+            }
+        }
+    }
+    window.clearTimeout(this.achievementFadeTimer);
+    fade();
+};
+
+Shooter.achievementFadeOut = function(callback) {
+    var that = this;
+    var opacity = this.getOpacity('achievement');
+    function fade() {
+        if (opacity > 0) {
+            opacity = Math.max(opacity - 0.075, 0);
+            $('achievement').style.opacity = opacity;
+            if (opacity === 0) {
+                hide('achievementOverlay');
+                callback();
+            
+            } else {
+                that.achievementFadeTimer = window.setTimeout(fade, 50);
+            }
+        }
+    }
+    window.clearTimeout(this.achievementFadeTimer);
+    fade();
+};
+
+Shooter.showAchievement = function(player, type) {
+    var that = this;
+    var overlay = $('achievementOverlay');
+    if (overlay.style.display !== 'block') {
+        if (this.playing && this.player) {
+            if (this.player.y > this.height / 2) {
+                overlay.style.paddingTop = '80px';
+            
+            } else {
+                overlay.style.paddingTop = (this.height - 100) + 'px';
+            }
+        } else {
+            overlay.style.paddingTop = '80px';
+        }
+        
+        $('achievement').innerHTML = '<span style="color: '
+                                     + this.playerColor(player) +'">'
+                                     + '- ' + this.achievements[type][0] + ' -'
+                                     + '</span><br/>'
+                                     + this.achievements[type][1];
+        
+        this.achievementFadeIn();
+        this.achievementTimer = window.setTimeout(function() {
+            that.achievementFadeOut();
+        }, 3500);
+    
+    } else {
+        this.achievementFadeOut(function() {
+            that.showAchievement(player, type);
+        });
+    }
+};
+
+Shooter.achievementHide = function() {
+    window.clearTimeout(this.achievementTimer);
+    this.achievementFadeOut();
+}
 
 
 // Network ---------------------------------------------------------------------

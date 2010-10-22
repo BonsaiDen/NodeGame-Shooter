@@ -45,6 +45,11 @@ ActorPlayer.onCreate = function(data, complete) {
     
     this.col = this.$.playerColor(this.id);
     this.colFaded = this.$.playerColorFaded(this.id);
+    
+    // Outside reference
+    if (this.id === this.$.id) {
+        this.$.player = this;
+    }
 };
 
 ActorPlayer.onUpdate = function(data) {
