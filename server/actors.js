@@ -114,6 +114,12 @@ ActorPlayer.onUpdate = function() {
         this.missilesMiss = true;
     }
     
+    // Kawai
+    if (this.client.achieveKawaii >= 10) {
+        this.$$.achievement(this, 'kawaii');
+        this.client.achieveKawaii -= 10;
+    }
+    
     // Invincibility
     if (this.timeDiff(this.defenseTime) > 100 && this.defense > 0) {
         this.defense -= 100;

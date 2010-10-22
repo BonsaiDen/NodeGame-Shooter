@@ -407,10 +407,11 @@ Shooter.collideAsteroidPlayerDefs = function(a) {
             if (a.type > 1) {
                 pd.destroy();
             }
-            
             a.hp -= 15;
             if (a.hp <= 0) {
-                pd.player.client.addScore(1);
+                if (a.type === 1) {
+                    pd.player.client.achieveKawaii++;
+                }
                 a.destroyer = pd.player.client.id;
                 a.destroy();
                 return true;
@@ -503,6 +504,9 @@ Shooter.collideAsteroidBullets = function(a) {
             b.destroy();
             a.hp -= 5;
             if (a.hp <= 0) {
+                if (a.type === 1) {
+                    b.player.client.achieveKawaii++;
+                }
                 a.destroyer = b.player.client.id;
                 a.destroy();
                 return true;
@@ -521,6 +525,9 @@ Shooter.collideAsteroidMissiles = function(a) {
             m.destroy();
             a.hp -= 10;
             if (a.hp <= 0) {
+                if (a.type === 1) {
+                    m.player.client.achieveKawaii++;
+                }
                 a.destroyer = m.player.client.id;
                 a.destroy();
                 return true;
@@ -838,9 +845,11 @@ Shooter.explodeBomb = function(b) {
                 e.destroy();
             
             } else {
-                e.hp -= 200;
+                e.hp -= 150;
                 if (e.hp <= 0) {
-                    e.destroyer = b.player.client.id;
+                    if (b.player) {
+                        e.destroyer = b.player.client.id;
+                    }
                     e.destroy();
                 }
             }

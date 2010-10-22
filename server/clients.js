@@ -404,10 +404,11 @@ Client.addScore = function(add) {
     if (add < 0 && this.player.camu === 2) {
         add *= 2;
     }
+    var oldScore = this.score;
     this.score += add;
     this.$.setFieldItem('c', this.id, this.score);
     
-    if (this.score === 42) {
+    if (this.score === 42 && oldScore < this.score) {
         this.$$.achievement(this.player, 'guide');
     }
 };
@@ -423,5 +424,6 @@ Client.resetAchievements = function() {
     this.achieveBoom = 0;
     this.achieveDefend = 0;
     this.achieveAsteroids = 0;
+    this.achieveKawaii = 0;
 };
 
