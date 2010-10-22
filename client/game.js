@@ -39,6 +39,68 @@ Shooter.powerUpColors = {
     'camu':    '#808080'  // camu
 };
 
+Shooter.achievements = {
+    'hattrick': ['Hattrick',
+                 'Destroy 3 players in a row without dying.'],
+    
+    'head':     ['Headless in Space',
+                 'Get destroyed 3 times without destroying anyone else.'],
+    
+    'ninja':    ['Ninja Skills!',
+                 'Destroy 3 players while being in stealth.'],
+    
+    'boom':     ['BOOOOOOOOOM!',
+                 'Destroy at least 3 players with a single bomb.'],
+    
+    'guide':    ['Guide to the Galaxy',
+                 'Score exactly 42 points.'],
+    
+    'awesome':  ['AWESOME BOMB, NOT.',
+                 'Destroy yourself and ONLY yourself with a bomb.'],
+    
+    'bullets':   ['Bullet Proof',
+                 'Survive 5 bullet hits.'],
+    
+    'stamina':  ['STAMINA! OH YEAH!',
+                 'Take 40+ DMG without being destroyed.'],
+    
+    'touch':    ['You can\'t touch this...',
+                 'Get killed by a defender.'],
+    
+    'fail':     ['EPIC FAIL!',
+                 'Destroy the big asteroid and get destroyed by its debris.'],
+    
+    'close':    ['Close Call!',
+                 'Be REALLY close to a bomb detonation.'],
+    
+    'giro':     ['GIRONIMO!!!!',
+                 'Destroy the big asteroid... by crashing into it!'],
+    
+    'kami':     ['Kamikaze!!!',
+                 'Crash into someone that has a shield or the armor.'],
+    
+    'missile':  ['Missile Master',
+                 'Collect 10 missiles.'],
+    
+    'miss':     ['Miss-iles',
+                 'Shoot 5 missiles without hitting anyone.'],
+    
+    'move':     ['Keep Cool...',
+                 'Don\'t move for 20 seconds... and survive that!'],
+    
+    'master':   ['Master of the Universe',
+                 'Have Defender, at least 5 Missiles and Armor or Shield.'],
+   
+    'balls':    ['Balls of Steel',
+                 'Destroy 2 players with a defender.'],
+    
+    'hit':      ['Watch out DUUUDE!',
+                 'Destroy a player JUST before they crashing into you.'],
+    
+    'ast':      ['Asteroids. You\'re doing it wrong.',
+                 'Crash into 5 asteroids.']  
+};
+
 Shooter.reset = function() {
     this.particles = [];
     this.canvas = $('bg');
@@ -49,6 +111,8 @@ Shooter.reset = function() {
     this.roundStats = {};
     this.roundGO = null;
     this.playing = false;
+    this.kicked = false;
+    this.player = null;
     this.playerNames = {};
     this.playerScores = {};
     this.playerColors = {};
@@ -56,231 +120,7 @@ Shooter.reset = function() {
     this.infoLeftText = '';
     this.infoRightText = '';
     this.tutorialFadeOut();
-};
-
-Shooter.onCreate = function() {
-    if (document.cookie !== 'SET') {
-        document.cookie = 'SET'; // FF fix for certain cookie settings
-    }
-    
-    // Sounds
-    this.sound = new SoundPlayer(7, 'sounds', [
-        'explosionBig',
-        'explosionMedium',
-        'explosionShip',
-        'explosionSmall',
-        
-        'fadeIn',
-        'fadeOut',
-        'launchBig',
-        'launchMedium',
-        'launchSmall',
-        'powerOff',
-        'powerOn',
-        'powerSound'
-    ]);
-    this.onSound(this.getItem('sound', false));
-    
-    // Tutorial
-    this.tutorialTimers = [null, null];
-    this.onTutorial(this.getItem('tutorial', true));
-    
-    // General
-    var that = this;
-    this.reset();
-    this.colorSelected = this.getItemInt('color'); 
-    
-    // Input
-    this.keys = {};
-    window.onkeydown = window.onkeyup = function(e) {
-        var key = e.keyCode;
-        if (key !== 116 && !e.shiftKey && !e.altKey && !e.ctrlKey) {
-            if (e.type === "keydown") {
-                that.keys[key] = 1;
-            
-            } else {
-                that.keys[key] = 2;
-            }
-            if (that.playing) {
-                e.preventDefault();
-                return false;
-            }
-        }
-    };
-    window.onblur = function(e) {
-        that.keys = {};
-    };
-    
-    $('login').onkeypress = function(e) {
-        that.onLogin(e);
-    };
-    
-    // Firefox race condition with the colors div...
-    window.setTimeout(function(){that.createColors();}, 0);
-};
-
-Shooter.onConnect = function(success) {    
-    if (!success) {
-        this.watch();
-    
-    } else {
-        show('loginBox');
-    }
-};
-
-Shooter.onInit = function(data) {
-    this.width = data.s[0];
-    this.height = data.s[1];
-    this.maxPlayers = data.m;
-    this.playerNames = data.p;
-    this.playerScores = data.c;
-    this.playerColors = data.o;
-    this.checkRound(data);
-    this.checkPlayers(data);
-    this.initCanvas();
-    
-    // HTML
-    show('sub'); 
-    show(this.canvas);
-    $('gameInfo').style.width = this.width + 'px';
-    $('gameInfoRight').style.width = 260 + 'px';
-    $('gameInfoLeft').style.width = (this.width - 16 - 260)  + 'px';
-};
-
-Shooter.onUpdate = function(data) {
-    this.playerNames = data.p;
-    this.playerScores = data.c;
-    this.playerColors = data.o;
-    this.checkRound(data);
-    this.checkPlayers(data);
-    
-    // Tutorial
-    if (this.playing && !this.tutorialStarted && this.roundGO) {
-        this.tutorial(this.tutorialNext);
-        this.tutorialStarted = true;
-    
-    } else if (!this.roundGO && $('tutorial').style.display !== 'none') {
-        this.tutorialFadeOut();
-    }
-};
-
-Shooter.onMessage = function(msg) {
-    if (msg.playing === true) {
-        this.playing = true;
-        hide('loginOverlay');
-    }
-    if (msg.rt !== undefined) {
-        this.roundStart = this.getTime();
-        this.roundTime = msg.rt;
-    }
-};
-
-Shooter.onInput = function() {
-    var keys = {'keys': [
-        this.keys[87] || this.keys[38] || 0,
-        this.keys[68] || this.keys[39] || 0,
-        this.keys[13] || this.keys[77] || 0,
-        this.keys[65] || this.keys[37] || 0,
-        this.keys[32] || 0]
-    };
-    
-    for(var i in this.keys) {
-        if (this.keys[i] === 2) {
-            this.keys[i] = 0;
-        }
-    }
-    return keys;
-};
-
-Shooter.onFlashSocket = function() {
-    show('warning');
-};
-
-Shooter.onServerOnline = function() {
-    $('serverStatus').innerHTML = 'SERVER ONLINE!';
-    hide('watching');
-    show('goplaying');
-};
-
-Shooter.onServerOffline = function() {
-    $('serverStatus').innerHTML = 'SERVER OFFLINE';
-    show('watching');
-    hide('goplaying');
-};
-
-Shooter.onWatch = function() {
-    this.$.close();
-};
-
-Shooter.onPlay = function() {
-    this.play();
-};
-
-Shooter.onClose = function() {
-    this.watch();
-};
-
-Shooter.onError = function(e) {
-    this.watch();
-};
-
-Shooter.onSound = function(data) {
-    if (data !== undefined) {
-        this.sound.enabled = data;
-    
-    } else {
-        this.sound.enabled = !this.sound.enabled;
-    }
-    this.setItem('sound', this.sound.enabled);
-    $('sound').innerHTML = (this.sound.enabled ? 'DEACTIVATE' : 'ACTIVATE')
-                                                  + ' SOUND';
-};
-
-Shooter.onTutorial = function(data) {
-    if (data !== undefined) {
-        this.tutorialEnabled = data;
-    
-    } else {
-        this.tutorialEnabled = !this.tutorialEnabled;
-    }
-    this.tutorialStarted = !this.tutorialEnabled;
-    this.tutorialNext = 'start';
-    window.clearTimeout(this.tutorialTimers[0]);
-    window.clearTimeout(this.tutorialTimers[1]);
-    if (!this.tutorialStarted && this.playing) {
-        this.tutorial(this.tutorialNext);
-        this.tutorialStarted = true;
-    }
-    
-    this.setItem('tutorial', this.tutorialEnabled);
-    $('tut').innerHTML = (this.tutorialEnabled ? 'DISABLE' : 'RE-ENABLE')
-                                                  + ' TUTORIAL';
-                                                  
-    if (!this.tutorialEnabled && $('tutorial').style.display !== 'none') {
-        this.tutorialFadeOut();
-    }
-};
-
-Shooter.onLogin = function(e) {
-    e = e || window.event;
-    if (e.keyCode === 13) {
-        var playerName = $('login').value;
-        playerName = playerName.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '_');
-        if (playerName.length >= 2 && playerName.length <= 12) {
-            e.preventDefault();
-            this.send({'player': playerName, 'color': this.colorSelected});
-        }
-        return false;
-    }
-};
-
-Shooter.onDraw = function() {
-    this.fill('#000000');
-    this.bg.globalCompositeOperation = 'source-over';
-    this.bg.fillRect(0, 0, this.width, this.height);
-    this.bg.globalCompositeOperation = 'lighter';
-    this.renderParticles();
-    this.renderRound();
+    this.achievementHide();
 };
 
 
@@ -381,7 +221,7 @@ Shooter.tutorial = function(id) {
                 }
             }
         };
-        this.tutorialTimers[1] = window.setTimeout(showNext, 9000); 
+        this.tutorialTimers[1] = window.setTimeout(showNext, 8500); 
     
     } else if (id === 'done') {
         this.onTutorial(false);
