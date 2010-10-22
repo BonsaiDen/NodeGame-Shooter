@@ -25,25 +25,12 @@
 // -----------------------------------------------------------------------------
 Shooter.renderRound = function() {
     this.fill('#ffffff');
-    if (this.watch && !this.infoLeftText) {
+    if (this.watching && !this.infoLeftText) {
         $('gameInfoLeft').innerHTML = this.infoLeftText = 'No Video, just &lt;canvas&gt;!';
-    }    
-    
-    var t = Math.round((this.roundTime
-                       + (this.roundStart - this.getTime())) / 1000);
-    
-    if (t < 0) {
-        t = 0;
     }
-    
-    var m = Math.floor(t / 60);
-    var s = t % 60;
-    if (s < 10) {
-        s = '0' + s;
-    }
-    
+        
     if (!this.roundGO) {
-        var text = 'Next in ' + m + ':' + s + ' | Round #'
+        var text = 'Next in ' + this.renderTime() + ' | Round #'
                     + this.roundID + ' finished';
         
         if (text !== this.infoRightText) {
@@ -74,11 +61,22 @@ Shooter.renderRound = function() {
         this.font(12);
     
     } else {
-        var text = m + ':' + s + ' left | Round #' + this.roundID;
+        var text = this.renderTime() + ' left | Round #' + this.roundID;
         if (text !== this.infoRightText) {
             $('gameInfoRight').innerHTML = this.infoRightText = text;
         }
     }
+};
+
+Shooter.renderTime = function() {
+    var timeLeft = (this.roundTime + (this.roundStart - this.getTime()));
+    var t = Math.max(0, Math.round(timeLeft / 1000));
+    var m = Math.floor(t / 60);
+    var s = t % 60;
+    if (s < 10) {
+        s = '0' + s;
+    }
+    return m + ':' + s;
 };
 
 Shooter.renderParticles = function() {

@@ -92,6 +92,18 @@ Game.prototype.send = function(msg) {
 // Client ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 function Client(fps) {
+    this.reset();
+    
+    this.created = false;
+    this.recoding = null;
+    this.recordingTime = null;
+    this.recordingID = -1;
+    this.recordingLength = 0;
+    this.recordingTimer = null;
+    this.actorTypes = {};
+};
+
+Client.prototype.reset = function() {
     this.conn = null;
     this.connected = false;
     this.lastState = '';
@@ -99,18 +111,14 @@ function Client(fps) {
     this.messageTime = 0;
     this.interval = 0;
     this.running = false;
-    
-    this.recoding = null;
-    this.recordingTime = null;
-    this.recordingID = 0;
-    this.recordingLength = 0;
-    
     this.actors = {};
-    this.actorTypes = {};
 };
 
 Client.prototype.connect = function(host, port) {
-    this.$.onCreate();
+    if (!this.created) {
+        this.$.onCreate();
+        this.created = true;
+    }
     
     if (WebSocket.prototype.__createFlash) {
         this.$.onFlashSocket();
@@ -143,14 +151,24 @@ Client.prototype.connect = function(host, port) {
             that.$.onError(e);
         }
     };
-    
-    window.onbeforeunload = window.onunload = function() {
-        that.conn.close();
-    };
 };
 
+Client.prototype.close = function() {
+    this.conn.close();
+};
+
+Client.prototype.quit = function() {
+    window.clearTimeout(this.gameTimer);
+    for(var i in this.actors) {
+        this.actors[i].remove();
+    }
+    this.reset();
+};
+
+// Recording -------------------------------------------------------------------
 Client.prototype.playRecording = function(record) {
     if (record) {
+        this.recordingTimer = null;
         this.recording = record;
         this.recordingTime = this.getTime() - this.recording[0][0];
         this.recordingID = 0;
@@ -173,19 +191,31 @@ Client.prototype.playRecording = function(record) {
         
         var that = this;
         if (this.recordingID < this.recordingLength) {
-            window.setTimeout(function() {that.playRecording()}, 20);
+            this.recordingTimer = window.setTimeout(function() {
+                                        that.playRecording();
+                                    }, 20);
         
         } else {
-            window.setTimeout(function() {
+            this.recordingTimer = window.setTimeout(function() {
                 that.playRecording(that.recording);
             }, this.$.roundTime);
         }
     }
 };
 
+Client.prototype.stopRecording = function() {
+    window.clearTimeout(this.recordingTimer);
+    this.recordingID = -1;
+    this.quit();
+}
+
+
+// Messages --------------------------------------------------------------------
 Client.prototype.onMessage = function(msg) {
     var data = BISON.decode(msg.data);
-    this.handleMessage(data.shift(), data);  
+    if (this.connected && data) {
+        this.handleMessage(data.shift(), data);
+    }
 };
 
 Client.prototype.handleMessage = function(type, data) {
@@ -198,7 +228,7 @@ Client.prototype.handleMessage = function(type, data) {
         this.interval = data[1];
         this.$.onInit(data[2]);
         this.running = true;
-        window.setTimeout(function(){that.update();}, 0);
+        this.gameTimer = window.setTimeout(function(){that.update();}, 0);
     
     } else if (type === MSG_GAME_FIELDS) {
         this.$.onUpdate(data[0]);
@@ -251,21 +281,15 @@ Client.prototype.handleMessage = function(type, data) {
     }
 };
 
-Client.prototype.quit = function() {
-    this.running = false;
-    for(var i in this.actors) {
-        this.actors[i].remove();
-    }
-};
 
+// Game ------------------------------------------------------------------------
 Client.prototype.Game = function(fps) {
     this.fpsTime = Math.round(1000 / fps);
+    this.gameTimer = null;
     this.$ = new Game(this);
     return this.$;
 };
 
-
-// Mainloop --------------------------------------------------------------------
 Client.prototype.update = function() {
     if (this.running) { 
         this.$.onDraw();
@@ -284,8 +308,8 @@ Client.prototype.update = function() {
         }
         
         var that = this;
-        setTimeout(function() {that.update()},
-                   this.fpsTime - (new Date().getTime() - this.time)); 
+        this.gameTimer = setTimeout(function() {that.update()},
+                         this.fpsTime - (new Date().getTime() - this.time)); 
         
         if (this.$.playing) {
             var msg = BISON.encode(this.$.onInput());

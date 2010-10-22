@@ -40,7 +40,7 @@
             <div id="loginBox">
                 <div class="join">Join the Game</div>
                 <input id="login" autocomplete="off" type="text" value="" maxlength="12"/><br/>
-                <div id="colors"></div><div id="watch"><a href="index.html?watch">Watch a recording!</a></div>
+                <div id="colors"></div><div id="watch"><a onclick="Shooter.onWatch()">Watch the demo!</a></div>
                 <div id="warning">
                     WebSockets = More Fun<br/>
                     Use Chrome 6, Firefox 4, Opera 10.70!
@@ -49,11 +49,10 @@
             <div id="offlineBox">
                 <div id="serverStatus">SERVER OFFLINE</div>
                 <div class="offline" id="goplaying">
-                    <a onclick="Shooter.reloadPage()">Stop watching, start playing!</a>
+                    <a onclick="Shooter.onPlay()">Stop watching, start playing!</a>
                 </div>
                 <div class="offline" id="watching">
-                    You are watching a recording...<br/>
-                   ...<a href="http://www.youtube.com/watch?v=0Z0QBtFo8kc">or you can check out YouTube!</a>
+                    You are watching a recording.
                 </div>
             </div>
         </div>

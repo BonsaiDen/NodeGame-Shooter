@@ -62,6 +62,28 @@ Shooter.tutorialFadeOut = function() {
 };
 
 
+// Network ---------------------------------------------------------------------
+Shooter.watch = function() {
+    this.watching = true;
+    this.reset();
+    show('loginOverlay')
+    hide('loginBox');
+    show('offlineBox');
+    this.$.playRecording(RECORD);
+    this.checkServer(HOST, PORT);
+};
+
+Shooter.play = function () {
+    window.clearTimeout(this.checkTimer);
+    this.watching = false;
+    this.$.stopRecording();
+    this.reset();
+    hide('offlineBox');
+    $('gameInfoLeft').innerHTML = '';
+    this.$.connect(HOST, PORT);
+};
+
+
 // Storage ---------------------------------------------------------------------
 Shooter.getItem = function(id, def) {
     try {
@@ -134,13 +156,6 @@ Shooter.playerColor = function(id) {
 
 Shooter.playerColorFaded = function(id) {
     return this.colorCodesFaded[this.playerColors[id]];
-};
-
-Shooter.reloadPage = function() {
-    if (!this.pageReloaded) {
-        document.location.href = document.location.href.split('?')[0];
-        this.pageReloaded = true;
-    }
 };
 
 

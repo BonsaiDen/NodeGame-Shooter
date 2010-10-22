@@ -26,16 +26,42 @@
 var Client = new NodeGame();
 var Shooter = Client.Game(30);
 
-Shooter.onCreate = function() {
-    // Force FF to show up the cookie dialog, because if cookies aren't allowed
-    // localStorage will fail
-    if (document.cookie !== 'SET') {
-        document.cookie = 'SET';
-    }
-    
-    // Canvas
+Shooter.colorCodes = ['#f00000', '#0080ff', '#f0f000', '#00f000', '#9000ff'];
+Shooter.colorCodesFaded = ['#700000', '#004080', '#707000', '#007000', '#500080'];
+Shooter.powerUpColors = {
+    'shield':  '#0060c0', // blue
+    'armor':   '#00c9ff', // teal
+    'missile': '#d00000', // red
+    'life':    '#00b000', // green
+    'boost':   '#f0c000', // yellow
+    'defense': '#9c008c', // purple
+    'bomb':    '#d0d0d0', // light gray
+    'camu':    '#808080'  // camu
+};
+
+Shooter.reset = function() {
     this.particles = [];
     this.canvas = $('bg');
+
+    this.roundTime = 0;
+    this.roundStart = 0;
+    this.roundID = 0;
+    this.roundStats = {};
+    this.roundGO = null;
+    this.playing = false;
+    this.playerNames = {};
+    this.playerScores = {};
+    this.playerColors = {};
+    
+    this.infoLeftText = '';
+    this.infoRightText = '';
+    this.tutorialFadeOut();
+};
+
+Shooter.onCreate = function() {
+    if (document.cookie !== 'SET') {
+        document.cookie = 'SET'; // FF fix for certain cookie settings
+    }
     
     // Sounds
     this.sound = new SoundPlayer(7, 'sounds', [
@@ -60,47 +86,11 @@ Shooter.onCreate = function() {
     this.onTutorial(this.getItem('tutorial', true));
     
     // General
-    this.roundTime = 0;
-    this.roundStart = 0;
-    this.roundID = 0;
-    this.roundStats = {};
-    this.roundGO = null;
-    this.playing = false;
-    this.playerNames = {};
-    this.playerScores = {};
-    this.playerColors = {};
-    
-    this.infoLeftText = '';
-    this.infoRightText = '';
-    
-    // Colors
-    this.powerUpColors = {
-        'shield':  '#0060c0', // blue
-        'armor':   '#00c9ff', // teal
-        'missile': '#d00000', // red
-        'life':    '#00b000', // green
-        'boost':   '#f0c000', // yellow
-        'defense': '#9c008c', // purple
-        'bomb':    '#d0d0d0', // light gray
-        'camu':    '#808080'  // camu
-    };  
-    
-    this.colorCodes      = ['#f00000', '#0080ff', '#f0f000',
-                            '#00f000', '#9000ff'];
-    
-    this.colorCodesFaded = ['#700000', '#004080', '#707000',
-                            '#007000', '#500080'];
-    
-    this.colorSelected = this.getItemInt('color');
-    
-    // Firefox race condition with the colors div...
     var that = this;
-    window.setTimeout(function(){that.createColors();}, 0);
-};
-
-Shooter.onConnect = function(success) {
+    this.reset();
+    this.colorSelected = this.getItemInt('color'); 
+    
     // Input
-    var that = this;
     this.keys = {};
     window.onkeydown = window.onkeyup = function(e) {
         var key = e.keyCode;
@@ -117,7 +107,6 @@ Shooter.onConnect = function(success) {
             }
         }
     };
-    
     window.onblur = function(e) {
         that.keys = {};
     };
@@ -126,12 +115,13 @@ Shooter.onConnect = function(success) {
         that.onLogin(e);
     };
     
-    this.watch = !success;
-    if (this.watch) {
-        hide('loginBox');
-        show('offlineBox');
-        this.$.playRecording(RECORD);
-        this.checkServer(HOST, PORT);
+    // Firefox race condition with the colors div...
+    window.setTimeout(function(){that.createColors();}, 0);
+};
+
+Shooter.onConnect = function(success) {    
+    if (!success) {
+        this.watch();
     
     } else {
         show('loginBox');
@@ -148,9 +138,10 @@ Shooter.onInit = function(data) {
     this.checkRound(data);
     this.checkPlayers(data);
     this.initCanvas();
+    
+    // HTML
     show('sub'); 
     show(this.canvas);
-    
     $('gameInfo').style.width = this.width + 'px';
     $('gameInfoRight').style.width = 260 + 'px';
     $('gameInfoLeft').style.width = (this.width - 16 - 260)  + 'px';
@@ -163,7 +154,7 @@ Shooter.onUpdate = function(data) {
     this.checkRound(data);
     this.checkPlayers(data);
     
-    // Start tutorial
+    // Tutorial
     if (this.playing && !this.tutorialStarted && this.roundGO) {
         this.tutorial(this.tutorialNext);
         this.tutorialStarted = true;
@@ -217,20 +208,20 @@ Shooter.onServerOffline = function() {
     hide('goplaying');
 };
 
+Shooter.onWatch = function() {
+    this.$.close();
+};
+
+Shooter.onPlay = function() {
+    this.play();
+};
+
 Shooter.onClose = function() {
-    var that = this;
-    window.setTimeout(function() {
-        that.reloadPage();
-    
-    }, 50);
+    this.watch();
 };
 
 Shooter.onError = function(e) {
-    var that = this;
-    window.setTimeout(function() {
-        that.reloadPage();
-    
-    }, 50);
+    this.watch();
 };
 
 Shooter.onSound = function(data) {
@@ -284,17 +275,11 @@ Shooter.onLogin = function(e) {
 };
 
 Shooter.onDraw = function() {
-    
-    // Clear
     this.fill('#000000');
     this.bg.globalCompositeOperation = 'source-over';
     this.bg.fillRect(0, 0, this.width, this.height);
     this.bg.globalCompositeOperation = 'lighter';
-    
-    // Effects
     this.renderParticles();
-    
-    // Info
     this.renderRound();
 };
 
@@ -314,7 +299,9 @@ Shooter.checkServer = function(host, port) {
         if (!online) {
             that.onServerOffline();
         }
-        window.setTimeout(function(){that.checkServer(host, port);}, 15000);
+        that.checkTimer = window.setTimeout(function() {
+                                                that.checkServer(host, port);
+                                            }, 15000);
     };
 };
 
@@ -337,7 +324,7 @@ Shooter.checkPlayers = function(data) {
     var login = $('loginOverlay');
     if (!this.playing) {
         if (count < data.m) {
-            if (login.style.display !== 'block' && !this.watch) {
+            if (login.style.display !== 'block' && !this.watching) {
                 show(login);
                 $('login').focus();
             }
@@ -380,7 +367,9 @@ Shooter.tutorial = function(id) {
         this.tutorialFadeIn();
         
         this.tutorialNext = this.tutorials[id][1];
-        this.tutorialTimers[0] = window.setTimeout(function() {that.tutorialFadeOut();}, 7500); 
+        this.tutorialTimers[0] = window.setTimeout(function() {
+                                                        that.tutorialFadeOut();
+                                                   }, 7500); 
         
         var showNext = function() {
             if (that.tutorialEnabled) {
@@ -404,14 +393,7 @@ Shooter.tutorial = function(id) {
 
 // Utility ---------------------------------------------------------------------
 function initGame() {
-    var path = document.location.href.split('?')[1];
-    if (path && path.substr(0, 5) === 'watch') {
-        Shooter.onCreate();
-        Shooter.onConnect(false);
-    
-    } else {
-        Client.connect(HOST, PORT);
-    }
+    Client.connect(HOST, PORT);
 }
 
 function show(id) {
