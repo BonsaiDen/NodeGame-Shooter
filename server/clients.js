@@ -62,9 +62,8 @@ Client.init = function() {
         this.hits = 0;
         this.score = 0;
         this.kills = 0;
+        this.killedBy = [];
         this.selfDestructs = 0;
-        
-        // Achievements
         this.resetAchievements();
         
         // Fields
@@ -72,13 +71,12 @@ Client.init = function() {
         this.$.setFieldItem('o', this.id, this.playerColor); // colors
         this.$.setFieldItem('p', this.id, this.playerName); // players  
         
-        // More
+        // Player
         this.moveTime = this.getTime();
         this.keys = [0, 0, 0, 0, 0];
         this.shotTime = this.getTime() + 1000;
         this.bomb = null;
         this.bombLaunched = false;
-        
         this.player = this.$.createActor('player', {'r': 0, 'client': this});
     }
 };
@@ -249,7 +247,7 @@ Client.killByAsteroid = function(a) {
         this.selfDestructs++;
         this.addScore(-2);
         
-        if (a.creator === this.player) {
+        if (a.destroyer === this.id) {
             this.$$.achievement(this.player, 'fail');
         }
         this.kill(false, true);
@@ -261,6 +259,7 @@ Client.killByProjectile = function(o) {
         var player = this.player;
         this.addScore(-5);
         this.kill(true);
+        this.killedBy = [this.getTime(), o.player.client.id];
         o.player.client.addScore(10);
         o.player.client.addKill();
         
@@ -269,6 +268,12 @@ Client.killByProjectile = function(o) {
             
             this.$$.achievement(o.player, 'hit');
         }
+        
+        if (o.player.client.killedBy[1] === this.id
+            && this.getTime() - o.player.client.killedBy[0] < 500) {
+            
+            this.$$.achievement(o.player, 'revenge');
+        }
     }
 };
 
@@ -276,6 +281,7 @@ Client.killByDefend = function(o) {
     if (this.player && !this.$$.roundFinished) {
         this.addScore(-5);
         this.kill(true);
+        this.killedBy = [this.getTime(), o.player.client.id];
         o.player.client.addScore(10);
         o.player.client.addKill(false, true);
     }
@@ -305,6 +311,12 @@ Client.killByBomb = function(b) {
                 b.player.client.addScore(10);
                 b.player.client.hits++;
                 b.player.client.addKill(true);
+                
+                if (b.player.client.killedBy[1] === this.id
+                    && this.getTime() - b.player.client.killedBy[0] < 500) {
+                    
+                    this.$$.achievement(b.player, 'revenge');
+                }
             }
             this.addScore(-5);
         
@@ -313,6 +325,7 @@ Client.killByBomb = function(b) {
             b.player.client.addScore(-5);
             b.player.client.selfDestructs++;
         }
+        this.killedBy = [this.getTime(), b.player.client.id];
         this.kill();
     }
 };
@@ -336,7 +349,7 @@ Client.kill = function(projectile, asteroid) {
     this.achieveHatTrick = 0;
     if (projectile) {
         this.achieveHeadless++;
-        if (this.achieveHeadless === 3) {
+        if (this.achieveHeadless === 6) {
             this.$$.achievement(this.player, 'head');
             this.achieveHeadless = 0;
         }
@@ -357,11 +370,11 @@ Client.addKill = function(bomb, defend) {
     if (!bomb) {
         if (this.player && this.player.camu === 2) {
             this.achieveNinja++;
-            if (this.achieveNinja === 3) {
+            if (this.achieveNinja === 2) {
                 this.$$.achievement(this.player, 'ninja');
                 this.achieveNinja = 0;
             }
-            
+        
         } else {
             this.achieveHatTrick++;
             if (this.achieveHatTrick === 3) {
@@ -392,7 +405,7 @@ Client.addScore = function(add) {
         add *= 2;
     }
     this.score += add;
-    this.$.setFieldItem('c', this.id, this.score); // scores
+    this.$.setFieldItem('c', this.id, this.score);
     
     if (this.score === 42) {
         this.$$.achievement(this.player, 'guide');

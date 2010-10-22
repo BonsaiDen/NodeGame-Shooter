@@ -103,7 +103,7 @@ ActorPlayer.onUpdate = function() {
     if (this.mx !== 0 || this.my !== 0) {
         this.moveTime = this.getTime();
     
-    } else if (!this.notMoved && this.timeDiff(this.moveTime) > 20000) {
+    } else if (!this.notMoved && this.timeDiff(this.moveTime) > 15000) {
         this.$$.achievement(this, 'move');
         this.notMoved = true;
     }
@@ -361,11 +361,7 @@ ActorBullet.onCreate = function(data) {
 ActorBullet.onUpdate = function() {
     this.x += this.mx;
     this.y += this.my;
-    
-    // Wrap
     this.$$.wrapPosition(this);
-    
-    // Destroy
     if (this.timeDiff(this.time) > 3000) {
         this.destroy();
     }
@@ -404,11 +400,7 @@ ActorBomb.onCreate = function(data) {
 ActorBomb.onUpdate = function() {
     this.x += this.mx;
     this.y += this.my;
-    
-    // Wrap
     this.$$.wrapPosition(this);
-    
-    // Destroy
     if (this.timeDiff(this.time) > 4000) {
         this.destroy();
     }
@@ -421,12 +413,11 @@ ActorBomb.finishExplosion = function() {
         }
     }
     
-    // Players
     var players = this.$$.getActors('player');
     for(var i = 0, l = players.length; i < l; i++) {
         var e = players[i];
-        if (e !== this.player
-            && e.defense === 0 && this.$$.bombBorderCollision(this, e, this.$$.sizePlayer)) {
+        if (e !== this.player && e.defense === 0
+            && this.$$.bombBorderCollision(this, e, this.$$.sizePlayer)) {
             
             this.$$.achievement(e, 'close');
         }
@@ -565,7 +556,7 @@ ActorAsteroid.onCreate = function(data) {
     this.type = data.type;
     this.hp = [1, 5, 10, 20, 150, 150][this.type];
     this.broken = null;
-    this.creator = null;
+    this.destroyer = data.destroyer || null;
     var size = this.$$.sizeAsteroid * 2;
     
     var tx = this.$$.width / 4 + (Math.random() * (this.$$.width / 2));
@@ -649,30 +640,35 @@ ActorAsteroid.onDestroy = function() {
         return;
     }
     
+    var asteroids = [];
     var bounds = this.polygon.bounds();
     var xs = this.$$.sizeAsteroid * 2;
     var ys = this.$$.sizeAsteroid * 2;
-    
-    var asteroids = [];
     for(var y = bounds[1]; y < bounds[3] + ys; y += ys) {
         for(var x = bounds[0]; x < bounds[2] + xs; x += xs) {
-            if (x > -16 && x < this.$$.width + 16
-                && y > -16 && y < this.$$.height + 16) {
+            if (x < -16 || x > this.$$.width + 16 || y < -16
+                || y > this.$$.height + 16) {
                 
-                if (this.polygon.containsCircle(x, y, this.$$.sizeAsteroid)) {
-                    var dx = x - this.x, dy = y - this.y;
-                    var dist = Math.sqrt(dx * dx + dy * dy); 
-                    var type = 2 + Math.round(Math.random(1));
-                    var a = this.$$.createActor('asteroid', {'type': type});  
-                    var r = this.$$.wrapAngle(Math.atan2(x - this.x, y - this.y));
-                    var speed = (Math.random() * 1.0 + 1.75) * 4.5;
-                    var coreDist = this.polygon.radius - dist;
-                    var distPercent = 100 / this.polygon.radius * coreDist;
-                    a.creator = this.creator;
-                    a.setMovement(x, y, 0, r, null, 0.5 + speed / (1.0 + distPercent / 20));   
-                    asteroids.push(a);
-                }
+                continue;
             }
+            
+            if (!this.polygon.containsCircle(x, y, this.$$.sizeAsteroid)) {
+                continue;
+            }
+            
+            var a = this.$$.createActor('asteroid', {
+                                        'type': 2 + Math.round(Math.random(1)),
+                                        'destroyer': this.destroyer});
+            
+            var dx = x - this.x;
+            var dy = y - this.y;
+            var dist = Math.sqrt(dx * dx + dy * dy); 
+            var speed = (Math.random() * 1.0 + 1.75) * 4.5;
+            var distPercent = 100 / this.polygon.radius * (this.polygon.radius - dist);
+            
+            var r = this.$$.wrapAngle(Math.atan2(dx, dy));
+            a.setMovement(x, y, 0, r, null, 0.5 + speed / (1.0 + distPercent / 20));   
+            asteroids.push(a);
         }
     }
     
@@ -680,37 +676,42 @@ ActorAsteroid.onDestroy = function() {
     ys = this.$$.sizeAsteroid;
     for(var y = bounds[1]; y < bounds[3] + ys; y += ys) {
         for(var x = bounds[0]; x < bounds[2] + xs; x += xs) {
-            if (x > -16 && x < this.$$.width + 16
-                && y > -16 && y < this.$$.height + 16) {
+            if (x < -16 || x > this.$$.width + 16 || y < -16
+                || y > this.$$.height + 16) {
                 
-                if (!this.polygon.containsCircle(x, y, this.$$.sizeAsteroid / 2.5)) {
-                    continue;
-                }
-                
-                var dx = x - this.x, dy = y - this.y;
-                var dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < this.polygon.radius / 2) {
-                    continue;
-                }
-                
-                var place = true;
-                for(var i = 0, l = asteroids.length; i < l; i++) {
-                    if (asteroids[i].polygon.intersectsCircle(x, y, this.$$.sizeAsteroid / 2.5)) {
-                        place = false;
-                        break;
-                    }
-                }
-                
-                if (place) {
-                    var a = this.$$.createActor('asteroid', {'type': 1});  
-                    var r = this.$$.wrapAngle(Math.atan2(x - this.x, y - this.y));
-                    var speed = (Math.random() * 1.0 + 1.75) * 4.5;
-                    var coreDist = this.polygon.radius - dist;
-                    var distPercent = 100 / this.polygon.radius * coreDist;
-                    a.creator = this.creator;
-                    a.setMovement(x, y, 0, r, null, 0.5 + speed / (1.0 + distPercent / 20));
+                continue;
+            }
+             
+            if (!this.polygon.containsCircle(x, y, this.$$.sizeAsteroid / 2.5)) {
+                continue;
+            }
+            
+            var dx = x - this.x, dy = y - this.y;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < this.polygon.radius / 2) {
+                continue;
+            }
+            
+            var place = true;
+            for(var i = 0, l = asteroids.length; i < l; i++) {
+                if (asteroids[i].polygon.intersectsCircle(x, y, this.$$.sizeAsteroid / 2.5)) {
+                    place = false;
+                    break;
                 }
             }
+            
+            if (!place) {
+                continue;
+            }
+            
+            var a = this.$$.createActor('asteroid', {
+                                        'type': 1,
+                                        'destroyer': this.destroyer});
+            
+            var r = this.$$.wrapAngle(Math.atan2(dx, dy));
+            var speed = (Math.random() * 1.0 + 1.75) * 4.5;
+            var distPercent = 100 / this.polygon.radius * (this.polygon.radius - dist);
+            a.setMovement(x, y, 0, r, null, 0.5 + speed / (1.0 + distPercent / 20));
         }
     }
 };

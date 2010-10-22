@@ -411,7 +411,7 @@ Shooter.collideAsteroidPlayerDefs = function(a) {
             a.hp -= 15;
             if (a.hp <= 0) {
                 pd.player.client.addScore(1);
-                a.creator = pd.player;
+                a.destroyer = pd.player.client.id;
                 a.destroy();
                 return true;
             }
@@ -503,7 +503,7 @@ Shooter.collideAsteroidBullets = function(a) {
             b.destroy();
             a.hp -= 5;
             if (a.hp <= 0) {
-                a.creator = b.player;
+                a.destroyer = b.player.client.id;
                 a.destroy();
                 return true;
             }
@@ -521,7 +521,7 @@ Shooter.collideAsteroidMissiles = function(a) {
             m.destroy();
             a.hp -= 10;
             if (a.hp <= 0) {
-                a.creator = m.player;
+                a.destroyer = m.player.client.id;
                 a.destroy();
                 return true;
             }
@@ -840,7 +840,7 @@ Shooter.explodeBomb = function(b) {
             } else {
                 e.hp -= 200;
                 if (e.hp <= 0) {
-                    e.creator = b.player;
+                    e.destroyer = b.player.client.id;
                     e.destroy();
                 }
             }
@@ -853,19 +853,19 @@ Shooter.explodeBomb = function(b) {
 // -----------------------------------------------------------------------------
 Shooter.playerCollision = function(p, e, r) {
     return (p.alive() && e.alive())
-                ? this.circleCollision(p, e, this.sizePlayer, r) : false;
+                      ? this.circleCollision(p, e, this.sizePlayer, r) : false;
 };
 
 Shooter.defendCollision = function(d, e, r) {
     return (d.alive() && e.alive() && d.player.alive())
-                ? this.circleCollision(d, e, this.sizeDefend, r) : false;
+                      ? this.circleCollision(d, e, this.sizeDefend, r) : false;
 };
 
 Shooter.asteroidCollision = function(a, e, r) {
     var wr = a.type >= 4;
     var size = wr ? this.sizeBigAsteroid : this.sizeAsteroid;
     return (a.alive() && e.alive())
-                ? this.circleCollision(a, e, size, r, false, wr) : false;    
+                      ? this.circleCollision(a, e, size, r, false, wr) : false;
 };
 
 Shooter.bombCollision = function(b, e, r) {

@@ -482,8 +482,7 @@ Game.prototype.run = function() {
         while(this.$lastTime <= this.$.time) {
             this.$.updateClients();
             this.$.updateActors();
-            this.onUpdate(); 
-            
+            this.onUpdate();
             this.$lastTime += this.$interval;
         }
         var that = this;
