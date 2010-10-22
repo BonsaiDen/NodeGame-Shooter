@@ -128,6 +128,7 @@ Shooter.showAchievement = function(player, type) {
         }, 3500);
     
     } else {
+        window.clearTimeout(this.achievementTimer);
         this.achievementFadeOut(function() {
             that.showAchievement(player, type);
         });
