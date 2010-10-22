@@ -43,11 +43,11 @@ Shooter.achievements = {
     'hattrick': ['Hattrick',
                  'Destroy 3 players in a row without dying.'],
     
-    'head':     ['Headless in Space',
-                 'Get destroyed 3 times without destroying anyone else.'],
+    'head':     ['Space Waste',
+                 'Get destroyed 6 times without destroying anyone else.'],
     
     'ninja':    ['Ninja Skills!',
-                 'Destroy 3 players while being in stealth.'],
+                 'Destroy 2 players while being in stealth.'],
     
     'boom':     ['BOOOOOOOOOM!',
                  'Destroy at least 3 players with a single bomb.'],
@@ -73,24 +73,24 @@ Shooter.achievements = {
     'close':    ['Close Call!',
                  'Be REALLY close to a bomb detonation.'],
     
-    'giro':     ['GIRONIMO!!!!',
+    'giro':     ['GIRONIMO!!!',
                  'Destroy the big asteroid... by crashing into it!'],
     
-    'kami':     ['Kamikaze!!!',
+    'kami':     ['Kamikaze!',
                  'Crash into someone that has a shield or the armor.'],
     
     'missile':  ['Missile Master',
                  'Collect 10 missiles.'],
     
-    'miss':     ['Miss-iles',
+    'miss':     ['MISS-iles',
                  'Shoot 5 missiles without hitting anyone.'],
     
     'move':     ['Keep Cool...',
-                 'Don\'t move for 20 seconds... and survive that!'],
+                 'Don\'t move for 15 seconds... and survive that!'],
     
     'master':   ['Master of the Universe',
                  'Have Defender, at least 5 Missiles and Armor or Shield.'],
-   
+    
     'balls':    ['Balls of Steel',
                  'Destroy 2 players with a defender.'],
     
@@ -98,7 +98,10 @@ Shooter.achievements = {
                  'Destroy a player JUST before they crashing into you.'],
     
     'ast':      ['Asteroids. You\'re doing it wrong.',
-                 'Crash into 5 asteroids.']  
+                 'Crash into 5 asteroids.'],
+    
+    'revenge':  ['REVENGE FOR SUSHII!!',
+                 'Destroy someone within half a second after they destroyed you.']
 };
 
 Shooter.reset = function() {
