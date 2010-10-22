@@ -101,7 +101,10 @@ Shooter.achievements = {
                  'Crash into 5 asteroids.'],
     
     'revenge':  ['REVENGE FOR SUSHII!!',
-                 'Destroy someone within half a second after they destroyed you.']
+                 'Destroy someone within half a second after they destroyed you.'],
+    
+    'kawaii':   ['Kawaii! ^_^"',
+                 'Clean up this place by destroying 10 little asteroids.']
 };
 
 Shooter.reset = function() {
