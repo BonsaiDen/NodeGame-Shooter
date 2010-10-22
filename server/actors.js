@@ -38,6 +38,7 @@ ActorPlayer.onCreate = function(data) {
     this.r = (Math.random() * Math.PI * 2) - Math.PI;
     this.mr = 0;
     this.oldMr = 0;
+    this.speed = 0;
     
     this.$$.randomPosition(this, this.$$.sizePlayer);
     this.polygon = new Polygon2D(this.x, this.y, this.r, ActorPlayer.shape);
@@ -67,6 +68,15 @@ ActorPlayer.onCreate = function(data) {
     this.camuTime = 0;
     
     this.missiles = 0;
+    
+    // Achievements
+    this.damageTaken = 0;
+    this.bulletsTaken = 0;
+    this.missedMissiles = 0;
+    this.missilesMiss = false;
+    this.moveTime = this.getTime();
+    this.notMoved = false;
+    this.master = false;
 };
 
 ActorPlayer.onUpdate = function() {
@@ -82,11 +92,27 @@ ActorPlayer.onUpdate = function() {
     }
     this.mx = Math.sin(r) * speed;
     this.my = Math.cos(r) * speed;
+    this.speed = speed;
     
     this.x += this.mx;
     this.y += this.my;
     this.polygon.transform(this.x, this.y, this.r);
     this.$$.wrapPosition(this);
+    
+    // Not moving
+    if (this.mx !== 0 || this.my !== 0) {
+        this.moveTime = this.getTime();
+    
+    } else if (!this.notMoved && this.timeDiff(this.moveTime) > 20000) {
+        this.$$.achievement(this, 'move');
+        this.notMoved = true;
+    }
+    
+    // Missiles
+    if (this.missedMissiles >= 5 && !this.missilesMiss) {
+        this.$$.achievement(this, 'miss');
+        this.missilesMiss = true;
+    }
     
     // Invincibility
     if (this.timeDiff(this.defenseTime) > 100 && this.defense > 0) {
@@ -163,6 +189,29 @@ ActorPlayer.disableArmor = function() {
     this.armor = false;
     this.armorDis = false;
     this.armorHP = 0;
+};
+
+ActorPlayer.damage = function(dmg) {
+    this.hp -= dmg;
+    this.damageTaken += dmg;
+    if (this.damageTaken >= 40 && this.hp > 0) {
+        this.$$.achievement(this, 'stamina');
+        this.damageTaken -= 40;
+    }
+    
+    if (this.bulletsTaken >= 5 && this.hp > 0) {
+        this.$$.achievement(this, 'bullets');
+        this.bulletsTaken -= 5;
+    }
+};
+
+ActorPlayer.checkPowerUps = function() {
+    if ((this.shield || this.armor) && this.missiles >= 5 && this.defender) {
+        if (!this.master) {
+            this.$$.achievement(this, 'master');
+            this.master = true;
+        }
+    }
 };
 
 ActorPlayer.stopArmor = function() {
@@ -285,6 +334,7 @@ ActorMissile.onUpdate = function() {
     
     // Destroy
     if (this.timeDiff(this.time) > 5000) {
+        this.player.missedMissiles++;
         this.destroy();
     }
 };
@@ -335,6 +385,7 @@ ActorBomb.onCreate = function(data) {
     this.r = data.r;
     
     this.player = data.player;
+    this.killedPlayers = [];
     
     if (this.player) {
         this.color = this.player.client.id;
@@ -360,6 +411,25 @@ ActorBomb.onUpdate = function() {
     // Destroy
     if (this.timeDiff(this.time) > 4000) {
         this.destroy();
+    }
+};
+
+ActorBomb.finishExplosion = function() {
+    if (this.killedPlayers.length === 1 && this.fired) {
+        if (this.killedPlayers[0] === this.player.client.id) {
+            this.$$.achievement(this.player, 'awesome');
+        }
+    }
+    
+    // Players
+    var players = this.$$.getActors('player');
+    for(var i = 0, l = players.length; i < l; i++) {
+        var e = players[i];
+        if (e !== this.player
+            && e.defense === 0 && this.$$.bombBorderCollision(this, e, this.$$.sizePlayer)) {
+            
+            this.$$.achievement(e, 'close');
+        }
     }
 };
 
@@ -495,6 +565,7 @@ ActorAsteroid.onCreate = function(data) {
     this.type = data.type;
     this.hp = [1, 5, 10, 20, 150, 150][this.type];
     this.broken = null;
+    this.creator = null;
     var size = this.$$.sizeAsteroid * 2;
     
     var tx = this.$$.width / 4 + (Math.random() * (this.$$.width / 2));
@@ -597,6 +668,7 @@ ActorAsteroid.onDestroy = function() {
                     var speed = (Math.random() * 1.0 + 1.75) * 4.5;
                     var coreDist = this.polygon.radius - dist;
                     var distPercent = 100 / this.polygon.radius * coreDist;
+                    a.creator = this.creator;
                     a.setMovement(x, y, 0, r, null, 0.5 + speed / (1.0 + distPercent / 20));   
                     asteroids.push(a);
                 }
@@ -635,6 +707,7 @@ ActorAsteroid.onDestroy = function() {
                     var speed = (Math.random() * 1.0 + 1.75) * 4.5;
                     var coreDist = this.polygon.radius - dist;
                     var distPercent = 100 / this.polygon.radius * coreDist;
+                    a.creator = this.creator;
                     a.setMovement(x, y, 0, r, null, 0.5 + speed / (1.0 + distPercent / 20));
                 }
             }
