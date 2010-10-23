@@ -145,6 +145,9 @@ Shooter.achievementHide = function() {
 
 // Network ---------------------------------------------------------------------
 Shooter.watch = function() {
+    this.achievementHide();
+    window.clearTimeout(this.tutorialTimers[0]);
+    window.clearTimeout(this.tutorialTimers[1]);
     this.watching = true;
     this.reset();
     show('loginOverlay')
