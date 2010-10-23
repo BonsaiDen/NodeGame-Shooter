@@ -94,7 +94,7 @@ Shooter.onConnect = function(success) {
         this.watch();
     
     } else {
-        show('loginBox');
+        this.$.send(['init']);
     }
 };
 
@@ -110,6 +110,9 @@ Shooter.onInit = function(data) {
     this.initCanvas();
     
     // HTML
+    if (!this.watching) {
+        show('loginBox');
+    }
     show('sub'); 
     show(this.canvas);
     $('gameInfo').style.width = this.width + 'px';
