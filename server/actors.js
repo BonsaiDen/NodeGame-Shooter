@@ -242,7 +242,7 @@ ActorPlayer.onDestroy = function() {
     this.defender = null;
     this.hp = 0;
     
-    if (this.timeDiff(this.badTime) <= 2200) {
+    if (!this.client.left && this.timeDiff(this.badTime) <= 2200) {
         this.$$.achievement(this, 'bad');
     }
 };

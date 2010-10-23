@@ -57,6 +57,7 @@ Client.init = function() {
         }
         
         // Stuff
+        this.left = false;
         this.reset = -1;
         this.shots = 0;
         this.hits = 0;
@@ -237,6 +238,7 @@ Client.leave = function() {
         this.$.delFieldItem('p', this.id); // players
         this.$.delFieldItem('c', this.id); // scores
         if (this.player) {
+            this.left = true;
             this.player.destroy();
         }
     }
