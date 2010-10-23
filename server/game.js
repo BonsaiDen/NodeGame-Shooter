@@ -591,7 +591,7 @@ Shooter.collideAsteroidMissiles = function(a) {
         var m = missiles[e];
         if (this.asteroidCollision(a, m, this.sizeMissile)) {
             m.player.client.hits++;
-            m.player.missedMissiles++;
+            m.player.client.achieveMissile++;
             m.destroy();
             a.hp -= 10;
             if (a.hp <= 0) {
@@ -738,6 +738,7 @@ Shooter.collidePlayerMissiles = function(p) {
             && this.playerCollision(p, m, this.sizeMissile)) {
             
             m.player.client.hits++;
+            m.player.client.achieveMissile = 0;
             m.destroy();
             
             if (p.armor) {
@@ -762,6 +763,7 @@ Shooter.collidePlayerMissiles = function(p) {
                                                  this.sizeMissile, true)) {
             
             m.player.client.hits++;
+            m.player.client.achieveMissile = 0;
             m.destroy();
             
             p.shieldHP -= 4;

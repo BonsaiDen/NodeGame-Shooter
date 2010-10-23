@@ -72,8 +72,6 @@ ActorPlayer.onCreate = function(data) {
     // Achievements
     this.damageTaken = 0;
     this.bulletsTaken = 0;
-    this.missedMissiles = 0;
-    this.missilesMiss = false;
     this.moveTime = this.getTime();
     this.notMoved = false;
     this.master = false;
@@ -109,9 +107,9 @@ ActorPlayer.onUpdate = function() {
     }
     
     // Missiles
-    if (this.missedMissiles >= 5 && !this.missilesMiss) {
+    if (this.client.achieveMissile >= 5) {
         this.$$.achievement(this, 'miss');
-        this.missilesMiss = true;
+        this.client.achieveMissile -= 5;
     }
     
     // Kawai
@@ -340,7 +338,7 @@ ActorMissile.onUpdate = function() {
     
     // Destroy
     if (this.timeDiff(this.time) > 5000) {
-        this.player.missedMissiles++;
+        this.player.client.achieveMissile++;
         this.destroy();
     }
 };

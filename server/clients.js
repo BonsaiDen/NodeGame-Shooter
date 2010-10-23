@@ -423,5 +423,6 @@ Client.resetAchievements = function() {
     this.achieveDefend = 0;
     this.achieveAsteroids = 0;
     this.achieveKawaii = 0;
+    this.achieveMissile = 0;
 };
 
