@@ -94,13 +94,10 @@ function Server(options) {
         } else {
             try {
                 var msg = BISON.decode(msg);
-                if (!conn.$clientID) {
-                    if (msg instanceof Array && msg.length === 1
-                        && msg[0] === 'init') {
-                        
-                        that.clientsChanged = true;
-                        conn.$clientID = that.addClient(conn);
-                    }
+                if (!conn.$clientID && msg instanceof Array && msg.length === 1
+                    && msg[0] === 'init') {
+                    
+                    conn.$clientID = that.addClient(conn);
                 
                 } else {
                     that.clients[conn.$clientID].onMessage(msg);
@@ -235,20 +232,20 @@ Server.prototype.toSize = function(size) {
     return Math.round(size * 100) / 100 + [' bytes', ' kib', ' mib'][t];
 };
 
+Server.prototype.toTime = function(time) {
+    var t = Math.round((time - this.startTime) / 1000);
+    var m = Math.floor(t / 60);
+    var s = t % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+};
+
 Server.prototype.status = function(end) {
+    var that = this;
     if (!this.showStatus) {
         return;
     }
     
-    var that = this;
-    function toTime(time) {
-        var t = Math.round((time - that.startTime) / 1000);
-        var m = Math.floor(t / 60);
-        var s = t % 60;
-        return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
-    }
-    
-    var stats = '    Running ' + toTime(this.time) + ' | '
+    var stats = '    Running ' + this.toTime(this.time) + ' | '
                 + this.clientCount
                 + ' Client(s) | ' + this.actorCount + ' Actor(s) | '
                 + this.toSize(this.bytesSend)
@@ -258,8 +255,8 @@ Server.prototype.status = function(end) {
     
     this.bytesSendLast = this.bytesSend;
     for(var i = this.logs.length - 1; i >= 0; i--) {
-        stats += '\n      ' + toTime(this.logs[i][0])
-                 + ' ' + this.logs[i][1];
+        stats += '\n      ' + this.toTime(this.logs[i][0])
+                            + ' ' + this.logs[i][1];
     }
     sys.print('\x1b[H\x1b[J# NodeGame Server at port '
               + this.port + '\n' + stats + '\n\x1b[s\x1b[H');
@@ -275,6 +272,7 @@ Server.prototype.status = function(end) {
 
 // Clients ---------------------------------------------------------------------
 Server.prototype.addClient = function(conn) {
+    this.clientsChanged = true;
     this.clientID++;
     this.clients[this.clientID] = new Client(this, conn, false);
     this.clientCount++;
