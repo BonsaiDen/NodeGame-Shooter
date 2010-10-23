@@ -268,12 +268,7 @@ Client.killByProjectile = function(o) {
             
             this.$$.achievement(o.player, 'hit');
         }
-        
-        if (o.player.client.killedBy[1] === this.id
-            && this.getTime() - o.player.client.killedBy[0] < 500) {
-            
-            this.$$.achievement(o.player, 'revenge');
-        }
+        this.checkRevenge(o);
     }
 };
 
@@ -311,12 +306,7 @@ Client.killByBomb = function(b) {
                 b.player.client.addScore(10);
                 b.player.client.hits++;
                 b.player.client.addKill(true);
-                
-                if (b.player.client.killedBy[1] === this.id
-                    && this.getTime() - b.player.client.killedBy[0] < 500) {
-                    
-                    this.$$.achievement(b.player, 'revenge');
-                }
+                this.checkRevenge(b);
             }
             this.addScore(-5);
         
@@ -398,6 +388,14 @@ Client.addKill = function(bomb, defend) {
         }
     }
     this.kills++;
+};
+
+Client.checkRevenge = function(o) {
+    if (o.player.client.killedBy[1] === this.id
+        && this.getTime() - o.player.client.killedBy[0] < 1000) {
+        
+        this.$$.achievement(o.player, 'revenge');
+    }
 };
 
 Client.addScore = function(add) {

@@ -176,7 +176,77 @@ Shooter.endRound = function() {
 };
 
 Shooter.achievement = function(player, type) {
-    this.$.messageAll({'aie': [player.client.id, type]});
+    this.$.messageAll({'aie': [player.client.id,
+                               this.achievements[type][0],
+                               this.achievements[type][1]]});
+};
+
+Shooter.achievements = {
+    'hattrick': ['Hattrick',
+                 'Destroy 3 players in a row without dying.'],
+    
+    'head':     ['Space Waste',
+                 'Get destroyed 6 times without destroying anyone else.'],
+    
+    'ninja':    ['Ninja Skills!',
+                 'Destroy 2 players while being in stealth.'],
+    
+    'boom':     ['BOOOOOOOOOM!',
+                 'Destroy at least 3 players with a single bomb.'],
+    
+    'guide':    ['Guide to the Galaxy',
+                 'Score exactly 42 points.'],
+    
+    'awesome':  ['AWESOME BOMB, NOT.',
+                 'Destroy yourself and ONLY yourself with a bomb.'],
+    
+    'bullets':   ['Bullet Proof',
+                 'Survive 5 bullet hits.'],
+    
+    'stamina':  ['STAMINA! OH YEAH!',
+                 'Take 40+ DMG without being destroyed.'],
+    
+    'touch':    ['You can\'t touch this...',
+                 'Get killed by a defender.'],
+    
+    'fail':     ['EPIC FAIL!',
+                 'Destroy the big asteroid and get destroyed by its debris.'],
+    
+    'close':    ['Close Call!',
+                 'Be REALLY close to a bomb detonation.'],
+    
+    'giro':     ['GIRONIMO!!!',
+                 'Destroy the big asteroid... by crashing into it!'],
+    
+    'kami':     ['Kamikaze!',
+                 'Crash into someone that has a shield or the armor.'],
+    
+    'missile':  ['Missile Master',
+                 'Collect 10 missiles.'],
+    
+    'miss':     ['MISS-iles',
+                 'Shoot 5 missiles without hitting anyone.'],
+    
+    'move':     ['Keep Cool...',
+                 'Don\'t move for 15 seconds... and survive that!'],
+    
+    'master':   ['Master of the Universe',
+                 'Have Defender, at least 5 Missiles and Armor or Shield.'],
+    
+    'balls':    ['Balls of Steel',
+                 'Destroy 2 players with a defender.'],
+    
+    'hit':      ['Watch out DUUUDE!',
+                 'Destroy a player JUST before they crashing into you.'],
+    
+    'ast':      ['Asteroids. You\'re doing it wrong.',
+                 'Crash into 5 asteroids.'],
+    
+    'revenge':  ['REVENGE FOR SUSHII!!',
+                 'Destroy someone within one second after they destroyed you.'],
+    
+    'kawaii':   ['Kawaii! ^_^"',
+                 'Clean up this place by destroying 10 little asteroids.']
 };
 
 

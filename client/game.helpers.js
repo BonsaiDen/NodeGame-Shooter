@@ -103,7 +103,7 @@ Shooter.achievementFadeOut = function(callback) {
     fade();
 };
 
-Shooter.showAchievement = function(player, type) {
+Shooter.showAchievement = function(player, title, description) {
     var that = this;
     var overlay = $('achievementOverlay');
     if (overlay.style.display !== 'block') {
@@ -120,9 +120,9 @@ Shooter.showAchievement = function(player, type) {
         
         $('achievement').innerHTML = '<span style="color: '
                                      + this.playerColor(player) +'">'
-                                     + '- ' + this.achievements[type][0] + ' -'
+                                     + '- ' + title + ' -'
                                      + '</span><br/>'
-                                     + this.achievements[type][1];
+                                     + description;
         
         this.achievementFadeIn();
         this.achievementTimer = window.setTimeout(function() {
