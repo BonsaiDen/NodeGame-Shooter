@@ -99,7 +99,7 @@ function Server(options) {
                     
                     conn.$clientID = that.addClient(conn);
                 
-                } else {
+                } else if (conn.$clientID) {
                     that.clients[conn.$clientID].onMessage(msg);
                 }
             
