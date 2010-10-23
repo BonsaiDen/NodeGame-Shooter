@@ -84,8 +84,6 @@ function Server(options) {
             conn.close();
             return;
         }
-        that.clientsChanged = true;
-        conn.$clientID = that.addClient(conn);
     };
     
     this.$.onMessage = function(conn, msg) {
@@ -95,7 +93,18 @@ function Server(options) {
         
         } else {
             try {
-                that.clients[conn.$clientID].onMessage(BISON.decode(msg));
+                var msg = BISON.decode(msg);
+                if (!conn.$clientID) {
+                    if (msg instanceof Array && msg.length === 1
+                        && msg[0] === 'init') {
+                        
+                        that.clientsChanged = true;
+                        conn.$clientID = that.addClient(conn);
+                    }
+                
+                } else {
+                    that.clients[conn.$clientID].onMessage(msg);
+                }
             
             } catch (e) {
                 that.log('!! Error: ' + e);

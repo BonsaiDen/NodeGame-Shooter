@@ -79,7 +79,7 @@ Shooter.checkServer = function(host, port) {
         }
         that.checkTimer = window.setTimeout(function() {
                                                 that.checkServer(host, port);
-                                            }, 15000);
+                                            }, 10000);
     };
 };
 
