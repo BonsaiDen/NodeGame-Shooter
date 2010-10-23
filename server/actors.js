@@ -73,6 +73,8 @@ ActorPlayer.onCreate = function(data) {
     this.damageTaken = 0;
     this.bulletsTaken = 0;
     this.moveTime = this.getTime();
+    this.badTime = this.getTime();
+    this.boosting = false;
     this.notMoved = false;
     this.master = false;
 };
@@ -125,6 +127,11 @@ ActorPlayer.onUpdate = function() {
         this.defenseTime = this.getTime();
     }
     
+    // Boosting achievement
+    if (this.timeDiff(this.boostTime) > 1000 && this.speed < 4.25) {
+        this.boosting = false;
+    }
+    
     // Shield
     if (this.shield && this.timeDiff(this.shieldTime) > 15000) {
         this.shieldHP = 0;
@@ -138,6 +145,10 @@ ActorPlayer.onUpdate = function() {
     
     // Speed
     if (this.boost && this.timeDiff(this.boostTime) > 12500) {
+        if (this.boosting) {
+            this.$$.achievement(this, 'boost');
+        }
+        this.boosting = false;
         this.boost = false;
     }
     
@@ -230,6 +241,10 @@ ActorPlayer.onDestroy = function() {
     }
     this.defender = null;
     this.hp = 0;
+    
+    if (this.timeDiff(this.badTime) <= 2200) {
+        this.$$.achievement(this, 'bad');
+    }
 };
 
 ActorPlayer.onMessage = function(once) {

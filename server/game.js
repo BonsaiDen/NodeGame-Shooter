@@ -88,7 +88,7 @@ Shooter.onInit = function() {
     this.initPowerUp('armor',   1, 30, 20);
     this.initPowerUp('missile', 2, 16, 15);
     this.initPowerUp('life',    2,  8,  8);
-    this.initPowerUp('boost',   1, 26, 15);
+    this.initPowerUp('boost',   1, 26, 12);
     this.initPowerUp('defense', 2, 30, 30);
     this.initPowerUp('bomb',    1, 65, 35);
     this.initPowerUp('camu',    1, 40, 20);
@@ -246,7 +246,16 @@ Shooter.achievements = {
                  'Destroy someone within one second after they destroyed you.'],
     
     'kawaii':   ['Kawaii! ^_^"',
-                 'Clean up this place by destroying 10 little asteroids.']
+                 'Clean up this place by destroying 10 little asteroids.'],
+    
+    'sharp':    ['Sharpshooter',
+                 'Hit someone with a bomb that was just about to explode.'],
+    
+    'boost':    ['You\'ve got Boost Power!',
+                 'Fly full speed for 10 seconds.'],
+    
+    'bad':      ['Bad Luck',
+                 'Get destroyed within 2.2 seconds after spawning.']
 };
 
 
@@ -340,6 +349,7 @@ Shooter.collidePowerUps = function(o, p) {
     
     } else if (o.type === 'boost') {
         p.boost = true;
+        p.boosting = true;
         p.boostTime = this.getTime();
     
     } else if (o.type === 'missile') {
@@ -534,6 +544,7 @@ Shooter.collideAsteroidPlayers = function(a) {
             } else {
                 a.hp -= p.armor ? 30 : 20;
                 if (a.hp <= 0) {
+                    a.destroyer = p.client.id;
                     this.achievement(p, 'giro');
                     a.destroy();
                     return true;
@@ -1036,7 +1047,7 @@ Shooter.checkCollision = function(a, b, ra, rb, circle) {
 
 Shooter.checkOverlap = function(objs, o, size, osize) {
     for(var i = 0, l = objs.length; i < l; i++) {
-        if (this.checkCollision(objs[i], o, size * 2, osize, true)) {
+        if (this.circleCollision(objs[i], o, size * 2, osize, true)) {
             return true;
         }
     }
@@ -1046,10 +1057,10 @@ Shooter.checkOverlap = function(objs, o, size, osize) {
 Shooter.checkOverlapAsteroids = function(objs, o, osize) {
     for(var i = 0, l = objs.length; i < l; i++) {
         var big = objs[i].type >= 4;
-        var size = big ? this.sizeBigAsteroid * 1.1
+        var size = big ? this.sizeBigAsteroid * 1.20
                          : this.sizeAsteroid * 2;
         
-        if (this.checkCollision(objs[i], o, size, osize, true, big)) {
+        if (this.circleCollision(objs[i], o, size, osize, true, big)) {
             return true;
         }
     }
@@ -1076,7 +1087,7 @@ Shooter.randomPosition = function(obj, size) {
     
     var found = false;
     var tries = 0;
-    while(!found && tries++ < 25) {
+    while(!found && tries++ < 20) {
         found = true;
         obj.x = (Math.random() * (this.width - 50)) + 25;
         obj.y = (Math.random() * (this.height - 50)) + 25;
