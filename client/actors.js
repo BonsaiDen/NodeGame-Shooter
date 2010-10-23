@@ -77,13 +77,13 @@ ActorPlayer.onUpdate = function(data) {
     
     if (this.shield && !data[5]) {
         this.$.playSound('powerOff');
-        this.$.fxRing(this.x, this.y, 20, {'n': 30, 'd': 0.5, 's': 2.75,
-                                           'c': this.col, 'a': this.alpha});
+        this.$.fxRing({o: this, r: 20, n: 30, d: 0.5, s: 2.75,
+                       c: this.col, a: this.alpha});
     
     } else if (!this.shield && data[5]) {
         this.$.playSound('powerOn');
-        this.$.fxRing(this.x, this.y, 35, {'n': 30, 'd': 0.2, 's': -2.75,
-                                           'c': this.col, 'a': this.alpha});
+        this.$.fxRing({o: this, r: 35, n: 30, d: 0.2, s: -2.75,
+                       c: this.col, a: this.alpha});
     }
     this.shield = data[5];
     
@@ -101,8 +101,9 @@ ActorPlayer.onUpdate = function(data) {
             var size = 26 + Math.cos(this.mmr * 2);
             var ox = this.x + Math.sin(r) * size;
             var oy = this.y + Math.cos(r) * size;
-            this.$.fxExplosion(ox, oy, 6, {'d': 0.25, 's': 1, 'c': this.col});
-            this.$.fxArea(ox, oy, {'s': 3.5, 'd': 0.25, 'c': this.col});
+            this.$.fxArea({x: ox, y: oy, s: 3.5, d: 0.25, c: this.col});
+            this.$.fxExp({x: ox, y: oy, n: 6, d: 0.25,
+                                s: 1, c: this.col});
         }
     }
     this.missiles = data[7];
@@ -128,12 +129,12 @@ ActorPlayer.onInterleave = function(delta) {
 
 ActorPlayer.onDestroy = function(complete) {
     if (complete) {
-        this.$.fxExplosion(this.x, this.y, 20, {'d': 0.9, 's': 1.4, 'c': this.col});
-        this.$.fxArea(this.x, this.y, {'s': 20, 'd': 0.5, 'c': this.col});
+        this.$.fxExp({o: this, n: 20, d: 0.9, s: 1.4, c: this.col});
+        this.$.fxArea({o: this, s: 20, d: 0.5, c: this.col});
         
         if (this.shield) {
-            this.$.fxRing(this.x, this.y, 20, {'n': 42, 'd': 0.6, 's': 3.25,
-                                               'c': this.col, 'a': this.alpha});
+            this.$.fxRing({o: this, r: 20, n: 42, d: 0.6, s: 3.25,
+                           c: this.col, a: this.alpha});
         }
         
         if (this.armor) {
@@ -147,8 +148,8 @@ ActorPlayer.onDestroy = function(complete) {
             var ox = this.x + Math.sin(r) * size;
             var oy = this.y + Math.cos(r) * size;
             
-            this.$.fxExplosion(ox, oy, 6, {'d': 0.45, 's': 1, 'c': this.col});
-            this.$.fxArea(ox, oy, {'s': 8.5, 'd': 0.45, 'c': this.col});
+            this.$.fxExp({x: ox, y: oy, n: 6, d: 0.45, s: 1, c: this.col});
+            this.$.fxArea({x: ox, y: oy, s: 8.5, d: 0.45, c: this.col});
         }
         this.$.playSound('explosionShip');
     }
@@ -174,10 +175,10 @@ ActorPlayer.onDraw = function() {
             var oy = this.y + Math.cos(r) * 12;
             var rr = [-0.9, -0.5, -0.25, 0.25, 0.5, 0.9];
             for(var i = 0; i < (this.boost ? 2 : 1); i++) {
-                this.$.fxParticle(ox, oy,
-                       this.$.wrapAngle(r - rr[Math.floor(Math.random() * 6)]),
-                       {'s': 1.6, 'd': 0.2 + (this.boost ? 0.1 : 0),
-                        'c': this.col, 'a': this.alpha});
+                var ir = this.$.wrapAngle(r - rr[Math.floor(Math.random() * 6)]);
+                this.$.fxPar({x: ox, y: oy, r: ir, s: 1.6,
+                              d: 0.2 + (this.boost ? 0.1 : 0),
+                              c: this.col, a: this.alpha});
             }
         }
         
@@ -185,17 +186,13 @@ ActorPlayer.onDraw = function() {
         if (this.mr !== 0) {
             var d = this.mr > 0 ? 1 : -1; 
             var r = this.$.wrapAngle(this.r - Math.PI);
-            var ox = this.x + Math.sin(this.$.wrapAngle(r - Math.PI * 2.22 * d))
-                              * 14;
-            
-            var oy = this.y + Math.cos(this.$.wrapAngle(r - Math.PI * 2.22 * d))
-                              * 14;
-            
+            var or = this.$.wrapAngle(r - Math.PI * 2.22 * d);
+            var ox = this.x + Math.sin(or) * 14;
+            var oy = this.y + Math.cos(or) * 14;
             r = r - Math.PI * 2.47 * d - 0.4 + Math.random() * 0.80;
             r = this.$.wrapAngle(r);
-            
-            this.$.fxParticle(ox, oy, r, {'s': 2, 'd': 0.10,
-                                          'c': this.col, 'a': this.alpha});
+            this.$.fxPar({x: ox, y: oy, r: r, s: 2, d: 0.10,
+                          c: this.col, a: this.alpha});
         }
         
         // Shield ring
@@ -296,9 +293,8 @@ ActorPlayer.emitParticles = function(speed, dur, step) {
             var y = this.y + Math.cos(Math.PI + this.r - rr) * dd;
             x += Math.sin(Math.PI + this.r -r) * (e * step);
             y += Math.cos(Math.PI + this.r -r) * (e * step);
-            this.$.fxParticle(x, y, Math.atan2(x - this.x, y - this.y),
-                              {'s': speed, 'd': dur, 'c': this.col,
-                               'a': this.alpha});
+            this.$.fxPar({x: x, y: y, r: Math.atan2(x - this.x, y - this.y),
+                          s: speed, d: dur, c: this.col, a: this.alpha});
         }
     }
 };
@@ -316,8 +312,8 @@ ActorBullet.onCreate = function(data, complete) {
 
 ActorBullet.onDestroy = function(complete) {
     if (complete) {
-        this.$.fxExplosion(this.x, this.y, 4, {'d': 0.35, 's': 1, 'c': this.col});
-        this.$.fxArea(this.x, this.y, {'s': 3.5, 'd': 0.35, 'c': this.col});
+        this.$.fxExp({o: this, n: 4, d: 0.35, s: 1, c: this.col});
+        this.$.fxArea({o: this, s: 3.5, d: 0.35, c: this.col});
         this.$.playSound('explosionSmall'); 
     }
 };
@@ -341,8 +337,8 @@ ActorMissile.onCreate = function(data, complete) {
     this.col = this.$.playerColor(this.id);;
     
     if (complete) {
-        this.$.fxExplosion(this.x, this.y, 4, {'d': 0.35, 's': 1, 'c': this.col});
-        this.$.fxArea(this.x, this.y, {'s': 3.5, 'd': 0.35, 'c': this.col});
+        this.$.fxExp({o: this, n: 4, d: 0.35, s: 1, c: this.col});
+        this.$.fxArea({o: this, s: 3.5, d: 0.35, c: this.col});
         this.$.playSound('launchMedium');
     }
 };
@@ -353,8 +349,8 @@ ActorMissile.onUpdate = function(data) {
 
 ActorMissile.onDestroy = function(complete) {
     if (complete) {
-        this.$.fxExplosion(this.x, this.y, 6,{'d': 0.45, 's': 1, 'c': this.col});
-        this.$.fxArea(this.x, this.y, {'s': 8.5, 'd': 0.45, 'c': this.col});
+        this.$.fxExp({o: this, n: 6, d: 0.45, s: 1, c: this.col});
+        this.$.fxArea({o: this, s: 8.5, d: 0.45, c: this.col});
         this.$.playSound('explosionMedium');
     }
 };
@@ -372,10 +368,9 @@ ActorMissile.onDraw = function() {
     this.$.unlocal();
     
     var r = this.$.wrapAngle(this.r - Math.PI);
-    var rr = [-0.75, -0.0, 0.75];
-    this.$.fxParticle(this.x + Math.sin(r) * 4, this.y + Math.cos(r) * 4,
-                      this.$.wrapAngle(r - rr[Math.floor(Math.random() * 3)]),
-                      {'s': 0.15, 'd': 0.25, 'c': this.col, 'a': 0.5});
+    var rr = this.$.wrapAngle(r - [-0.75, -0.0, 0.75][Math.floor(Math.random() * 3)])
+    this.$.fxPar({x: this.x + Math.sin(r) * 4, y: this.y + Math.cos(r) * 4,
+                  r: rr, s: 0.15, d: 0.25, c: this.col, a: 0.5});
 };
 
 
@@ -398,17 +393,13 @@ ActorBomb.onCreate = function(data, complete) {
 ActorBomb.onDestroy = function(complete) {
     if (complete) {
         this.$.playSound('explosionBig');
-        this.$.fxArea(this.x, this.y,
-                      {'s': this.radius, 'd': 1, 'c': this.col});
+        this.$.fxArea({o: this, s: this.radius, d: 1, c: this.col});
+        this.$.fxArea({o: this, s: this.radius / 2, d: 1.5, c: this.col});
+        this.$.fxRing({o: this, r: this.radius / 2 * 0.975, n: 75, d: 1,
+                       s: 1.25, c: this.col, a: 1});
         
-        this.$.fxRing(this.x, this.y, this.radius / 2 * 0.975,
-                      {'n': 75, 'd': 1, 's': 1.25, 'c': this.col, 'a': 1});
-        
-        this.$.fxArea(this.x, this.y,
-                      {'s': this.radius / 2, 'd': 1.5, 'c': this.col});
-        
-        this.$.fxRing(this.x, this.y, this.radius * 0.975, 
-                      {'n': 125, 'd': 1, 's': 1.25, 'c': this.col, 'a': 1});
+        this.$.fxRing({o: this, r: this.radius * 0.975, n: 125, d: 1,
+                       s: 1.25, c: this.col, a: 1});
     }
 };
 
@@ -425,13 +416,11 @@ ActorBomb.onDraw = function() {
     var oy = this.y - Math.cos(r) * 2;
     
     var rr = [-0.7, -0.35, -0.15, 0.15, 0.35, 0.7];
-    this.$.fxParticle(ox, oy,
-           this.$.wrapAngle(r - rr[Math.floor(Math.random() * 6)] * 1.15),
-           {'s': 1.25, 'd': 0.3, 'c': this.col, 'a': 1});
-
-    this.$.fxParticle(ox, oy,
-           this.$.wrapAngle(r - rr[Math.floor(Math.random() * 6)] * 1.5),
-           {'s': 1.125, 'd': 0.4, 'c': this.col, 'a': 1});
+    
+    var ir = this.$.wrapAngle(r - rr[Math.floor(Math.random() * 6)] * 1.15);
+    this.$.fxPar({x: ox, y: oy, r: ir, s: 1.25, d: 0.3, c: this.col, a: 1});
+    ir = this.$.wrapAngle(r - rr[Math.floor(Math.random() * 6)] * 1.5);
+    this.$.fxPar({x: ox, y: oy, r: ir, s: 1.125, d: 0.4, c: this.col, a: 1});
 };
 
 // PowerUP ---------------------------------------------------------------------
@@ -442,7 +431,7 @@ ActorPowerUp.onCreate = function(data, complete) {
     
     if (complete) {
         this.createTime = this.$.getTime();
-        this.$.fxExplosion(this.x, this.y, 8, {'d': 1, 's': 0.5, 'c': this.col});
+        this.$.fxExp({o: this, n: 8, d: 1, s: 0.5, c: this.col});
         this.$.playSound('powerSound');
     
     } else {
@@ -452,8 +441,8 @@ ActorPowerUp.onCreate = function(data, complete) {
 
 ActorPowerUp.onDestroy = function(complete) {
     if (complete) {
-        this.$.fxExplosion(this.x, this.y, 8, {'d': 1, 's': 0.5, 'c': this.col});
-        this.$.fxArea(this.x, this.y, {'s': 8, 'd': 0.3, 'c': this.col});
+        this.$.fxExp({o: this, n: 8, d: 1, s: 0.5, c: this.col});
+        this.$.fxArea({o: this, s: 8, d: 0.3, c: this.col});
         this.$.playSound('powerSound');
     }
 };
@@ -484,14 +473,14 @@ ActorPlayerDef.onCreate = function(data, complete) {
     
     this.col = this.$.playerColor(this.id);
     if (complete) {
-        this.$.fxExplosion(this.dx, this.dy, 4, {'d': 0.25, 's': 1, 'c': this.col});
+        this.$.fxExp({x: this.dx, y: this.dy, n: 4, d: 0.25, s: 1, c: this.col});
     }
 };
 
 ActorPlayerDef.onDestroy = function(complete) {
     if (complete) {
         this.$.playSound('explosionMedium');
-        this.$.fxExplosion(this.dx, this.dy, 6, {'d': 0.5, 's': 1, 'c': this.col});
+        this.$.fxExp({x: this.dx, y: this.dy, n: 6, d: 0.5, s: 1, c: this.col});
     }
 };
 
@@ -575,25 +564,17 @@ ActorAsteroid.onInterleave = function(delta) {
 ActorAsteroid.onDestroy = function(complete) {
     if (complete) {
         if (this.type >= 4) {
-            this.$.fxExplosion(this.x, this.y, 60,
-                               {'d': 2.15, 's': 2.50, 'c': this.col, 'n': true});
-           
-            this.$.fxArea(this.x, this.y, {'s': 70, 'd': 1.75,
-                                               'c': this.col, 'n': true});  
-            
-            this.$.fxArea(this.x, this.y, {'s': 150, 'd': 1.2,
-                                               'c': this.col, 'n': true});
-            
+            this.$.fxExp({o: this, n: 60, d: 2.15, s: 2.50, c: this.col, w: true});
+            this.$.fxArea({o: this, s: 70, d: 1.75, c: this.col, w: true});  
+            this.$.fxArea({o: this, s: 150, d: 1.2, c: this.col, w: true});
             this.$.playSound('explosionMedium');
         
         } else {
             var add = this.type === 2 ? 5.5 : (this.type === 3 ? 10 : 0);
-            this.$.fxExplosion(this.x, this.y, [0, 6, 10, 14][this.type],
-                               {'d': 0.85 + add / 7, 's': 0.50, 'c': this.col});
+            this.$.fxExp({o: this, n: [0, 6, 10, 14][this.type],
+                          d: 0.85 + add / 7, s: 0.50, c: this.col});
             
-            this.$.fxArea(this.x, this.y, {'s': 13 + add * 1.75,
-                                           'd': 0.5 + add / 27, 'c': this.col});
-            
+            this.$.fxArea({o: this, s: 13 + add * 1.75, d: 0.5 + add / 27, c: this.col});
             this.$.playSound(this.type === 1 ? 'explosionSmall' : 'explosionMedium');
         }
     }

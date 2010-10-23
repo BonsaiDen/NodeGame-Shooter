@@ -160,56 +160,60 @@ Shooter.renderParticles = function() {
 
 
 // Effects ---------------------------------------------------------------------
-Shooter.fxArea = function(x, y, obj) {
+Shooter.fxArea = function(obj) {
     this.particles.push({
-        'x': x, 'y': y,
+        'x': obj.o ? obj.o.x : obj.x,
+        'y': obj.o ? obj.o.y : obj.y,
         'size': obj.s,
         'time': this.getTime() + obj.d * 1500,
         'd': obj.d * 1500,
         'col': obj.c,
-        'nowrap': obj.n || false
+        'nowrap': obj.w || false
     });
 };
 
-Shooter.fxParticle = function(x, y, r, obj) {
+Shooter.fxPar = function(obj) {
     this.particles.push({
-        'x': x , 'y': y,
-        'r': this.wrapAngle(r),
+        'x': obj.o ? obj.o.x : obj.x,
+        'y': obj.o ? obj.o.y : obj.y,
+        'r': this.wrapAngle(obj.r),
         'speed': obj.s,
         'time': this.getTime() + obj.d * 1500,
         'd': obj.d * 1500,
         'col': obj.c,
         'a': obj.a,
-        'nowrap': obj.n || false
+        'nowrap': obj.w || false
     });
 };
 
-Shooter.fxExplosion = function(x, y, count, obj) {
+Shooter.fxExp = function(obj) {
+    var x = obj.o ? obj.o.x : obj.x;
+    var y = obj.o ? obj.o.y : obj.y;
     var r = (Math.PI * 2 * Math.random());
-    var rs = Math.PI * 2 / (count * 2);
-    for(var i = 0; i < count * 2; i++) {
-        this.fxParticle(x, y, (r + rs * i) - Math.PI,
-                        {'s':  0.35 + Math.random() * obj.s,
-                         'd': (1 * obj.d) + Math.random() * (0.5 * obj.d),
-                         'c': obj.c,
-                         'a': 1,
-                         'n': obj.n});
+    var rs = Math.PI * 2 / (obj.n * 2);
+    for(var i = 0; i < obj.n * 2; i++) {
+        this.fxPar({'x': x, 'y': y, 'r': (r + rs * i) - Math.PI,
+                    's':  0.35 + Math.random() * obj.s,
+                    'd': (1 * obj.d) + Math.random() * (0.5 * obj.d),
+                    'c': obj.c,
+                    'a': 1,
+                    'w': obj.w});
     }
 };
 
-Shooter.fxRing = function(x, y, size, obj) {
+Shooter.fxRing = function(obj) {
+    var x = obj.o ? obj.o.x : obj.x;
+    var y = obj.o ? obj.o.y : obj.y;
     for(var i = 0; i < obj.n; i++) {
         var r = (Math.PI * 2 / obj.n * i) - Math.PI;
         var e = Math.random() / 2 + 0.5;
-        var ox = x + Math.sin(r) * size;
-        var oy = y + Math.cos(r) * size;
-        this.fxParticle(ox, oy, r + e / 2,
-                        {'s':  obj.s * 0.5 * e, 'd': obj.d,
-                         'c': obj.c, 'a': obj.a});
+        var ox = x + Math.sin(r) * obj.r;
+        var oy = y + Math.cos(r) * obj.r;
+        this.fxPar({'x': ox, 'y': oy, 'r': r + e / 2, 's': obj.s * 0.5 * e,
+                    'd': obj.d, 'c': obj.c, 'a': obj.a});
         
-        this.fxParticle(ox, oy, r - e,
-                        {'s':  obj.s * e, 'd': obj.d * 2,
-                         'c': obj.c, 'a': obj.a});
+        this.fxPar({'x': ox, 'y': oy, 'r': r - e, 's': obj.s * e,
+                    'd': obj.d * 2, 'c': obj.c, 'a': obj.a});
     }
 };
 
