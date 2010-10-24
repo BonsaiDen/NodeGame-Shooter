@@ -277,6 +277,7 @@ Client.killByProjectile = function(o) {
 Client.killByDefend = function(o) {
     if (this.player && !this.$$.roundFinished) {
         this.addScore(-5);
+        this.$$.achievement(this.player, 'touch');
         this.kill(true);
         this.killedBy = [this.getTime(), o.player.cid];
         o.player.client.addScore(10);

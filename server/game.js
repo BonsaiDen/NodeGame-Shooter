@@ -647,7 +647,6 @@ Shooter.collidePlayerPlayerDefs = function(p) {
                 p.disableArmor();
             }
             if (p.hp <= 0) {
-                this.achievement(p, 'touch');
                 p.client.killByDefend(pd);
                 return true;
             }
