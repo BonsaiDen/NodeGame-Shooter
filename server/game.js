@@ -190,7 +190,7 @@ Shooter.achievements = {
                  'Destroy 2 players while being in stealth.'],
     
     'boom':     ['BOOOOOOOOOM!',
-                 'Destroy at least 3 players with a single bomb.'],
+                 'Destroy at least 3 players with a single bomb!'],
     
     'guide':    ['Guide to the Galaxy',
                  'Score exactly 42 points.'],
@@ -202,7 +202,7 @@ Shooter.achievements = {
                  'Survive 5 bullet hits.'],
     
     'stamina':  ['STAMINA! OH YEAH!',
-                 'Take 40+ DMG without being destroyed.'],
+                 'Take 40 points of damage without being destroyed.'],
     
     'touch':    ['You can\'t touch this...',
                  'Get killed by a defender.'],
@@ -229,7 +229,7 @@ Shooter.achievements = {
                  'Don\'t move for 15 seconds... and survive that!'],
     
     'master':   ['Master of the Universe',
-                 'Have Defender, at least 5 Missiles and Armor or Shield.'],
+                 'Have Defender, at least 5 Missiles and Armor or Shield!'],
     
     'balls':    ['Balls of Steel',
                  'Destroy 2 players with a defender.'],
@@ -254,6 +254,9 @@ Shooter.achievements = {
     
     'bad':      ['Bad Luck',
                  'Get destroyed the moment you become vulnerable.'],
+    
+    'fire':     ['Fireworks!',
+                 'Detonate a bomb... without destroying anyone.'],
     
     'last':     ['At the Last Second...',
                  'Take the lead in score when less than five seconds are left.']

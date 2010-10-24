@@ -156,6 +156,7 @@ ActorPlayer.onUpdate = function() {
     
     // Camouflage
     if (this.camu === 1) {
+        this.client.achieveNinja = 0;
         if (this.camuFade >= 0) {
             this.camuFade -= 5;
             this.update();
@@ -432,6 +433,9 @@ ActorBomb.finishExplosion = function() {
         if (this.killedPlayers[0] === this.player.cid) {
             this.$$.achievement(this.player, 'awesome');
         }
+    
+    } else if (this.killedPlayers.length === 0 && this.fired) {
+        this.$$.achievement(this.player, 'fire');
     }
     
     var players = this.$$.getActors('player');
