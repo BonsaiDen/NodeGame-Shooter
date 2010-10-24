@@ -132,7 +132,7 @@ Shooter.showAchievement = function(player, title, description) {
     } else {
         window.clearTimeout(this.achievementTimer);
         this.achievementFadeOut(function() {
-            that.showAchievement(player, type);
+            that.showAchievement(player, title, description);
         });
     }
 };
