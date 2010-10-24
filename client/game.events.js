@@ -112,6 +112,7 @@ Shooter.onInit = function(data) {
     // HTML
     if (!this.watching) {
         show('loginBox');
+        $('login').focus();
     }
     show('sub'); 
     show(this.canvas);
