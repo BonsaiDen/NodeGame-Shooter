@@ -34,14 +34,16 @@ ActorPlayer.shapeArmor = new Shape2D(ActorPlayer.baseShape, 6.5);
 
 ActorPlayer.onCreate = function(data) {
     this.client = data.client;
+    this.cid = this.client.id;
+    this.$$.randomPosition(this, this.$$.sizePlayer);
+    this.polygon = new Polygon2D(this.x, this.y, this.r, ActorPlayer.shape);
+    
+    // General
     this.hp = 15;
     this.r = (Math.random() * Math.PI * 2) - Math.PI;
     this.mr = 0;
     this.oldMr = 0;
     this.speed = 0;
-    
-    this.$$.randomPosition(this, this.$$.sizePlayer);
-    this.polygon = new Polygon2D(this.x, this.y, this.r, ActorPlayer.shape);
     this.thrust = false;
     this.defense = 1400;
     this.defenseTime = this.getTime();
@@ -162,7 +164,7 @@ ActorPlayer.onUpdate = function() {
             this.camu = 2;
             this.camuTime = this.getTime();
             this.camuFade = -2;
-            this.clients([this.client.id]);
+            this.clients([this.cid]);
         }
     
     // Faded
@@ -261,7 +263,7 @@ ActorPlayer.onMessage = function(once) {
     ];
     
     if (once) {
-        msg.push(this.client.id);
+        msg.push(this.cid);
     }
     return msg;
 };
@@ -359,7 +361,7 @@ ActorMissile.onUpdate = function() {
 };
 
 ActorMissile.onMessage = function(once) {
-    return once ? [this.player.client.id, this.r] : [this.r];
+    return once ? [this.player.cid, this.r] : [this.r];
 };
 
 
@@ -387,7 +389,7 @@ ActorBullet.onUpdate = function() {
 };
 
 ActorBullet.onMessage = function(once) {
-    return once ? [this.player.client.id]: [];
+    return once ? [this.player.cid]: [];
 };
 
 
@@ -403,7 +405,7 @@ ActorBomb.onCreate = function(data) {
     this.killedPlayers = [];
     
     if (this.player) {
-        this.color = this.player.client.id;
+        this.color = this.player.cid;
         this.player.client.shots++;
         this.$$.launchAt(this, 4, this.r, 6, 9);
         this.x = this.player.x + Math.sin(this.$$.wrapAngle(this.r)) * data.d;
@@ -427,7 +429,7 @@ ActorBomb.onUpdate = function() {
 
 ActorBomb.finishExplosion = function() {
     if (this.killedPlayers.length === 1 && this.fired) {
-        if (this.killedPlayers[0] === this.player.client.id) {
+        if (this.killedPlayers[0] === this.player.cid) {
             this.$$.achievement(this.player, 'awesome');
         }
     }
@@ -441,6 +443,14 @@ ActorBomb.finishExplosion = function() {
             this.$$.achievement(e, 'close');
         }
     }
+};
+
+ActorBomb.checkPlayerCollision = function(p) {
+    if (this.timeDiff(this.time) > 3750
+        && p.cid !== this.player.cid) {
+        
+        this.$$.achievement(this.player, 'sharp');
+    }   
 };
 
 ActorBomb.onDestroy = function() {
@@ -546,7 +556,7 @@ ActorPlayerDef.onDestroy = function() {
 };
 
 ActorPlayerDef.onMessage = function(once) {
-    return once ? [this.player.client.id, this.r, this.interleave(this.mr),
+    return once ? [this.player.cid, this.r, this.interleave(this.mr),
                    Math.round(this.player.x * 100) / 100,
                    Math.round(this.player.y * 100) / 100]
                    : [this.r, Math.round(this.player.x * 100) / 100,

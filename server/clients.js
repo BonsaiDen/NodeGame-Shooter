@@ -261,7 +261,7 @@ Client.killByProjectile = function(o) {
         var player = this.player;
         this.addScore(-5);
         this.kill(true);
-        this.killedBy = [this.getTime(), o.player.client.id];
+        this.killedBy = [this.getTime(), o.player.cid];
         o.player.client.addScore(10);
         o.player.client.addKill();
         
@@ -278,7 +278,7 @@ Client.killByDefend = function(o) {
     if (this.player && !this.$$.roundFinished) {
         this.addScore(-5);
         this.kill(true);
-        this.killedBy = [this.getTime(), o.player.client.id];
+        this.killedBy = [this.getTime(), o.player.cid];
         o.player.client.addScore(10);
         o.player.client.addKill(false, true);
     }
@@ -317,7 +317,7 @@ Client.killByBomb = function(b) {
             b.player.client.addScore(-5);
             b.player.client.selfDestructs++;
         }
-        this.killedBy = [this.getTime(), b.player.client.id];
+        this.killedBy = [this.getTime(), b.player.cid];
         this.kill();
     }
 };
@@ -408,6 +408,7 @@ Client.addScore = function(add) {
     this.score += add;
     this.$.setFieldItem('c', this.id, this.score);
     
+    // guide achievement
     if (this.score === 42 && oldScore < this.score) {
         this.$$.achievement(this.player, 'guide');
     }

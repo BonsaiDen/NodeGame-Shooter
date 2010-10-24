@@ -42,6 +42,10 @@ var Shooter = Server.Game(20);
 Shooter.onInit = function() {
     this.width = 480;
     this.height = 480;
+    this.fullWidth = this.width + 32;
+    this.fullHeight = this.height + 32;
+    this.halfWidth = this.width / 2;
+    this.halfHeight = this.height / 2;
     
     this.$.setField('s', [this.width, this.height]); // size
     this.$.setField('p', {}); // players
@@ -49,12 +53,12 @@ Shooter.onInit = function() {
     this.$.setField('o', {}); // colors
     
     // Rounds
-    this.roundTime = 180000;
+    this.roundGame = 180000;
     this.roundWait = 15000;
     
     this.roundID = 0;
     this.roundStart = 0;
-    this.roundTimeLeft = 0;
+    this.roundTime = 0;
     this.roundFinished = false;
     this.roundStats = {};
     
@@ -65,34 +69,28 @@ Shooter.onInit = function() {
     this.$.setField('m', this.maxPlayers);
     
     // Sizes
-    this.sizePlayer = 19;
+    this.sizePlayer = 21;
     this.sizeShield = 22;
     this.sizePowerUp = 10;
     this.sizeBullet = 2;
     this.sizeMissile = 4;
     this.sizeDefend = 3;
     this.sizeBomb = 4;
-    this.sizeAsteroid = 22;
-    this.sizeBigAsteroid = 165;
-    
-    this.fullWidth = this.width + 32;
-    this.fullHeight = this.height + 32;
-    this.halfWidth = this.width / 2;
-    this.halfHeight = this.height / 2;
+    this.sizeAsteroid = 24;
+    this.sizeBigAsteroid = 150;
     
     // PowerUPS
     this.powerUps = {};
     this.powerUpCount = 0;
     this.powerUpsMax = 3;
-    this.initPowerUp('shield',  2, 23, 10);
-    this.initPowerUp('armor',   1, 30, 20);
-    this.initPowerUp('missile', 2, 16, 15);
-    this.initPowerUp('life',    2,  8,  8);
-    this.initPowerUp('boost',   1, 26, 12);
-    this.initPowerUp('defense', 2, 30, 30);
-    this.initPowerUp('bomb',    1, 65, 35);
-    this.initPowerUp('camu',    1, 40, 20);
-    
+    this.addPowerUpType('shield',  2, 23, 10, true);
+    this.addPowerUpType('armor',   1, 30, 20, true);
+    this.addPowerUpType('missile', 2, 16, 15, true);
+    this.addPowerUpType('life',    2,  8,  8, false);
+    this.addPowerUpType('boost',   1, 26, 12, true);
+    this.addPowerUpType('defense', 2, 30, 30, true);
+    this.addPowerUpType('bomb',    1, 65, 35, true);
+    this.addPowerUpType('camu',    1, 40, 20, true);
     this.powerUpTimes = [2, 1.35, 1.12, 1.0, 1, 0.9, 0.8];
     
     // Asteroids
@@ -103,18 +101,18 @@ Shooter.onInit = function() {
 };
 
 
-// Rounds / Achievments --------------------------------------------------------
+// Rounds / Score / Achievments ------------------------------------------------
 // -----------------------------------------------------------------------------
 Shooter.startRound = function() {
     this.roundID++;
     this.roundStart = this.getTime();
-    this.roundTimeLeft = this.roundTime;
+    this.roundTime = this.roundGame;
     this.roundTimeUpdate = this.getTime();
     this.nextAsteroid = this.getTime() + Math.random() * 5000;
     this.nextBigAsteroid = this.getTime() + 40000 + Math.random() * 60000;
     
     this.$.setField('ri', this.roundID); // roundID
-    this.$.setField('rt', this.roundTime); //roundTime
+    this.$.setField('rt', this.roundGame); //roundTime
     this.$.setField('rg', 1); // roundGO
     this.$.setField('rs', []); //roundStats
     
@@ -132,7 +130,7 @@ Shooter.startRound = function() {
     }
     
     var that = this;
-    setTimeout(function(){that.endRound();}, this.roundTime);
+    setTimeout(function(){that.endRound();}, this.roundGame);
 };
 
 Shooter.endRound = function() {
@@ -141,7 +139,7 @@ Shooter.endRound = function() {
     this.roundStart = this.getTime();
     this.roundFinished = true;
     this.roundStart = this.getTime();
-    this.roundTimeLeft = this.roundWait;
+    this.roundTime = this.roundWait;
     this.$.destroyActors();
     
     // Stats
@@ -176,7 +174,7 @@ Shooter.endRound = function() {
 };
 
 Shooter.achievement = function(player, type) {
-    this.$.messageAll({'aie': [player.client.id,
+    this.$.messageAll({'aie': [player.cid,
                                this.achievements[type][0],
                                this.achievements[type][1]]});
 };
@@ -200,7 +198,7 @@ Shooter.achievements = {
     'awesome':  ['AWESOME BOMB, NOT.',
                  'Destroy yourself and ONLY yourself with a bomb.'],
     
-    'bullets':   ['Bullet Proof',
+    'bullets':  ['Bullet Proof',
                  'Survive 5 bullet hits.'],
     
     'stamina':  ['STAMINA! OH YEAH!',
@@ -210,13 +208,13 @@ Shooter.achievements = {
                  'Get killed by a defender.'],
     
     'fail':     ['EPIC FAIL!',
-                 'Destroy the big asteroid and get destroyed by its debris.'],
+                 'Destroy the giant asteroid and get destroyed by its debris.'],
     
     'close':    ['Close Call!',
                  'Be REALLY close to a bomb detonation.'],
     
     'giro':     ['GIRONIMO!!!',
-                 'Destroy the big asteroid... by crashing into it!'],
+                 'Destroy the giant asteroid... by crashing into it!'],
     
     'kami':     ['Kamikaze!',
                  'Crash into someone that has a shield or the armor.'],
@@ -249,13 +247,16 @@ Shooter.achievements = {
                  'Clean up this place by destroying 10 little asteroids.'],
     
     'sharp':    ['Sharpshooter',
-                 'Hit someone with a bomb that was just about to explode.'],
+                 'Hit someone with a bomb that was JUST about to explode.'],
     
     'boost':    ['You\'ve got Boost Power!',
                  'Fly full speed for 10 seconds.'],
     
     'bad':      ['Bad Luck',
-                 'Get destroyed within 2.2 seconds after spawning.']
+                 'Get destroyed the moment you become vulnerable.'],
+    
+    'last':     ['At the Last Second...',
+                 'Take the lead in score when less than five seconds are left.']
 };
 
 
@@ -264,13 +265,13 @@ Shooter.achievements = {
 Shooter.onUpdate = function() {
     
     // Round time
-    var roundTimeLeft = this.roundTimeLeft + (this.roundStart - this.getTime());
+    this.roundTimeLeft = this.roundTime + (this.roundStart - this.getTime());
     if (this.getTime() > this.roundTimeUpdate + 15000 && !this.roundFinished) {
-        this.$.messageAll({'rt': roundTimeLeft});
+        this.$.messageAll({'rt': this.roundTimeLeft});
         this.roundTimeUpdate = this.getTime();
     }
     
-    this.$.setField('rt', roundTimeLeft, false);
+    this.$.setField('rt', this.roundTimeLeft, false);
     if (this.roundFinished) {
         return;
     }
@@ -294,8 +295,8 @@ Shooter.onUpdate = function() {
 
 // PowerUPs --------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Shooter.initPowerUp = function(type, max, wait, rand) { 
-    this.powerUps[type] = [0, 0, max, wait, rand];
+Shooter.addPowerUpType = function(type, max, wait, rand, count) { 
+    this.powerUps[type] = [0, 0, max, wait, rand, count];
 };
 
 Shooter.createPowerUp = function(type, dec, init) { 
@@ -306,7 +307,7 @@ Shooter.createPowerUp = function(type, dec, init) {
     }
     up[1] = this.getTime() + add * this.powerUpTimes[this.playerCount];
     if (dec) {
-        if (type !== 'life') {
+        if (this.powerUps[type][5]) {
             this.powerUpCount--;
         }
         up[0]--;
@@ -315,7 +316,7 @@ Shooter.createPowerUp = function(type, dec, init) {
 
 Shooter.removePowerUp = function(type) { 
     this.powerUps[type][0]--;
-    if (type !== 'life') {
+    if (this.powerUps[type][5]) {
         this.powerUpCount--;
     }
 };
@@ -329,7 +330,7 @@ Shooter.updatePowerUps = function() {
                 this.createPowerUp(type, false, false);
                 
                 up[0]++;
-                if (type !== 'life') {
+                if (this.powerUps[type][5]) {
                     this.powerUpCount++;
                 } 
             
@@ -492,7 +493,7 @@ Shooter.collideAsteroidPlayerDefs = function(a) {
                 if (a.type === 1) {
                     pd.player.client.achieveKawaii++;
                 }
-                a.destroyer = pd.player.client.id;
+                a.destroyer = pd.player.cid;
                 a.destroy();
                 return true;
             }
@@ -544,7 +545,7 @@ Shooter.collideAsteroidPlayers = function(a) {
             } else {
                 a.hp -= p.armor ? 30 : 20;
                 if (a.hp <= 0) {
-                    a.destroyer = p.client.id;
+                    a.destroyer = p.cid;
                     this.achievement(p, 'giro');
                     a.destroy();
                     return true;
@@ -588,7 +589,7 @@ Shooter.collideAsteroidBullets = function(a) {
                 if (a.type === 1) {
                     b.player.client.achieveKawaii++;
                 }
-                a.destroyer = b.player.client.id;
+                a.destroyer = b.player.cid;
                 a.destroy();
                 return true;
             }
@@ -609,7 +610,7 @@ Shooter.collideAsteroidMissiles = function(a) {
                 if (a.type === 1) {
                     m.player.client.achieveKawaii++;
                 }
-                a.destroyer = m.player.client.id;
+                a.destroyer = m.player.cid;
                 a.destroy();
                 return true;
             }
@@ -659,6 +660,7 @@ Shooter.collidePlayerBombs = function(p) {
     for(var e = 0, l = bombs.length; e < l; e++) {
         var bo = bombs[e];
         if (this.playerCollision(p, bo, this.sizeBomb)) {
+            bo.checkPlayerCollision(p);
             bo.destroy();
             return true;
         }
@@ -931,7 +933,7 @@ Shooter.explodeBomb = function(b) {
                 e.hp -= 150;
                 if (e.hp <= 0) {
                     if (b.player) {
-                        e.destroyer = b.player.client.id;
+                        e.destroyer = b.player.cid;
                     }
                     e.destroy();
                 }
@@ -969,6 +971,15 @@ Shooter.bombBorderCollision = function(b, e, r) {
 };
 
 Shooter.circleCollision = function(a, b, ra, rb, circle, noWrap) {
+    // Use polygon radii if available
+    if (!circle) {
+        if (a.polygon) {
+            ra = a.polygon.radius;
+        }
+        if (b.polygon) {
+            rb = b.polygon.radius;
+        }
+    }
     
     // Normal
     if (this.checkCollision(a, b, ra, rb, circle)) {

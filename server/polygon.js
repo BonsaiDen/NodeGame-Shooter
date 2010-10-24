@@ -31,11 +31,11 @@ function Shape2D(points, border) {
                           + points[e][1] * points[e][1]) + border;
         
         if (d > this.radius) {
-            this.radius = d;
+            this.radius = Math.ceil(d);
         }
         this.base[e] = [Math.sin(r) * d,  Math.cos(r) * d];
     }
-    this.radius += 3;
+    this.radius += 1;
 }
 
 function Polygon2D(x, y, r, shape) {
