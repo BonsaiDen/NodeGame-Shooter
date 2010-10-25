@@ -40,17 +40,16 @@ require('./actors');
 var Shooter = Server.Game(20);
 
 Shooter.onInit = function() {
+    
+    // Size
     this.width = 480;
     this.height = 480;
+    this.fieldSize = this.$.newField('s', [this.width, this.height]);
+    
     this.fullWidth = this.width + 32;
     this.fullHeight = this.height + 32;
     this.halfWidth = this.width / 2;
     this.halfHeight = this.height / 2;
-    
-    this.$.setField('s', [this.width, this.height]); // size
-    this.$.setField('p', {}); // players
-    this.$.setField('c', {}); // scores
-    this.$.setField('o', {}); // colors
     
     // Rounds
     this.roundGame = 180000;
@@ -62,11 +61,20 @@ Shooter.onInit = function() {
     this.roundFinished = false;
     this.roundStats = {};
     
+    this.fieldRoundID = this.$.newField('ri', this.roundID);
+    this.fieldRoundTime = this.$.newField('rt', this.roundTime);
+    this.fieldRoundGO = this.$.newField('rg', 0); 
+    this.fieldRoundStats = this.$.newField('rs', []);
+    
+    // Players
     this.maxPlayers = 5;
     this.playerCount = 0;
     this.playerColors = [-1, -1, -1, -1, -1, -1, -1];
     
-    this.$.setField('m', this.maxPlayers);
+    this.fieldMaxPlayers = this.$.newField('m', this.maxPlayers);
+    this.fieldPlayers = this.$.newField('p', {});
+    this.fieldScores = this.$.newField('c', {});
+    this.fieldColors = this.$.newField('o', {});  
     
     // Sizes
     this.sizePlayer = 21;
@@ -111,10 +119,10 @@ Shooter.startRound = function() {
     this.nextAsteroid = this.getTime() + Math.random() * 5000;
     this.nextBigAsteroid = this.getTime() + 40000 + Math.random() * 60000;
     
-    this.$.setField('ri', this.roundID); // roundID
-    this.$.setField('rt', this.roundGame); //roundTime
-    this.$.setField('rg', 1); // roundGO
-    this.$.setField('rs', []); //roundStats
+    this.fieldRoundID.update(this.roundID);
+    this.fieldRoundTime.update(this.roundGame);
+    this.fieldRoundGO.update(1);
+    this.fieldRoundStats.update([]);    
     
     // Reset powerup timers
     for(var p in this.powerUps) {
@@ -164,9 +172,9 @@ Shooter.endRound = function() {
         return d;
     });
     
-    this.$.setField('rt', this.roundWait);
-    this.$.setField('rg', 0);
-    this.$.setField('rs', sorted);
+    this.fieldRoundTime.update(this.roundWait);
+    this.fieldRoundGO.update(0);
+    this.fieldRoundStats.update(sorted);
     this.roundStats = {};
     
     var that = this;
@@ -274,7 +282,7 @@ Shooter.onUpdate = function() {
         this.roundTimeUpdate = this.getTime();
     }
     
-    this.$.setField('rt', this.roundTimeLeft, false);
+    this.fieldRoundTime.value = this.roundTimeLeft;
     if (this.roundFinished) {
         return;
     }
@@ -287,11 +295,7 @@ Shooter.onUpdate = function() {
     
     // Limit score
     for(var i in this.$.clients) {
-        var c = this.$.clients[i];
-        if (c.score < 0) {
-            c.score = 0;
-            this.$.setFieldItem('c', c.id, c.score, true); // scores
-        }
+        this.$.clients[i].limitScore();
     }
 };
 

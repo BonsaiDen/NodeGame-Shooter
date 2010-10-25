@@ -60,7 +60,6 @@ function Server(options) {
     this.clientCount = 0;
     this.clients = {};
     this.clientID = 0;
-    this.clientsChanged = false;
     
     // Actors
     this.actorCount = 0;
@@ -272,7 +271,6 @@ Server.prototype.status = function(end) {
 
 // Clients ---------------------------------------------------------------------
 Server.prototype.addClient = function(conn) {
-    this.clientsChanged = true;
     this.clientID++;
     this.clients[this.clientID] = new Client(this, conn, false);
     this.clientCount++;
@@ -427,44 +425,53 @@ Server.prototype.destroyActors = function() {
 
 
 // Fields ----------------------------------------------------------------------
-Server.prototype.setField = function(key, value, send) {
-    this.fields[key] = value;
-    if (send !== false) {
-        this.fieldsChanged = true;
+function Field(value) {
+    this.clients = [];
+    this.value = value;
+    this.updated = true;
+}
+
+Field.prototype.update = function(value) {
+    if (value !== undefined) {
+        this.value = value;
     }
+    this.updated = true;
 };
 
-Server.prototype.setFieldItem = function(key, item, value, send) {
-    this.fields[key][item] = value;
-    if (send !== false) {
-        this.fieldsChanged = true;
-    }
-};
-
-Server.prototype.getField = function(key) {
-    return this.fields[key];
-};
-
-Server.prototype.delField = function(key) {
-    if (this.fields[key]) {
-        delete this.fields[key];
-        this.fieldsChanged = true;
-    } 
-};
-
-Server.prototype.delFieldItem = function(key, item) {
-    if (this.fields[key][item]) {
-        delete this.fields[key][item];
-        this.fieldsChanged = true;
-    } 
+Server.prototype.newField = function(id, value) {
+    return this.fields[id] = new Field(value);
 };
 
 Server.prototype.updateFields = function() {
-    if (this.fieldsChanged || this.clientsChanged) {
-        this.emit(MSG_GAME_FIELDS, [this.fields]);
-        this.fieldsChanged = false;
-        this.clientsChanged = false;
+    for(var i in this.clients) {
+        var c = this.clients[i];
+        if (c.$initiated) {
+            var fields = this.getFields(i, false);
+            if (fields !== null) {
+                c.send(MSG_GAME_FIELDS, [fields]);
+            }
+        }
     }
+    
+    for(var i in this.fields) {
+        this.fields[i].updated = false;
+    }
+};
+
+Server.prototype.getFields = function(id, force) {
+    var fieldData = {};
+    var changed = false;
+    
+    for(var i in this.fields) {
+        var f = this.fields[i];
+        if (f.clients.length === 0 || f.clients.indexOf(id) !== -1) {
+            if (f.updated || force) {
+                fieldData[i] = f.value;
+                changed = true;
+            }
+        }
+    }
+    return changed ? fieldData : null;
 };
 
 
@@ -574,7 +581,9 @@ function Client(srv, conn, record) {
 
 Client.prototype.update = function() {
     if (!this.$initiated) {
-        this.send(MSG_GAME_START, [this.id, this.$$.$interval, this.$.fields]);
+        this.send(MSG_GAME_START, [this.id, this.$$.$interval,
+                                   this.$.getFields(this.id, true)]);
+        
         this.$initiated = true;
     }
     this.onUpdate();

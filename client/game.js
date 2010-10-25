@@ -85,7 +85,9 @@ Shooter.checkServer = function(host, port) {
 
 Shooter.checkRound = function(data) {
     if (this.roundGO !== !!data.rg) {
-        this.roundID = data.ri;
+        if (data.ri !== undefined) {
+            this.roundID = data.ri;
+        }
         this.roundStats = data.rs;
         this.roundStart = this.getTime();
         this.roundTime = data.rt; 
@@ -101,7 +103,7 @@ Shooter.checkPlayers = function(data) {
     
     var login = $('loginOverlay');
     if (!this.playing) {
-        if (count < data.m) {
+        if (count < this.maxPlayers) {
             if (login.style.display !== 'block' && !this.watching) {
                 show(login);
                 $('login').focus();

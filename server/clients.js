@@ -68,9 +68,14 @@ Client.init = function() {
         this.resetAchievements();
         
         // Fields
-        this.$.setFieldItem('c', this.id, this.score); // scores
-        this.$.setFieldItem('o', this.id, this.playerColor); // colors
-        this.$.setFieldItem('p', this.id, this.playerName); // players  
+        this.$$.fieldScores.value[this.id] = this.score;
+        this.$$.fieldScores.update();
+        
+        this.$$.fieldColors.value[this.id] = this.playerColor;
+        this.$$.fieldColors.update();
+        
+        this.$$.fieldPlayers.value[this.id] = this.playerName;
+        this.$$.fieldPlayers.update();
         
         // Player
         this.moveTime = this.getTime();
@@ -229,14 +234,18 @@ Client.onRemove = function() {
 
 Client.leave = function() {
     if (this.playerName !== '') {
-        this.$$.playerColors[this.playerColor] = -1;
-        this.$$.playerCount -= 1;
-        this.log('-- [' + this.getInfo() + '] ' + this.playerName
-                 + ' has left');
-        
+        this.log('-- [' + this.getInfo() + '] ' + this.playerName + ' has left');
         this.playerName = '';
-        this.$.delFieldItem('p', this.id); // players
-        this.$.delFieldItem('c', this.id); // scores
+        this.$$.playerColors[this.playerColor] = -1;
+        this.$$.playerCount--;
+        
+        // Fields
+        delete this.$$.fieldPlayers.value[this.id];
+        this.$$.fieldPlayers.update();
+        
+        delete this.$$.fieldScores.value[this.id];
+        this.$$.fieldScores.update();
+        
         if (this.player) {
             this.left = true;
             this.player.destroy();
@@ -244,6 +253,8 @@ Client.leave = function() {
     }
 };
 
+
+// Kills -----------------------------------------------------------------------
 Client.killByAsteroid = function(a) {
     if (this.player && !this.$$.roundFinished) {
         this.selfDestructs++;
@@ -401,19 +412,31 @@ Client.checkRevenge = function(o) {
     }
 };
 
+
+// Points & Stuff --------------------------------------------------------------
 Client.addScore = function(add) {
+    var oldScore = this.score;
     if (add < 0 && this.player.camu === 2) {
         add *= 2;
     }
-    var oldScore = this.score;
     this.score += add;
-    this.$.setFieldItem('c', this.id, this.score);
     
     // guide achievement
     if (this.score === 42 && oldScore < this.score) {
         this.$$.achievement(this.player, 'guide');
     }
+    
+    this.$$.fieldScores.value[this.id] = this.score;
+    this.$$.fieldScores.update();
 };
+
+Client.limitScore = function() {
+    if (this.score < 0) {
+        this.score = 0;
+        this.$$.fieldScores.value[this.id] = this.score;
+        this.$$.fieldScores.update();
+    }
+}
 
 Client.getInfo = function() {
     return this.ip + ':' + this.port;

@@ -99,14 +99,28 @@ Shooter.onConnect = function(success) {
 };
 
 Shooter.onInit = function(data) {
-    this.width = data.s[0];
-    this.height = data.s[1];
-    this.maxPlayers = data.m;
-    this.playerNames = data.p;
-    this.playerScores = data.c;
-    this.playerColors = data.o;
-    this.checkRound(data);
-    this.checkPlayers(data);
+    
+    // Fields
+    if (data.s !== undefined) {
+        this.width = data.s[0];
+        this.height = data.s[1];
+    }
+    if (data.m !== undefined) {
+        this.maxPlayers = data.m;
+    }
+    if (data.c !== undefined) {
+        this.playerScores = data.c;
+    }
+    if (data.o !== undefined) {
+        this.playerColors = data.o;
+    }
+    if (data.p !== undefined) { 
+        this.playerNames = data.p;
+        this.checkPlayers(data);
+    }
+    if (data.rg !== undefined) {
+        this.checkRound(data);
+    }
     this.initCanvas();
     
     // HTML
@@ -122,11 +136,21 @@ Shooter.onInit = function(data) {
 };
 
 Shooter.onUpdate = function(data) {
-    this.playerNames = data.p;
-    this.playerScores = data.c;
-    this.playerColors = data.o;
-    this.checkRound(data);
-    this.checkPlayers(data);
+    
+    // Fields
+    if (data.c !== undefined) {
+        this.playerScores = data.c;
+    }
+    if (data.o !== undefined) {
+        this.playerColors = data.o;
+    }
+    if (data.p !== undefined) { 
+        this.playerNames = data.p;
+        this.checkPlayers(data);
+    }
+    if (data.rg !== undefined) {
+        this.checkRound(data);
+    }
     
     // Tutorial
     if (this.playing && !this.tutorialStarted && this.roundGO) {
