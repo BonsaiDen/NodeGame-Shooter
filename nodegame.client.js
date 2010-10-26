@@ -209,7 +209,7 @@ Client.prototype.queueMessage = function(data) {
 Client.prototype.processMessages = function() {
     while(this.messages.length > 0) {
         var msg = this.messages.shift();
-        this.handleMessage(msg[0], msg[1], msg[2]);
+        this.handleMessage(msg[0], msg[1]);
     }
 };
 
@@ -270,7 +270,9 @@ Client.prototype.handleMessage = function(data, time) {
             delete this.actors[a[0]];
         }
     }
-    data.unshift(type);
+    if (this.recID !== -1) {
+        data.unshift(type);
+    }
 };
 
 
