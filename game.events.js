@@ -21,9 +21,9 @@
 */
 
 
-// Events ----------------------------------------------------------------------
+// Client Events ---------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Shooter.onCreate = function() {
+Shooter.onCreate = function(flash) {
     if (document.cookie !== 'SET') {
         document.cookie = 'SET'; // FF fix for certain cookie settings
     }
@@ -85,6 +85,10 @@ Shooter.onCreate = function() {
         that.onLogin(e);
     };
     
+    if (flash) {
+        show('warning');
+    }
+    
     // Firefox race condition with the colors div...
     window.setTimeout(function(){that.createColors();}, 0);
 };
@@ -98,7 +102,7 @@ Shooter.onConnect = function(success) {
     }
 };
 
-Shooter.onInit = function(data) {
+Shooter.onUpdate = function(data, init) {
     
     // Fields
     if (data.s !== undefined) {
@@ -121,48 +125,32 @@ Shooter.onInit = function(data) {
     if (data.rg !== undefined) {
         this.checkRound(data);
     }
-    this.initCanvas();
     
-    // HTML
-    if (!this.watching) {
-        show('loginBox');
-        $('login').focus();
-    }
-    show('sub'); 
-    show(this.canvas);
-    $('gameInfo').style.width = this.width + 'px';
-    $('gameInfoRight').style.width = 260 + 'px';
-    $('gameInfoLeft').style.width = (this.width - 16 - 260)  + 'px';
-};
-
-Shooter.onUpdate = function(data) {
+    if (init) {
+        this.initCanvas();
+        if (!this.watching) {
+            show('loginBox');
+            $('login').focus();
+        }
+        show('sub'); 
+        show(this.canvas);
+        $('gameInfo').style.width = this.width + 'px';
+        $('gameInfoRight').style.width = 260 + 'px';
+        $('gameInfoLeft').style.width = (this.width - 16 - 260)  + 'px';
     
-    // Fields
-    if (data.c !== undefined) {
-        this.playerScores = data.c;
-    }
-    if (data.o !== undefined) {
-        this.playerColors = data.o;
-    }
-    if (data.p !== undefined) { 
-        this.playerNames = data.p;
-        this.checkPlayers(data);
-    }
-    if (data.rg !== undefined) {
-        this.checkRound(data);
-    }
-    
-    // Tutorial
-    if (this.playing && !this.tutorialStarted && this.roundGO) {
-        this.tutorial(this.tutorialNext);
-        this.tutorialStarted = true;
-    
-    } else if (!this.roundGO && $('tutorial').style.display !== 'none') {
-        this.tutorialFadeOut();
-    }
-    
-    if (!this.roundGO) {
-        this.achievementHide();
+    } else {
+        // Tutorial
+        if (this.playing && !this.tutorialStarted && this.roundGO) {
+            this.tutorial(this.tutorialNext);
+            this.tutorialStarted = true;
+        
+        } else if (!this.roundGO && $('tutorial').style.display !== 'none') {
+            this.tutorialFadeOut();
+        }
+        
+        if (!this.roundGO) {
+            this.achievementHide();
+        }
     }
 };
 
@@ -184,6 +172,19 @@ Shooter.onMessage = function(msg) {
     }
 };
 
+Shooter.onClose = function(error) {
+    if (this.kicked) {
+        this.play();
+    
+    } else {
+        this.watch();
+    }
+};
+
+Shooter.onRecordingEnd = function() {
+    this.$.replayRecording(this.roundTime);
+};
+
 Shooter.onInput = function() {
     var keys = {'keys': [
         this.keys[87] || this.keys[38] || 0,
@@ -201,22 +202,18 @@ Shooter.onInput = function() {
     return keys;
 };
 
-Shooter.onFlashSocket = function() {
-    show('warning');
+Shooter.onDraw = function() {
+    this.fill('#000000');
+    this.bg.globalCompositeOperation = 'source-over';
+    this.bg.fillRect(0, 0, this.width, this.height);
+    this.bg.globalCompositeOperation = 'lighter';
+    this.renderParticles();
+    this.renderRound();
 };
 
-Shooter.onServerOnline = function() {
-    $('serverStatus').innerHTML = 'SERVER ONLINE!';
-    hide('watching');
-    show('goplaying');
-};
 
-Shooter.onServerOffline = function() {
-    $('serverStatus').innerHTML = 'SERVER OFFLINE';
-    show('watching');
-    hide('goplaying');
-};
-
+// Game Events -----------------------------------------------------------------
+// -----------------------------------------------------------------------------
 Shooter.onWatch = function() {
     this.$.close();
 };
@@ -225,17 +222,17 @@ Shooter.onPlay = function() {
     this.play();
 };
 
-Shooter.onClose = function() {
-    if (this.kicked) {
-        this.play();
+Shooter.onServerStatus = function(online) {
+    if (online) {
+        $('serverStatus').innerHTML = 'SERVER ONLINE!';
+        hide('watching');
+        show('goplaying');
     
     } else {
-        this.watch();
+        $('serverStatus').innerHTML = 'SERVER OFFLINE';
+        show('watching');
+        hide('goplaying');
     }
-};
-
-Shooter.onError = function(e) {
-    this.watch();
 };
 
 Shooter.onSound = function(data) {
@@ -286,14 +283,5 @@ Shooter.onLogin = function(e) {
         }
         return false;
     }
-};
-
-Shooter.onDraw = function() {
-    this.fill('#000000');
-    this.bg.globalCompositeOperation = 'source-over';
-    this.bg.fillRect(0, 0, this.width, this.height);
-    this.bg.globalCompositeOperation = 'lighter';
-    this.renderParticles();
-    this.renderRound();
 };
 

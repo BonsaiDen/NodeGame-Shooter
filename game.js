@@ -70,12 +70,12 @@ Shooter.checkServer = function(host, port) {
     conn.onopen = function() {
         online = true;
         conn.close();
-        that.onServerOnline();
+        that.onServerStatus(true);
     };
     
     conn.onclose = function() {
         if (!online) {
-            that.onServerOffline();
+            that.onServerStatus(false);
         }
         that.checkTimer = window.setTimeout(function() {
                                                 that.checkServer(host, port);
