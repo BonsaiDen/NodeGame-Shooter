@@ -1,26 +1,25 @@
 NodeGame: Shooter
 =================
 
-**NodeGame: Shooter** is an asteroids / geometry wars styled HTML5 multiplayer game. It was written using Node.js and HTML5.
+**NodeGame: Shooter** is an asteroids / geometry wars styled HTML5 multiplayer game. It's written using Node.js and HTML5.
 
-| It currently runs natively in Chrome 5+, Safari 5 and Firefox 4 Beta.
-| It also runs **somewhat** in IE9 and Opera 10 using a Flash fallback for the HTML5 WebSocket API.
-
+It currently runs natively in Chrome 5+, Safari 5, Firefox 4 Beta and Opera 10.70+. It also runs *somewhat* in IE9 and older Browsers using a Flash fall back for WebSockets.
 
 Playing
 -------
+ http://bonsaiden.github.com/NodeGame-Shooter/
 
-Currently I don't have any hosting for the game, so whether you can play it or not solely depends on the fact that my computer is online, you can give it a try here:  http://bonsaiden.github.com/NodeGame-Shooter/
 
+Hosting
+-------
 
-Setup
------
+1. Edit ``client/config.js`` to point to your server.
+2. Edit ``server/server.js`` to match your desired port.
+3. This depends on whether you A. want flash fall back or B. don't want it.
 
-| If you want to run/host the game yourself you must first edit `client/config.js` to point to your server.
+  A. ``sudo privbind -u username node  server.js`` allows for listening on port 843 without running the game as sudo.
 
-| Then start `server/game.js` via Node.js, additionally you can supply a port for the game to listen on.
-
-| In case that you want to make the Flash fallback responsive, you must allow Node.js to listen on port 843. So either `sudo` start the game or use something like `privbind` on Ubuntu.
+  B. ``node server.js`` just starts the game but the flash fall back won't work.
 
 
 Todo
