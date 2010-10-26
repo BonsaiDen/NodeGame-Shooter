@@ -23,7 +23,7 @@
 
 // Client handlers -------------------------------------------------------------
 // -----------------------------------------------------------------------------
-var Client = Server.Client();
+var Client = Shooter.Client();
 
 Client.onInit = function() {
     this.playerName = '';

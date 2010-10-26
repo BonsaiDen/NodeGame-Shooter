@@ -42,21 +42,58 @@ var MSG_ACTORS_DESTROY = 8;
 var MSG_CLIENT_MESSAGE = 9;
 
 
+// Game Model ------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+function Model(interval) {
+    this.interval = interval;
+    this.game = {};
+    this.client = {};
+    this.actors = {};
+    this.baseActor = function(rate) {
+        this.updateRate = rate;
+        this.onCreate = function(data) {};
+        this.onUpdate = function() {};
+        this.onDestroy = function() {};
+        this.onMessage = function(once) {return [];};
+    };
+}
+
+Model.prototype.Game = function() {
+    return this.game;
+};
+
+Model.prototype.Client = function() {
+    return this.client;
+};
+
+Model.prototype.Actor = function(id, rate) {
+    return this.actors[id] = new this.baseActor(rate);
+};
+
+Model.prototype.Server = function(options) {
+    return new Server(options, this);
+};
+
+exports.Model = function(interval) {
+    return new Model(interval);
+};
+
+
 // Server ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-function Server(options) {
+function Server(options, model) {
     this.maxChars = options.maxChars || 128;
     this.maxClients = options.maxClients || 64;
     this.port = options.port || 8000;
     this.showStatus = options.status === false ? false : true;
     
     // Server
+    this.model = model;
     this.fields = {};
     this.fieldsChanged = false;
     this.logs = []; 
     
     // Client
-    this.client = {};
     this.clientCount = 0;
     this.clients = {};
     this.clientID = 0;
@@ -64,7 +101,7 @@ function Server(options) {
     // Actors
     this.actorCount = 0;
     this.actorID = 0;
-    this.actorTypes = {};
+    this.actorTypes = model.actors;
     this.actors = {};
     
     this.bytesSend = 0;
@@ -115,19 +152,12 @@ function Server(options) {
     
     // Hey Listen!
     this.$.listen(this.port);
+    this.run();
 }
-exports.Server = Server;
 
 
 // General ---------------------------------------------------------------------
 Server.prototype.run = function() {
-    var that = this;
-    process.nextTick(function() {
-        that.start();
-    });
-};
-
-Server.prototype.start = function() {
     var that = this;
     for(var i in this.actorTypes) {
         this.actors[i] = [];
@@ -135,6 +165,7 @@ Server.prototype.start = function() {
     this.startTime = new Date().getTime();
     this.time = new Date().getTime();
     this.log('>> Server started');
+    this.$$ = new Game(this);
     this.$$.start();
     this.status();
     
@@ -189,15 +220,6 @@ Server.prototype.saveRecording = function() {
             this.log('## Recording saved');
         }
     }
-};
-
-Server.prototype.Game = function(interval) {
-    this.$$ = new Game(this, interval);
-    return this.$$;
-};
-
-Server.prototype.Client = function() {
-    return this.client;
 };
 
 
@@ -331,18 +353,6 @@ Server.prototype.createActor = function(clas, data) {
     return a;
 };
 
-Server.prototype.createActorType = function(id, rate) {
-    function ActorType(rate) {
-        this.updateRate = rate;
-        this.onCreate = function(data) {};
-        this.onUpdate = function() {};
-        this.onDestroy = function() {};
-        this.onMessage = function(once) {return [];};
-    }
-    this.actorTypes[id] = new ActorType(rate);
-    return this.actorTypes[id];
-};
-
 Server.prototype.getActors = function(clas) {
     return this.actors[clas];
 };
@@ -463,9 +473,12 @@ Server.prototype.getFields = function(id, force) {
 
 // Game ------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-function Game(srv, interval) {
+function Game(srv) {
     this.$ = srv;
-    this.$interval = Math.round(1000 / interval);
+    this.$interval = Math.round(1000 / this.$.model.interval);
+    for(var m in this.$.model.game) {
+        this[m] = this.$.model.game[m];
+    }
 }
 
 Game.prototype.start = function() {
@@ -558,10 +571,8 @@ function Client(srv, conn, record) {
             this.$.actors[t][i].$emit(MSG_ACTORS_INIT);
         }
     }
-    
-    // Extend
-    for(var m in this.$.client) {
-        this[m] = this.$.client[m];
+    for(var m in this.$.model.client) {
+        this[m] = this.$.model.client[m];
     }
     this.onInit();
 }

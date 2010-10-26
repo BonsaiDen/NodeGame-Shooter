@@ -27,7 +27,7 @@ var Polygon2D = require('./polygon').Polygon2D;
 
 // Actors ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-var ActorPlayer = Server.createActorType('player', 2);
+var ActorPlayer = Shooter.Actor('player', 2);
 ActorPlayer.baseShape = [[0, -12], [10, 12], [-10, 12], [0, -12]];
 ActorPlayer.shape = new Shape2D(ActorPlayer.baseShape, 2.5);
 ActorPlayer.shapeArmor = new Shape2D(ActorPlayer.baseShape, 6.5);
@@ -83,19 +83,7 @@ ActorPlayer.onCreate = function(data) {
 
 ActorPlayer.onUpdate = function() {
     this.r = this.$$.wrapAngle(this.r + this.mr);
-    var maxSpeed = this.boost ? 4.5 : 3;
-    var r = Math.atan2(this.mx, this.my);
-    
-    var speed = Math.sqrt(Math.pow(this.x - (this.x + this.mx), 2)
-                        + Math.pow(this.y - (this.y + this.my), 2));
-    
-    if (speed > maxSpeed) {
-        speed = maxSpeed;
-    }
-    this.mx = Math.sin(r) * speed;
-    this.my = Math.cos(r) * speed;
-    this.speed = speed;
-    
+    this.limitSpeed();
     this.x += this.mx;
     this.y += this.my;
     this.polygon.transform(this.x, this.y, this.r);
@@ -152,6 +140,8 @@ ActorPlayer.onUpdate = function() {
         }
         this.boosting = false;
         this.boost = false;
+        this.limitSpeed();
+        this.update();
     }
     
     // Camouflage
@@ -193,6 +183,21 @@ ActorPlayer.onUpdate = function() {
         this.oldMr = this.mr;
     }
 };
+
+ActorPlayer.limitSpeed = function() {
+    var maxSpeed = this.boost ? 4.5 : 3;
+    var r = Math.atan2(this.mx, this.my);
+    
+    var speed = Math.sqrt(Math.pow(this.x - (this.x + this.mx), 2)
+                        + Math.pow(this.y - (this.y + this.my), 2));
+    
+    if (speed > maxSpeed) {
+        speed = maxSpeed;
+    }
+    this.mx = Math.sin(r) * speed;
+    this.my = Math.cos(r) * speed;
+    this.speed = speed;
+}
 
 ActorPlayer.enableArmor = function() {
     this.armorHP = 16;
@@ -271,7 +276,7 @@ ActorPlayer.onMessage = function(once) {
 
 
 // Missile ---------------------------------------------------------------------
-var ActorMissile = Server.createActorType('missile', 2);
+var ActorMissile = Shooter.Actor('missile', 2);
 ActorMissile.onCreate = function(data) {
     this.time = this.getTime();
     this.player = data.player;
@@ -367,7 +372,7 @@ ActorMissile.onMessage = function(once) {
 
 
 // Bullet ----------------------------------------------------------------------
-var ActorBullet = Server.createActorType('bullet', 6);
+var ActorBullet = Shooter.Actor('bullet', 6);
 ActorBullet.onCreate = function(data) {
     this.time = this.getTime();
     this.player = data.player;
@@ -395,7 +400,7 @@ ActorBullet.onMessage = function(once) {
 
 
 // Bomb ------------------------------------------------------------------------
-var ActorBomb = Server.createActorType('bomb', 6);
+var ActorBomb = Shooter.Actor('bomb', 6);
 ActorBomb.onCreate = function(data) {
     this.time = this.getTime();
     this.range = 120;
@@ -467,7 +472,7 @@ ActorBomb.onMessage = function(once) {
 
 
 // PowerUp ---------------------------------------------------------------------
-var ActorPowerUp = Server.createActorType('powerup', 0);
+var ActorPowerUp = Shooter.Actor('powerup', 0);
 ActorPowerUp.onCreate = function(data) {
     this.$$.randomPosition(this, this.$$.sizePowerUp);
     this.type = data.type;
@@ -505,7 +510,7 @@ ActorPowerUp.onMessage = function(once) {
 
 
 // Player Defender -------------------------------------------------------------
-var ActorPlayerDef = Server.createActorType('player_def', 6);
+var ActorPlayerDef = Shooter.Actor('player_def', 6);
 ActorPlayerDef.onCreate = function(data) {
     this.player = data.player;
     this.player.defender = this;
@@ -569,7 +574,7 @@ ActorPlayerDef.onMessage = function(once) {
 
 
 // Asteroid --------------------------------------------------------------------
-var ActorAsteroid = Server.createActorType('asteroid', 6);
+var ActorAsteroid = Shooter.Actor('asteroid', 6);
 ActorAsteroid.shapes = [
     new Shape2D([[-1, -6], [-7, -4], [-6, 4], [2, 5], [6, -2]], 2.4),
     new Shape2D([[-2, -13], [-13 , -8], [-12, 8], [-2, 12], [11, 10], [12, -8]],

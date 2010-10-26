@@ -16,30 +16,15 @@
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License along with
-  NodeGame: Shooter. If not, see <http://www.gnu.org/licenses/>.
+  NodeGame: Game. If not, see <http://www.gnu.org/licenses/>.
   
 */
 
-var NodeGame = require('./nodegame');
 
-// Init
-Server = new NodeGame.Server({
-    'port': Math.abs(process.argv[2]) || 28785,
-    'status': true,
-    'recordFile': './../record[date].js',
-    'record': false
-});
-Server.run();
-
-require('./clients');
-require('./actors');
-
-
-// Game ------------------------------------------------------------------------
+// Game Methods ----------------------------------------------------------------
 // -----------------------------------------------------------------------------
-var Shooter = Server.Game(20);
-
-Shooter.onInit = function() {
+var Game = Shooter.Game();
+Game.onInit = function() {
     
     // Size
     this.width = 480;
@@ -95,7 +80,7 @@ Shooter.onInit = function() {
     this.addPowerUpType('armor',   1, 30, 20, true);
     this.addPowerUpType('missile', 2, 16, 15, true);
     this.addPowerUpType('life',    2,  8,  8, false);
-    this.addPowerUpType('boost',   1, 26, 12, true);
+    this.addPowerUpType('boost',   1, 22, 12, true);
     this.addPowerUpType('defense', 2, 30, 30, true);
     this.addPowerUpType('bomb',    1, 65, 35, true);
     this.addPowerUpType('camu',    1, 40, 20, true);
@@ -111,7 +96,7 @@ Shooter.onInit = function() {
 
 // Rounds / Score / Achievments ------------------------------------------------
 // -----------------------------------------------------------------------------
-Shooter.startRound = function() {
+Game.startRound = function() {
     this.roundID++;
     this.roundStart = this.getTime();
     this.roundTime = this.roundGame;
@@ -141,7 +126,7 @@ Shooter.startRound = function() {
     setTimeout(function(){that.endRound();}, this.roundGame);
 };
 
-Shooter.endRound = function() {
+Game.endRound = function() {
     
     // Reset
     this.roundStart = this.getTime();
@@ -181,13 +166,13 @@ Shooter.endRound = function() {
     setTimeout(function(){that.startRound();}, this.roundWait);
 };
 
-Shooter.achievement = function(player, type) {
+Game.achievement = function(player, type) {
     this.$.messageAll({'aie': [player.cid,
                                this.achievements[type][0],
                                this.achievements[type][1]]});
 };
 
-Shooter.achievements = {
+Game.achievements = {
     'hattrick': ['Hattrick',
                  'Destroy 3 players in a row without dying.'],
     
@@ -273,7 +258,7 @@ Shooter.achievements = {
 
 // Mainloop --------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Shooter.onUpdate = function() {
+Game.onUpdate = function() {
     
     // Round time
     this.roundTimeLeft = this.roundTime + (this.roundStart - this.getTime());
@@ -302,11 +287,11 @@ Shooter.onUpdate = function() {
 
 // PowerUPs --------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Shooter.addPowerUpType = function(type, max, wait, rand, count) { 
+Game.addPowerUpType = function(type, max, wait, rand, count) { 
     this.powerUps[type] = [0, 0, max, wait, rand, count];
 };
 
-Shooter.createPowerUp = function(type, dec, init) { 
+Game.createPowerUp = function(type, dec, init) { 
     var up = this.powerUps[type];
     var add = (up[3] * 1000) + Math.random() * (up[4] * 1000);
     if (init) {
@@ -321,14 +306,14 @@ Shooter.createPowerUp = function(type, dec, init) {
     }
 };
 
-Shooter.removePowerUp = function(type) { 
+Game.removePowerUp = function(type) { 
     this.powerUps[type][0]--;
     if (this.powerUps[type][5]) {
         this.powerUpCount--;
     }
 };
 
-Shooter.updatePowerUps = function() {
+Game.updatePowerUps = function() {
     for(var type in this.powerUps) {
         var up = this.powerUps[type];
         if (this.getTime() > up[1] && up[0] < up[2]) {
@@ -348,7 +333,7 @@ Shooter.updatePowerUps = function() {
     }
 };
 
-Shooter.collidePowerUps = function(o, p) {
+Game.collidePowerUps = function(o, p) {
     if (o.type === 'shield') {
         p.shieldHP = 50;
         p.shield = true;
@@ -401,7 +386,7 @@ Shooter.collidePowerUps = function(o, p) {
 
 // Asteroids -------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Shooter.updateAsteroids = function() {
+Game.updateAsteroids = function() {
     
     // Creation
     var asteroids = this.getActors('asteroid');
@@ -473,7 +458,7 @@ Shooter.updateAsteroids = function() {
     }
 };
 
-Shooter.collideAsteroidPowerUps = function(a) {
+Game.collideAsteroidPowerUps = function(a) {
     if (a.type < 4) {
         return;
     }
@@ -487,7 +472,7 @@ Shooter.collideAsteroidPowerUps = function(a) {
     }
 };
 
-Shooter.collideAsteroidPlayerDefs = function(a) {
+Game.collideAsteroidPlayerDefs = function(a) {
     var playerDefs = this.getActors('player_def');
     for(var e = 0, l = playerDefs.length; e < l; e++) {
         var pd = playerDefs[e];
@@ -508,7 +493,7 @@ Shooter.collideAsteroidPlayerDefs = function(a) {
     }
 };
 
-Shooter.collideAsteroidBombs = function(a) {
+Game.collideAsteroidBombs = function(a) {
     var bombs = this.getActors('bomb');  
     for(var e = 0, l = bombs.length; e < l; e++) {
         var bo = bombs[e];
@@ -522,7 +507,7 @@ Shooter.collideAsteroidBombs = function(a) {
     }
 };
 
-Shooter.collideAsteroidPlayers = function(a) {
+Game.collideAsteroidPlayers = function(a) {
     var players = this.getActors('player');
     for(var e = 0, l = players.length; e < l; e++) {
         var p = players[e];
@@ -562,7 +547,7 @@ Shooter.collideAsteroidPlayers = function(a) {
     }
 };
 
-Shooter.collideAsteroidAsteroids = function(a, i) {
+Game.collideAsteroidAsteroids = function(a, i) {
     var asteroids = this.getActors('asteroid');
     for(var e = i + 1, l = asteroids.length; e < l; e++) {
         var aa = asteroids[e];
@@ -584,7 +569,7 @@ Shooter.collideAsteroidAsteroids = function(a, i) {
     }
 };
 
-Shooter.collideAsteroidBullets = function(a) {
+Game.collideAsteroidBullets = function(a) {
     var bullets = this.getActors('bullet');
     for(var e = 0, l = bullets.length; e < l; e++) {
         var b = bullets[e];
@@ -604,7 +589,7 @@ Shooter.collideAsteroidBullets = function(a) {
     }
 };
 
-Shooter.collideAsteroidMissiles = function(a) {
+Game.collideAsteroidMissiles = function(a) {
     var missiles = this.getActors('missile');
     for(var e = 0, l = missiles.length; e < l; e++) {
         var m = missiles[e];
@@ -628,7 +613,7 @@ Shooter.collideAsteroidMissiles = function(a) {
 
 // Players ---------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Shooter.updatePlayers = function() {
+Game.updatePlayers = function() {
     var players = this.getActors('player');
     for(var i = 0, l = players.length; i < l; i++) {
         var p = players[i];
@@ -643,7 +628,7 @@ Shooter.updatePlayers = function() {
     }
 };
 
-Shooter.collidePlayerPlayerDefs = function(p) {
+Game.collidePlayerPlayerDefs = function(p) {
     var playerDefs = this.getActors('player_def');
     for(var e = 0, l = playerDefs.length; e < l; e++) {
         var pd = playerDefs[e];
@@ -661,7 +646,7 @@ Shooter.collidePlayerPlayerDefs = function(p) {
     }
 };
 
-Shooter.collidePlayerBombs = function(p) {
+Game.collidePlayerBombs = function(p) {
     var bombs = this.getActors('bomb');
     for(var e = 0, l = bombs.length; e < l; e++) {
         var bo = bombs[e];
@@ -673,7 +658,7 @@ Shooter.collidePlayerBombs = function(p) {
     }
 };
 
-Shooter.collidePlayerPlayers = function(p, i) {
+Game.collidePlayerPlayers = function(p, i) {
     var players = this.getActors('player');
     for(var e = i + 1, l = players.length; e < l; e++) {
         var pp = players[e];
@@ -696,7 +681,7 @@ Shooter.collidePlayerPlayers = function(p, i) {
     }
 };
 
-Shooter.collidePlayerPowerUps = function(p) {
+Game.collidePlayerPowerUps = function(p) {
     var powerups = this.getActors('powerup');
     for(var e = 0, l = powerups.length; e < l; e++) {
         var o = powerups[e];
@@ -706,7 +691,7 @@ Shooter.collidePlayerPowerUps = function(p) {
     }
 };
 
-Shooter.collidePlayerBullets = function(p) {
+Game.collidePlayerBullets = function(p) {
     var bullets  = this.getActors('bullet');
     for(var e = 0, l = bullets.length; e < l; e++) {
         var b = bullets[e];
@@ -744,7 +729,7 @@ Shooter.collidePlayerBullets = function(p) {
     }
 };
 
-Shooter.collidePlayerMissiles = function(p) {
+Game.collidePlayerMissiles = function(p) {
     var missiles  = this.getActors('missile');
     for(var e = 0, l = missiles.length; e < l; e++) {
         var m = missiles[e];
@@ -796,7 +781,7 @@ Shooter.collidePlayerMissiles = function(p) {
 
 // Player Defends --------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Shooter.updatePlayerDefs = function() {
+Game.updatePlayerDefs = function() {
     var playersDefs = this.getActors('player_def');
     var powerups = this.getActors('powerup');
     var bombs = this.getActors('bomb');
@@ -844,7 +829,7 @@ Shooter.updatePlayerDefs = function() {
 
 // Bombs -----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Shooter.destroyBomb = function(b) {
+Game.destroyBomb = function(b) {
     if (b.player) {
         b.player.bomb = false;
         b.player.client.bomb = null;
@@ -853,7 +838,7 @@ Shooter.destroyBomb = function(b) {
     this.bombExplosion(8, 50, b);
 };
 
-Shooter.bombExplosion = function(count, interval, bomb) {
+Game.bombExplosion = function(count, interval, bomb) {
     var that = this;
     var tick = function() {
         that.explodeBomb(bomb);
@@ -868,7 +853,7 @@ Shooter.bombExplosion = function(count, interval, bomb) {
     tick();
 };
 
-Shooter.explodeBomb = function(b) {
+Game.explodeBomb = function(b) {
     
     // Bombs
     var bombs = this.getActors('bomb');
@@ -951,32 +936,32 @@ Shooter.explodeBomb = function(b) {
 
 // Collision -------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Shooter.playerCollision = function(p, e, r) {
+Game.playerCollision = function(p, e, r) {
     return (p.alive() && e.alive())
                       ? this.circleCollision(p, e, this.sizePlayer, r) : false;
 };
 
-Shooter.defendCollision = function(d, e, r) {
+Game.defendCollision = function(d, e, r) {
     return (d.alive() && e.alive() && d.player.alive())
                       ? this.circleCollision(d, e, this.sizeDefend, r) : false;
 };
 
-Shooter.asteroidCollision = function(a, e, r) {
+Game.asteroidCollision = function(a, e, r) {
     var wr = a.type >= 4;
     var size = wr ? this.sizeBigAsteroid : this.sizeAsteroid;
     return (a.alive() && e.alive())
                       ? this.circleCollision(a, e, size, r, false, wr) : false;
 };
 
-Shooter.bombCollision = function(b, e, r) {
+Game.bombCollision = function(b, e, r) {
     return e.alive() ? this.circleCollision(b, e, b.range, r) : false;
 };
 
-Shooter.bombBorderCollision = function(b, e, r) {
+Game.bombBorderCollision = function(b, e, r) {
     return e.alive() ? this.circleCollision(b, e, b.range + r, r) : false;
 };
 
-Shooter.circleCollision = function(a, b, ra, rb, circle, noWrap) {
+Game.circleCollision = function(a, b, ra, rb, circle, noWrap) {
     // Use polygon radii if available
     if (!circle) {
         if (a.polygon) {
@@ -1036,7 +1021,7 @@ Shooter.circleCollision = function(a, b, ra, rb, circle, noWrap) {
     return false;
 };
 
-Shooter.checkCollision = function(a, b, ra, rb, circle) {
+Game.checkCollision = function(a, b, ra, rb, circle) {
     var r = ra + rb;
     var dx = a.x - b.x;
     var dy = a.y - b.y;
@@ -1062,7 +1047,7 @@ Shooter.checkCollision = function(a, b, ra, rb, circle) {
     }
 };
 
-Shooter.checkOverlap = function(objs, o, size, osize) {
+Game.checkOverlap = function(objs, o, size, osize) {
     for(var i = 0, l = objs.length; i < l; i++) {
         if (this.circleCollision(objs[i], o, size * 2, osize, true)) {
             return true;
@@ -1071,7 +1056,7 @@ Shooter.checkOverlap = function(objs, o, size, osize) {
     return false;
 };
 
-Shooter.checkOverlapAsteroids = function(objs, o, osize) {
+Game.checkOverlapAsteroids = function(objs, o, osize) {
     for(var i = 0, l = objs.length; i < l; i++) {
         var big = objs[i].type >= 4;
         var size = big ? this.sizeBigAsteroid * 1.20
@@ -1087,7 +1072,7 @@ Shooter.checkOverlapAsteroids = function(objs, o, osize) {
 
 // Helpers ---------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Shooter.wrapAngle = function(r) {
+Game.wrapAngle = function(r) {
     if (r > Math.PI) {
         r -= Math.PI * 2;
     }
@@ -1097,7 +1082,7 @@ Shooter.wrapAngle = function(r) {
     return r;
 };
 
-Shooter.randomPosition = function(obj, size) {
+Game.randomPosition = function(obj, size) {
     var players = this.getActors('player');
     var powerups = this.getActors('powerup');
     var asteroids = this.getActors('asteroid');
@@ -1121,7 +1106,7 @@ Shooter.randomPosition = function(obj, size) {
     }
 };
 
-Shooter.randomPositionAsteroid = function(obj, size) {
+Game.randomPositionAsteroid = function(obj, size) {
     var asteroids = this.getActors('asteroid'); 
     var players = this.getActors('player'); 
     
@@ -1162,7 +1147,7 @@ Shooter.randomPositionAsteroid = function(obj, size) {
     }
 };
 
-Shooter.launchAt = function(a, d, r, min, max) {
+Game.launchAt = function(a, d, r, min, max) {
     a.mx = a.player.mx + Math.sin(r) * d;
     a.my = a.player.my + Math.cos(r) * d;
     
@@ -1175,7 +1160,7 @@ Shooter.launchAt = function(a, d, r, min, max) {
     return speed;
 };
 
-Shooter.wrapPosition = function(obj) {
+Game.wrapPosition = function(obj) {
     if (obj.x < -16) {
         obj.x += this.fullWidth;
         obj.updated = true;
@@ -1195,7 +1180,7 @@ Shooter.wrapPosition = function(obj) {
     }
 };
 
-Shooter.getDistance = function(a, b) { 
+Game.getDistance = function(a, b) { 
     var tx = b.x - a.x;
     var ty = b.y - a.y;
     while(tx < -(this.halfWidth)) {
@@ -1213,7 +1198,7 @@ Shooter.getDistance = function(a, b) {
     return Math.sqrt(tx * tx + ty * ty);
 };
 
-Shooter.getAngle = function(a, b) {
+Game.getAngle = function(a, b) {
     var tx = b.x - a.x;
     var ty = b.y - a.y;
     while(tx < -(this.halfWidth)) {
