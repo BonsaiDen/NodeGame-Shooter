@@ -280,7 +280,7 @@ Server.prototype.addClient = function(conn) {
 Server.prototype.removeClient = function(id) {
     if (this.clients[id]) {
         this.clientCount--;
-        this.clients[id].onRemove();
+        this.clients[id].remove();
         delete this.clients[id];
     }
 };
@@ -379,38 +379,24 @@ Server.prototype.updateActors = function() {
         }
         this.actorCount += this.actors[t].length;
     }
+    this.sendActors();
+};
+
+Server.prototype.sendActors = function(types) {
+    types = types || [MSG_ACTORS_INIT, MSG_ACTORS_CREATE, MSG_ACTORS_UPDATE,
+                      MSG_ACTORS_EVENT, MSG_ACTORS_REMOVE, MSG_ACTORS_DESTROY];
     
-    // Send messages
     for(var i in this.clients) {
         var c = this.clients[i];
-        if (c.$initMessages.length !== 0) {
-            c.send(MSG_ACTORS_INIT, c.$initMessages);
-            c.$initMessages = [];
+        if (!c.$initiated) {
+            continue;
         }
         
-        if (c.$createMessages.length !== 0) {
-            c.send(MSG_ACTORS_CREATE, c.$createMessages);
-            c.$createMessages = [];
-        }
-        
-        if (c.$updatesMessages.length !== 0) {
-            c.send(MSG_ACTORS_UPDATE, c.$updatesMessages);
-            c.$updatesMessages = [];
-        }
-        
-        if (c.$eventMessages.length !== 0) {
-            c.send(MSG_ACTORS_EVENT, c.$eventMessages);
-            c.$eventMessages = [];
-        } 
-        
-        if (c.$removeMessages.length !== 0) {
-            c.send(MSG_ACTORS_REMOVE, c.$removeMessages);
-            c.$removeMessages = [];
-        }  
-        
-        if (c.$destroyMessages.length !== 0) {
-            c.send(MSG_ACTORS_DESTROY, c.$destroyMessages);
-            c.$destroyMessages = [];
+        for(var t = 0, l = types.length; t < l; t++) {
+            if (c.$messages[types[t]].length !== 0) { 
+                c.send(types[t], c.$messages[types[t]]);
+                c.$messages[types[t]] = [];
+            }
         }
     }
 };
@@ -558,12 +544,13 @@ function Client(srv, conn, record) {
     this.id = this.$.clientID;
     this.$actors = [];
     
-    this.$initMessages = [];
-    this.$createMessages = [];
-    this.$updatesMessages = [];
-    this.$removeMessages = [];
-    this.$destroyMessages = [];
-    this.$eventMessages = [];
+    this.$messages = {};
+    this.$messages[MSG_ACTORS_INIT] = [];
+    this.$messages[MSG_ACTORS_CREATE] = [];
+    this.$messages[MSG_ACTORS_UPDATE] = [];
+    this.$messages[MSG_ACTORS_EVENT] = [];
+    this.$messages[MSG_ACTORS_REMOVE] = [];
+    this.$messages[MSG_ACTORS_DESTROY] = [];
     
     this.$initiated = false;
     for(var t in this.$.actors) {
@@ -601,6 +588,12 @@ Client.prototype.close = function() {
     if (!this.$record) {
         this.$conn.close();
     }
+};
+
+Client.prototype.remove = function() {
+    this.onRemove();
+    this.$actors = [];
+    this.$messages = {};
 };
 
 Client.prototype.onInit = function() {
@@ -677,46 +670,47 @@ Actor.prototype.$emit = function(type, event) {
             // Create
             if (type === MSG_ACTORS_CREATE && index === -1) {
                 c.$actors.push(this.id);
-                c.$createMessages.push(this.toMessage(true));
+                c.$messages[MSG_ACTORS_CREATE].push(this.toMessage(true));
             
             // Init
             } else if (type === MSG_ACTORS_INIT && index === -1) {
                 c.$actors.push(this.id);
-                c.$initMessages.push(this.toMessage(true));
+                c.$messages[MSG_ACTORS_INIT].push(this.toMessage(true));
             
             } else {
                 
                 // Init in case the actor was removed previously
                 if (index === -1) {
                     c.$actors.push(this.id);
-                    c.$initMessages.push(this.toMessage(true));
+                    c.$messages[MSG_ACTORS_INIT].push(this.toMessage(true));
                 }
                 
                 // Destroy
                 if (type === MSG_ACTORS_DESTROY) {
                     c.$actors.splice(index, 1);
-                    c.$destroyMessages.push([this.id, Math.round(this.x),
-                                                      Math.round(this.y)]);
+                    c.$messages[MSG_ACTORS_DESTROY].push([this.id,
+                                                          Math.round(this.x),
+                                                          Math.round(this.y)]);
                 
                 // Remove
                 } else if (type === MSG_ACTORS_REMOVE) {
                     c.$actors.splice(index, 1);
-                    c.$removeMessages.push([this.id]);
+                    c.$messages[MSG_ACTORS_REMOVE].push([this.id]);
                 
                 // Update
                 } else if (type === MSG_ACTORS_UPDATE) {
-                    c.$updatesMessages.push(this.toMessage(false));
+                    c.$messages[MSG_ACTORS_UPDATE].push(this.toMessage(false));
                 
                 // Event
                 } else if (type === MSG_ACTORS_EVENT) {
-                    c.$eventMessages.push(event);
+                    c.$messages[MSG_ACTORS_EVENT].push(event);
                 }
             }
         
         // Remove
         } else if (this.$clients.indexOf(c.id) === -1 && index !== -1) {
             c.$actors.splice(index, 1);
-            c.$removeMessages.push([this.id]);
+            c.$messages[MSG_ACTORS_REMOVE].push([this.id]);
         }
     }
 };
