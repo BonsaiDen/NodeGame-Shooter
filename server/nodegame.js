@@ -109,7 +109,7 @@ function Server(options) {
         }
     };
     
-    this.$.onClose = function(conn) {     
+    this.$.onClose = function(conn) {
         that.removeClient(conn.$clientID);
     };
     
