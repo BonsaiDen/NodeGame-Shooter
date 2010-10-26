@@ -36,6 +36,7 @@ Shooter.Server({
     'port': Math.abs(process.argv[2]) || 28785,
     'status': true,
     'recordFile': './../record[date].js',
-    'record': false
+    'record': false,
+    'flash': true
 });
 

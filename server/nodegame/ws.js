@@ -158,7 +158,7 @@ function Connection($, req, socket, headers, upgradeHeader) {
 };
 
 
-function Server() {
+function Server(flash) {
     var that = this;
     var $ = new http.Server();
     var connections = {};
@@ -211,24 +211,27 @@ function Server() {
     };
     
     this.listen = function(port) {
-        try {
-            // Flash policy
-            net.createServer(function(socket) {
-                socket.write('<?xml version="1.0"?>'
-                    + '<!DOCTYPE cross-domain-policy SYSTEM "http://www.macromedia.com/xml/dtds/cross-domain-policy.dtd">'
-                    + '<cross-domain-policy>'
-                    + ' <allow-access-from domain="*" to-ports="*" />'
-                    + '</cross-domain-policy>'
-                );
-                socket.end();
-                socket.destroy();
+        if (flash) {
+            try {
+                net.createServer(function(socket) {
+                    socket.write('<?xml version="1.0"?>'
+                        + '<!DOCTYPE cross-domain-policy SYSTEM "http://www.macromedia.com/xml/dtds/cross-domain-policy.dtd">'
+                        + '<cross-domain-policy>'
+                        + ' <allow-access-from domain="*" to-ports="*" />'
+                        + '</cross-domain-policy>'
+                    );
+                    socket.end();
+                    socket.destroy();
+                
+                }).listen(843);
             
-            }).listen(843);
-        
-        } catch (e) {
-            
+            } catch (e) {
+                flash = false;
+            }
         }
+        
         $.listen(port);
+        return flash;
     };
 };
 

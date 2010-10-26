@@ -86,6 +86,7 @@ function Server(options, model) {
     this.maxClients = options.maxClients || 64;
     this.port = options.port || 8000;
     this.showStatus = options.status === false ? false : true;
+    this.flash = options.flash || false;
     
     // Server
     this.model = model;
@@ -114,7 +115,7 @@ function Server(options, model) {
     
     // Socket
     var that = this;
-    this.$ = new ws.Server();
+    this.$ = new ws.Server(this.flash);
     this.$.onConnect = function(conn) {
         if (this.clientCount >= this.maxClients) {
             conn.close();
@@ -151,7 +152,7 @@ function Server(options, model) {
     };
     
     // Hey Listen!
-    this.$.listen(this.port);
+    this.flash = this.$.listen(this.port);
     this.run();
 }
 
@@ -280,7 +281,7 @@ Server.prototype.status = function(end) {
                             + ' ' + this.logs[i][1];
     }
     sys.print('\x1b[H\x1b[J# NodeGame Server at port '
-              + this.port + '\n' + stats + '\n\x1b[s\x1b[H');
+              + this.port + (this.flash ? ' / 843' : '') + '\n' + stats + '\n\x1b[s\x1b[H');
     
     if (!end) {
         setTimeout(function() {that.status(false)}, 500);
