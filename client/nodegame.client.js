@@ -35,6 +35,8 @@ var MSG_ACTORS_DESTROY = 8;
 
 var MSG_CLIENT_MESSAGE = 9;
 
+var MSG_CONNECTION_CLOSED = 255;
+
 
 // Game ------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -131,20 +133,12 @@ Client.prototype.connect = function(host, port) {
         that.onMessage(msg);
     };
     
-    this.conn.onclose = function(e) {
+    this.conn.onerror = this.conn.onclose = function(e) {
         if (that.connected) {
-            that.quit();
-            that.$.onClose();
+            that.queueMessage([MSG_CONNECTION_CLOSED, e]);
         
         } else {
             that.$.onConnect(false);
-        }
-    };
-    
-    this.conn.onerror = function(e) {
-        if (that.connected) {
-            that.quit();
-            that.$.onClose(e);
         }
     };
 };
@@ -291,7 +285,12 @@ Client.prototype.handleMessage = function(data, time) {
             this.actors[a[0]].destroy(a[1], a[2]);
             delete this.actors[a[0]];
         }
+    
+    } else if (type === MSG_CONNECTION_CLOSED) {
+        this.quit();
+        this.$.onClose(data[0]);
     }
+    
     if (this.recID !== -1) {
         data.unshift(type);
     }
