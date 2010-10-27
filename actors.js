@@ -23,7 +23,7 @@
 
 // Actors ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-var ActorPlayer = Client.createActorType('player', 2);
+var ActorPlayer = Shooter.Actor('player', 2);
 ActorPlayer.shape = [[0, -12], [10, 12], [-10, 12], [0, -12]];
 ActorPlayer.shapeArmor = [[0, -20.5], [15, 15.5], [-15, 15.5], [0, -20.5]];
 
@@ -301,7 +301,7 @@ ActorPlayer.emitParticles = function(speed, dur, step) {
 
 
 // Bullet ----------------------------------------------------------------------
-var ActorBullet = Client.createActorType('bullet', 6);
+var ActorBullet = Shooter.Actor('bullet', 6);
 ActorBullet.onCreate = function(data, complete) {
     this.id = data[0];
     this.col = this.$.playerColor(this.id);;
@@ -328,7 +328,7 @@ ActorBullet.onDraw = function() {
 
 
 // Missile ---------------------------------------------------------------------
-var ActorMissile = Client.createActorType('missile', 2);
+var ActorMissile = Shooter.Actor('missile', 2);
 ActorMissile.shape = [[0, -12], [8, 12], [-8, 12], [0, -12]];
 
 ActorMissile.onCreate = function(data, complete) {
@@ -375,7 +375,7 @@ ActorMissile.onDraw = function() {
 
 
 // Bomb ------------------------------------------------------------------------
-var ActorBomb = Client.createActorType('bomb', 6);
+var ActorBomb = Shooter.Actor('bomb', 6);
 ActorBomb.onCreate = function(data, complete) {
     this.id = data[0];
     this.radius = data[1];
@@ -424,7 +424,7 @@ ActorBomb.onDraw = function() {
 };
 
 // PowerUP ---------------------------------------------------------------------
-var ActorPowerUp = Client.createActorType('powerup', 0);
+var ActorPowerUp = Shooter.Actor('powerup', 0);
 ActorPowerUp.onCreate = function(data, complete) {
     this.type = data[0];
     this.col = this.$.powerUpColors[this.type];
@@ -462,7 +462,7 @@ ActorPowerUp.onDraw = function() {
 
 
 // Player Defender -------------------------------------------------------------
-var ActorPlayerDef = Client.createActorType('player_def', 6);
+var ActorPlayerDef = Shooter.Actor('player_def', 6);
 ActorPlayerDef.onCreate = function(data, complete) {
     this.id = data[0];
     this.or = this.r = data[1];
@@ -521,7 +521,7 @@ ActorPlayerDef.wrap = function() {
 
 
 // Asteroid --------------------------------------------------------------------
-var ActorAsteroid = Client.createActorType('asteroid', 6);
+var ActorAsteroid = Shooter.Actor('asteroid', 6);
 ActorAsteroid.points = [
     [[-1, -6], [-7, -4], [-6, 4], [2, 5], [6, -2]],
     [[-2, -13], [-13 , -8], [-12, 8], [-2, 12], [11, 10], [12, -8]],

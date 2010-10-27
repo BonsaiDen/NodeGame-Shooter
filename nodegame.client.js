@@ -53,12 +53,34 @@ Game.prototype.onShutdown = function(data) {};
 Game.prototype.onClose = function(error) {};
 Game.prototype.onRecordingEnd = function() {};
 
+Game.prototype.BaseActor = function(rate) {
+    this.updateRate = rate;
+    this.onCreate = function(data, complete) {};
+    this.onUpdate = function(data) {};
+    this.onEvent = function(data) {};
+    this.onInterleave = function() {};
+    this.onDraw = function() {};
+    this.onDestroy = function(complete) {};
+};
+
+Game.prototype.Actor = function(id, rate) {
+    return this.$.actorTypes[id] = new this.BaseActor(rate);
+};
+
 Game.prototype.getTime = function() {
     return this.$.time;
 };
 
 Game.prototype.timeDiff = function(time) {
     return this.$.time - time;
+};
+
+Game.prototype.connect = function(host, port) {
+    this.$.connect(host, port);
+};
+
+Game.prototype.close = function() {
+    this.$.close();
 };
 
 Game.prototype.send = function(msg) {
@@ -68,7 +90,7 @@ Game.prototype.send = function(msg) {
 
 // Client ----------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-function Client(fps) {
+function Client() {
     this.reset();
     
     this.created = false;
@@ -315,20 +337,6 @@ Client.prototype.update = function() {
     }
 };
 
-Client.prototype.createActorType = function(id, rate) {
-    function ActorType(rate) {
-        this.updateRate = rate;
-        this.onCreate = function(data, complete) {};
-        this.onUpdate = function(data) {};
-        this.onEvent = function(data) {};
-        this.onInterleave = function() {};
-        this.onDraw = function() {};
-        this.onDestroy = function(complete) {};
-    }
-    this.actorTypes[id] = new ActorType(rate);
-    return this.actorTypes[id];
-};
-
 Client.prototype.send = function(msg) {
     this.conn.send(BISON.encode(msg));
 };
@@ -391,6 +399,9 @@ Actor.prototype.timeDiff = function(time) {
 };
 
 // Exports
-window.NodeGame = Client;
+window.NodeGame = function(fps) {
+    var client = new Client();
+    return client.Game(fps);
+};
 })();
 

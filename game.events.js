@@ -98,7 +98,7 @@ Shooter.onConnect = function(success) {
         this.watch();
     
     } else {
-        this.$.send(['init']);
+        this.send(['init']);
     }
 };
 
@@ -215,7 +215,7 @@ Shooter.onDraw = function() {
 // Game Events -----------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Shooter.onWatch = function() {
-    this.$.close();
+    this.close();
 };
 
 Shooter.onPlay = function() {

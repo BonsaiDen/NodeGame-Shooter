@@ -23,8 +23,7 @@
 
 // Game ------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-var Client = new NodeGame();
-var Shooter = Client.Game(30);
+var Shooter = NodeGame(30);
 
 Shooter.colorCodes = ['#f00000', '#0080ff', '#f0f000', '#00f000', '#9000ff'];
 Shooter.colorCodesFaded = ['#700000', '#004080', '#707000', '#007000', '#500080'];
@@ -173,7 +172,7 @@ Shooter.tutorial = function(id) {
 
 // Utility ---------------------------------------------------------------------
 function initGame() {
-    Client.connect(HOST, PORT);
+    Shooter.connect(HOST, PORT);
 }
 
 function show(id) {
