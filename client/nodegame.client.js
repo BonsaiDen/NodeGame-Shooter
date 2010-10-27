@@ -306,10 +306,11 @@ Client.prototype.Game = function(fps) {
 
 Client.prototype.update = function() {
     if (this.running) {
+        var frameTime = new Date().getTime();
         this.processMessages();
         this.$.onDraw();
-        this.time = new Date().getTime();
         
+        this.time = new Date().getTime();
         for(var c in this.actors) {
             var a = this.actors[c];
             if (a.$updateRate > 0) {
@@ -323,7 +324,7 @@ Client.prototype.update = function() {
         }
         
         var that = this;
-        var next = this.fpsTime - (new Date().getTime() - this.time);
+        var next = this.fpsTime - (new Date().getTime() - frameTime);
         this.gameTimer = setTimeout(function() {that.update()}, next);
         
         if (this.$.playing) {
