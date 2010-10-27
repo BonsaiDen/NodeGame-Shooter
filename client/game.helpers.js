@@ -164,7 +164,7 @@ Shooter.play = function () {
     this.reset();
     hide('offlineBox');
     $('gameInfoLeft').innerHTML = '';
-    this.$.connect(HOST, PORT);
+    this.connect(HOST, PORT);
 };
 
 
