@@ -435,10 +435,6 @@ Field.prototype.update = function(value) {
     this.updated = true;
 };
 
-Server.prototype.newField = function(id, value) {
-    return this.fields[id] = new Field(value);
-};
-
 Server.prototype.updateFields = function() {
     for(var i in this.clients) {
         var c = this.clients[i];
@@ -533,6 +529,14 @@ Game.prototype.getActors = function(clas) {
 
 Game.prototype.createActor = function(clas, data) {
     return this.$.createActor(clas, data);
+};
+
+Game.prototype.destroyActors = function() {
+    return this.$.destroyActors();
+};
+
+Game.prototype.createField = function(id, value) {
+    return this.$.fields[id] = new Field(value);
 };
 
 

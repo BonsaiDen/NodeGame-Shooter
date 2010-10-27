@@ -83,7 +83,7 @@ Client.init = function() {
         this.shotTime = this.getTime() + 1000;
         this.bomb = null;
         this.bombLaunched = false;
-        this.player = this.$.createActor('player', {'r': 0, 'client': this});
+        this.player = this.$$.createActor('player', {'r': 0, 'client': this});
     }
 };
 
@@ -132,7 +132,7 @@ Client.onUpdate = function() {
     if (this.reset !== -1) {
         if (this.timeDiff(this.reset) > 3000) {
             this.shotTime = this.getTime();
-            this.player = this.$.createActor('player', {'r': 0, 'client': this});
+            this.player = this.$$.createActor('player', {'r': 0, 'client': this});
             this.reset = -1;
         }
         return;
@@ -164,7 +164,7 @@ Client.onUpdate = function() {
                 }
             
             } else {
-                this.bomb = this.$.createActor('bomb',{
+                this.bomb = this.$$.createActor('bomb',{
                     'r': this.$$.wrapAngle(this.player.r + this.player.mr),
                     'player': this.player,
                     'd': 18.25 + (this.player.armor ? 3 : 0)
@@ -194,7 +194,7 @@ Client.onUpdate = function() {
         
         moved = true;
         if (this.player.missiles > 0) {
-            this.$.createActor('missile', {
+            this.$$.createActor('missile', {
                 'player': this.player,
                 'r': this.$$.wrapAngle(this.player.r + this.player.mr),
                 'd': 16 + (this.player.armor ? 3 : 0)
@@ -202,7 +202,7 @@ Client.onUpdate = function() {
             this.player.missiles--;
         
         } else {
-            this.$.createActor('bullet', {
+            this.$$.createActor('bullet', {
                 'player': this.player,
                 'r': this.$$.wrapAngle(this.player.r + this.player.mr),
                 'd': 13.5 + (this.player.armor ? 3 : 0)
@@ -339,7 +339,7 @@ Client.kill = function(projectile, asteroid) {
     this.player.destroy();
     
     if (this.player.bomb && !this.bombLaunched) {
-        var bomb = this.$.createActor('bomb', {
+        var bomb = this.$$.createActor('bomb', {
             'r': 0,
             'player': this.player,
             'd': 0

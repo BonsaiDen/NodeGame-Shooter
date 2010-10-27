@@ -29,7 +29,7 @@ Game.onInit = function() {
     // Size
     this.width = 480;
     this.height = 480;
-    this.fieldSize = this.$.newField('s', [this.width, this.height]);
+    this.fieldSize = this.createField('s', [this.width, this.height]);
     
     this.fullWidth = this.width + 32;
     this.fullHeight = this.height + 32;
@@ -46,20 +46,20 @@ Game.onInit = function() {
     this.roundFinished = false;
     this.roundStats = {};
     
-    this.fieldRoundID = this.$.newField('ri', this.roundID);
-    this.fieldRoundTime = this.$.newField('rt', this.roundTime);
-    this.fieldRoundGO = this.$.newField('rg', 0); 
-    this.fieldRoundStats = this.$.newField('rs', []);
+    this.fieldRoundID = this.createField('ri', this.roundID);
+    this.fieldRoundTime = this.createField('rt', this.roundTime);
+    this.fieldRoundGO = this.createField('rg', 0); 
+    this.fieldRoundStats = this.createField('rs', []);
     
     // Players
     this.maxPlayers = 5;
     this.playerCount = 0;
     this.playerColors = [-1, -1, -1, -1, -1, -1, -1];
     
-    this.fieldMaxPlayers = this.$.newField('m', this.maxPlayers);
-    this.fieldPlayers = this.$.newField('p', {});
-    this.fieldScores = this.$.newField('c', {});
-    this.fieldColors = this.$.newField('o', {});  
+    this.fieldMaxPlayers = this.createField('m', this.maxPlayers);
+    this.fieldPlayers = this.createField('p', {});
+    this.fieldScores = this.createField('c', {});
+    this.fieldColors = this.createField('o', {});  
     
     // Sizes
     this.sizePlayer = 21;
@@ -133,7 +133,7 @@ Game.endRound = function() {
     this.roundFinished = true;
     this.roundStart = this.getTime();
     this.roundTime = this.roundWait;
-    this.$.destroyActors();
+    this.destroyActors();
     
     // Stats
     var sorted = [];
