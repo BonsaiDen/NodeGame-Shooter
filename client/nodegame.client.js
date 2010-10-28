@@ -105,17 +105,6 @@ function Client() {
     this.recTimer = null;
 };
 
-Client.prototype.reset = function() {
-    this.conn = null;
-    this.connected = false;
-    this.lastState = '';
-    this.time = new Date().getTime();
-    this.messages = [];
-    this.interval = 0;
-    this.running = false;
-    this.actors = {};
-};
-
 Client.prototype.connect = function(host, port) {
     var that = this;
     if (!this.created) {
@@ -147,6 +136,17 @@ Client.prototype.close = function() {
     this.conn.close();
 };
 
+Client.prototype.reset = function() {
+    this.conn = null;
+    this.connected = false;
+    this.lastState = '';
+    this.time = new Date().getTime();
+    this.messages = [];
+    this.interval = 0;
+    this.running = false;
+    this.actors = {};
+};
+
 Client.prototype.quit = function() {
     clearTimeout(this.gameTimer);
     for(var i in this.actors) {
@@ -159,10 +159,7 @@ Client.prototype.quit = function() {
 // Recording -------------------------------------------------------------------
 Client.prototype.playRecording = function(record) {
     if (record) {
-        if (this.recID > 0) {
-            this.quit();
-        }
-        
+        this.quit();
         this.recTimer = null;
         this.rec = record;
         this.recTime = this.getTime() - this.rec[0][0];
@@ -199,7 +196,6 @@ Client.prototype.replayRecording = function(timeout) {
 
 Client.prototype.stopRecording = function() {
     clearTimeout(this.recTimer);
-    this.recID = -1;
     this.quit();
 };
 
@@ -287,8 +283,9 @@ Client.prototype.handleMessage = function(data, time) {
         }
     
     } else if (type === MSG_CONNECTION_CLOSED) {
+        var that = this;
         this.quit();
-        this.$.onClose(data[0]);
+        setTimeout(function() {that.$.onClose(data[0]);}, 0);
     }
     
     if (this.recID !== -1) {
@@ -305,8 +302,8 @@ Client.prototype.Game = function(fps) {
 };
 
 Client.prototype.update = function() {
+    var frameTime = new Date().getTime();
     if (this.running) {
-        var frameTime = new Date().getTime();
         this.processMessages();
         this.$.onDraw();
         
@@ -322,7 +319,9 @@ Client.prototype.update = function() {
             }
             a.onDraw();
         }
-        
+    }
+    
+    if (this.running) {
         var that = this;
         var next = this.fpsTime - (new Date().getTime() - frameTime);
         this.gameTimer = setTimeout(function() {that.update()}, next);
