@@ -30,7 +30,7 @@ Client.onInit = function() {
     this.playerColor = -1;
     this.favoredColor = -1;
     this.log('++ [' + this.getInfo() + '] connected');
-    this.local = this.ip === '127.0.0.1'
+    this.local = this.ip === '127.0.0.1';
 };
 
 Client.init = function() {
