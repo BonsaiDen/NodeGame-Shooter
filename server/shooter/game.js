@@ -166,8 +166,8 @@ Game.endRound = function() {
     setTimeout(function(){that.startRound();}, this.roundWait);
 };
 
-Game.achievement = function(player, type) {
-    this.$.messageAll({'aie': [player.cid,
+Game.achievement = function(id, type) {
+    this.$.messageAll({'aie': [typeof id === 'object' ? id.cid : id,
                                this.achievements[type][0],
                                this.achievements[type][1],
                                this.achievements[type][2]]});

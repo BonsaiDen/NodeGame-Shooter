@@ -397,7 +397,7 @@ Client.addKill = function(bomb, defend) {
     } else {
         this.achieveBoom++;
         if (this.achieveBoom === 3) {
-            this.$$.achievement(this.player, 'boom');
+            this.$$.achievement(this.id, 'boom');
             this.achieveBoom = 0;
         }
     }
