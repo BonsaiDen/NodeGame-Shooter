@@ -411,17 +411,17 @@ ActorBomb.onCreate = function(data) {
     this.killedPlayers = [];
     
     if (this.player) {
-        this.color = this.player.cid;
+        this.cid = this.player.cid;
         this.player.client.shots++;
         this.$$.launchAt(this, 4, this.r, 6, 9);
         this.x = this.player.x + Math.sin(this.$$.wrapAngle(this.r)) * data.d;
         this.y = this.player.y + Math.cos(this.$$.wrapAngle(this.r)) * data.d;
     
     } else {
-        this.color = 0;
+        this.cid = 0;
         this.x = data.obj.x;
         this.y = data.obj.y;
-    }    
+    }
 };
 
 ActorBomb.onUpdate = function() {
@@ -435,7 +435,7 @@ ActorBomb.onUpdate = function() {
 
 ActorBomb.finishExplosion = function() {
     if (this.killedPlayers.length === 1 && this.fired) {
-        if (this.killedPlayers[0] === this.player.cid) {
+        if (this.killedPlayers[0] === this.cid) {
             this.$$.achievement(this.player, 'awesome');
         }
     
@@ -456,7 +456,7 @@ ActorBomb.finishExplosion = function() {
 
 ActorBomb.checkPlayerCollision = function(p) {
     if (this.timeDiff(this.time) > 3750
-        && p.cid !== this.player.cid) {
+        && p.cid !== this.cid) {
         
         this.$$.achievement(this.player, 'sharp');
     }   
@@ -467,7 +467,7 @@ ActorBomb.onDestroy = function() {
 };
 
 ActorBomb.onMessage = function(once) {
-    return once ? [this.color, this.range] : [];
+    return once ? [this.cid, this.range] : [];
 };
 
 

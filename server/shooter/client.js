@@ -329,7 +329,7 @@ Client.killByBomb = function(b) {
             b.player.client.addScore(-5);
             b.player.client.selfDestructs++;
         }
-        this.killedBy = [this.getTime(), b.player.cid];
+        this.killedBy = [this.getTime(), b.cid];
         this.kill();
     }
 };
