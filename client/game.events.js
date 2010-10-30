@@ -165,7 +165,7 @@ Shooter.onMessage = function(msg) {
         this.roundTime = msg.rt;
     }
     if (msg.aie !== undefined) {
-        this.showAchievement(msg.aie[0], msg.aie[1], msg.aie[2]);
+        this.showAchievement(msg.aie[0], msg.aie[1], msg.aie[2], msg.aie[3]);
     }
     if (msg.kicked !== undefined) {
         this.kicked = true;

@@ -169,90 +169,114 @@ Game.endRound = function() {
 Game.achievement = function(player, type) {
     this.$.messageAll({'aie': [player.cid,
                                this.achievements[type][0],
-                               this.achievements[type][1]]});
+                               this.achievements[type][1],
+                               this.achievements[type][2]]});
 };
 
 Game.achievements = {
-    'hattrick': ['Hattrick',
-                 'Destroy 3 players in a row without dying.'],
-    
-    'head':     ['Space Waste',
-                 'Get destroyed 6 times without destroying anyone else.'],
-    
-    'ninja':    ['Ninja Skills!',
-                 'Destroy 2 players while being in stealth.'],
-    
     'boom':     ['BOOOOOOOOOM!',
-                 'Destroy at least 3 players with a single bomb!'],
-    
-    'guide':    ['Guide to the Galaxy',
-                 'Score exactly 42 points.'],
+                 'Destroy at least 3 players with a single bomb!',
+                 10],
     
     'awesome':  ['AWESOME BOMB, NOT.',
-                 'Destroy yourself and ONLY yourself with a bomb.'],
-    
-    'bullets':  ['Bullet Proof',
-                 'Survive 5 bullet hits.'],
-    
-    'stamina':  ['STAMINA! OH YEAH!',
-                 'Take 40 points of damage without being destroyed.'],
-    
-    'touch':    ['You can\'t touch this...',
-                 'Get killed by a defender.'],
+                 'Destroy yourself and ONLY yourself with a bomb.',
+                 10],
     
     'fail':     ['EPIC FAIL!',
-                 'Destroy the giant asteroid and get destroyed by its debris.'],
-    
-    'close':    ['Close Call!',
-                 'Be REALLY close to a bomb detonation.'],
+                 'Destroy the giant asteroid and get destroyed by its debris.',
+                 9],
     
     'giro':     ['GIRONIMO!!!',
-                 'Destroy the giant asteroid... by crashing into it!'],
-    
-    'kami':     ['Kamikaze!',
-                 'Crash into someone that has a shield or the armor.'],
-    
-    'missile':  ['Missile Master',
-                 'Collect 10 missiles.'],
-    
-    'miss':     ['MISS-iles',
-                 'Shoot 5 missiles without hitting anyone.'],
-    
-    'move':     ['Keep Cool...',
-                 'Don\'t move for 15 seconds... and survive that!'],
+                 'Destroy the giant asteroid... by crashing into it!',
+                 9],
     
     'master':   ['Master of the Universe',
-                 'Have Defender, at least 5 Missiles and Armor or Shield!'],
+                 'Have Defender, at least 5 Missiles and Armor or Shield!',
+                 9],
     
-    'balls':    ['Balls of Steel',
-                 'Destroy 2 players with a defender.'],
+    'guide':    ['Guide to the Galaxy',
+                 'Score exactly 42 points.',
+                 8],
     
-    'hit':      ['Watch out DUUUDE!',
-                 'Destroy a player JUST before they crashing into you.'],
+    'close':    ['Close Call!',
+                 'Be REALLY close to a bomb detonation.',
+                 8], 
     
-    'ast':      ['Asteroids. You\'re doing it wrong.',
-                 'Crash into 5 asteroids.'],
+    'ninja':    ['Ninja Skills!',
+                 'Destroy 2 players while being in stealth.',
+                 8],
     
     'revenge':  ['REVENGE FOR SUSHII!!',
-                 'Destroy someone within one second after they destroyed you.'],
-    
-    'kawaii':   ['Kawaii! ^_^"',
-                 'Clean up this place by destroying 10 little asteroids.'],
+                 'Destroy someone within one second after they destroyed you.',
+                 7],
     
     'sharp':    ['Sharpshooter',
-                 'Hit someone with a bomb that was JUST about to explode.'],
+                 'Hit someone with a bomb that was JUST about to explode.',
+                 7], 
     
-    'boost':    ['You\'ve got Boost Power!',
-                 'Fly full speed for 10 seconds.'],
+    'hit':      ['Watch out DUUUDE!',
+                 'Destroy a player JUST before they crashing into you.',
+                 6],
     
-    'bad':      ['Bad Luck',
-                 'Get destroyed the moment you become vulnerable.'],
+    'balls':    ['Balls of Steel',
+                 'Destroy 2 players with a defender.',
+                 6],           
+    
+    'stamina':  ['STAMINA! OH YEAH!',
+                 'Take 40 points of damage without being destroyed.',
+                 5],
+    
+    'touch':    ['You can\'t touch this...',
+                 'Get killed by a defender.',
+                 5],
+     
+    'move':     ['Keep Cool...',
+                 'Don\'t move for 15 seconds... and survive that!',
+                 5],
+    
+    'ast':      ['Asteroids. You\'re doing it wrong.',
+                 'Crash into 5 asteroids.',
+                 4],
     
     'fire':     ['Fireworks!',
-                 'Detonate a bomb... without destroying anyone.'],
+                 'Detonate a bomb... without destroying anyone.',
+                 4],
     
-    'last':     ['At the Last Second...',
-                 'Take the lead in score when less than five seconds are left.']
+    'boost':    ['You\'ve got Boost Power!',
+                 'Fly full speed for 10 seconds.',
+                 4],
+    
+    'bullets':  ['Bullet Proof',
+                 'Survive 5 bullet hits.',
+                 3], 
+    
+    'kami':     ['Kamikaze!',
+                 'Crash into someone that has a shield or the armor.',
+                 3],
+    
+    'bad':      ['Bad Luck',
+                 'Get destroyed the moment you become vulnerable.',
+                 2],
+    
+    'hattrick': ['Hattrick',
+                 'Destroy 3 players in a row without dying.',
+                 2],
+        
+    'waste':    ['Space Waste',
+                 'Get destroyed 6 times without destroying anyone else.',
+                 1],
+    
+    'missile':  ['Missile Master',
+                 'Collect 10 missiles.',
+                 1],
+    
+    'kawaii':   ['Kawaii! ^_^"',
+                 'Clean up this place by destroying 10 little asteroids.',
+                 1],
+    
+    'miss':     ['MISS-iles',
+                 'Shoot 5 missiles without hitting anyone.',
+                 1]
 };
 
 
