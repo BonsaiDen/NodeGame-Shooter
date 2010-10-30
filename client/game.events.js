@@ -54,6 +54,7 @@ Shooter.onCreate = function(flash) {
     // Achievements
     this.achievementTimer = null;
     this.achievementFadeTimer = null;
+    this.achievementPriority = 0;
     
     // General
     var that = this;

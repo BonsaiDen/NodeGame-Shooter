@@ -143,6 +143,7 @@ Shooter.showAchievement = function(player, title, description, priority) {
 
 Shooter.achievementHide = function() {
     window.clearTimeout(this.achievementTimer);
+    this.achievementPriority = 0;
     this.achievementFadeOut();
 }
 
