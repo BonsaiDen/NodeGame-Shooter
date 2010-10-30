@@ -352,10 +352,10 @@ Client.kill = function(projectile, asteroid) {
     // Achievements
     this.achieveHatTrick = 0;
     if (projectile) {
-        this.achieveHeadless++;
-        if (this.achieveHeadless === 6) {
-            this.$$.achievement(this.player, 'head');
-            this.achieveHeadless = 0;
+        this.achieveWaste++;
+        if (this.achieveWaste === 6) {
+            this.$$.achievement(this.player, 'waste');
+            this.achieveWaste = 0;
         }
     }
     
@@ -401,6 +401,7 @@ Client.addKill = function(bomb, defend) {
             this.achieveBoom = 0;
         }
     }
+    this.achieveWaste = 0;
     this.kills++;
 };
 
@@ -444,7 +445,7 @@ Client.getInfo = function() {
 
 Client.resetAchievements = function() {
     this.achieveHatTrick = 0;
-    this.achieveHeadless = 0;
+    this.achieveWaste = 0;
     this.achieveNinja = 0;
     this.achieveBoom = 0;
     this.achieveDefend = 0;
