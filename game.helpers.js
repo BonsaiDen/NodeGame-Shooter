@@ -103,10 +103,12 @@ Shooter.achievementFadeOut = function(callback) {
     fade();
 };
 
-Shooter.showAchievement = function(player, title, description) {
+Shooter.showAchievement = function(player, title, description, priority) {
     var that = this;
     var overlay = $('achievementOverlay');
     if (overlay.style.display !== 'block') {
+        this.achievementPriority = priority;
+    
         if (this.playing && this.player) {
             if (this.player.y > this.height / 2) {
                 overlay.style.paddingTop = '80px';
@@ -114,6 +116,7 @@ Shooter.showAchievement = function(player, title, description) {
             } else {
                 overlay.style.paddingTop = (this.height - 100) + 'px';
             }
+        
         } else {
             overlay.style.paddingTop = '80px';
         }
@@ -126,10 +129,11 @@ Shooter.showAchievement = function(player, title, description) {
         
         this.achievementFadeIn();
         this.achievementTimer = window.setTimeout(function() {
+            that.achievementPriority = 0;
             that.achievementFadeOut();
         }, 3500);
     
-    } else {
+    } else if (priority >= this.achievementPriority) {
         window.clearTimeout(this.achievementTimer);
         this.achievementFadeOut(function() {
             that.showAchievement(player, title, description);
@@ -139,6 +143,7 @@ Shooter.showAchievement = function(player, title, description) {
 
 Shooter.achievementHide = function() {
     window.clearTimeout(this.achievementTimer);
+    this.achievementPriority = 0;
     this.achievementFadeOut();
 }
 
