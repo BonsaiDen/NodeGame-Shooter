@@ -98,7 +98,7 @@ a:hover {
 #loginBox, #offlineBox {
     display: none;
     text-align: center;
-    width: 275px;
+    width: 290px;
     margin: 0px auto 0px;
     font-size: 15px;
     opacity: 0.2;
@@ -115,18 +115,23 @@ a:hover {
 }
 
 input {
+    font-family: Arial;
     border: 2px #f0f0f0 solid;
     background-color: #000000;
-    margin-top: 2px;
     font-size: 23px;
     font-weight: bold;
+    margin: 0px;
     color: #ffffff;
-    width: 210px;
+    width: 215px;
     padding: 2px;
+    height: 28px;
 }
 
 input[type="button"] {
-    width: auto;
+    margin: 0px;
+    margin-left: 2px;
+    width: 64px;
+    height: 36px;
 }
 
 input[type="button"]:active {
