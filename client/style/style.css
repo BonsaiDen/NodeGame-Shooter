@@ -98,11 +98,10 @@ a:hover {
 #loginBox, #offlineBox {
     display: none;
     text-align: center;
-    width: 250px;
+    width: 275px;
     margin: 0px auto 0px;
     font-size: 15px;
-    opacity: 0.075;
-
+    opacity: 0.2;
 }
 
 #offlineBox {
@@ -122,8 +121,17 @@ input {
     font-size: 23px;
     font-weight: bold;
     color: #ffffff;
-    width: 240px;
+    width: 210px;
     padding: 2px;
+}
+
+input[type="button"] {
+    width: auto;
+}
+
+input[type="button"]:active {
+    background-color: #ffffff;
+    color: #000000;
 }
 
 .controls {

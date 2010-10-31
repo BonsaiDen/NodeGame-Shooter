@@ -276,13 +276,17 @@ Shooter.onTutorial = function(data) {
 Shooter.onLogin = function(e) {
     e = e || window.event;
     if (e.keyCode === 13) {
-        var playerName = $('login').value;
-        playerName = playerName.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '_');
-        if (playerName.length >= 2 && playerName.length <= 12) {
-            e.preventDefault();
-            this.send({'player': playerName, 'color': this.colorSelected});
-        }
-        return false;
+        e.preventDefault();
+        return Shooter.doLogin();
     }
+};
+
+Shooter.doLogin = function() {
+    var playerName = $('login').value;
+    playerName = playerName.replace(/^\s+|\s+$/g, '').replace(/\s+/g, '_');
+    if (playerName.length >= 2 && playerName.length <= 15) {
+        this.send({'player': playerName, 'color': this.colorSelected});
+    }
+    return false;
 };
 

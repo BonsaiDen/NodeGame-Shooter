@@ -97,7 +97,7 @@ Client.onMessage = function(msg) {
     } else if (msg.player) {
         msg.player = msg.player.trim().replace(/\s+/g, '_');
         if (msg.player && this.playerName === ''
-            && msg.player.length >= 2 && msg.player.length <= 12
+            && msg.player.length >= 2 && msg.player.length <= 15
             && this.$$.playerCount < this.$$.maxPlayers) {
             
             this.playerName = msg.player;
