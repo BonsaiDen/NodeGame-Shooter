@@ -29,6 +29,7 @@ var BISON = require('./bison');
 
 // Message types
 var MSG_GAME_START = 1;
+var MSG_GAME_PING = 10;
 var MSG_GAME_FIELDS = 2;
 var MSG_GAME_SHUTDOWN = 3;
 
@@ -137,6 +138,7 @@ function Server(options, model) {
                     conn.$clientID = that.addClient(conn);
                 
                 } else if (conn.$clientID) {
+                    that.clients[conn.$clientID].send(MSG_GAME_PING, []);
                     that.clients[conn.$clientID].onMessage(msg);
                 }
             

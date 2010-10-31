@@ -224,6 +224,7 @@ input[type="button"]:active {
 #gameInfo {
     margin: 0px auto 0px;
     font-size: 12px;
+    cursor: default;
 }
 
 #gameInfoRight {
