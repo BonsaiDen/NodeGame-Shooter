@@ -64,6 +64,7 @@ Shooter.renderRound = function() {
         var text = this.renderTime() + ' left | Round #' + this.roundID;
         if (text !== this.infoRightText) {
             $('gameInfoRight').innerHTML = this.infoRightText = text;
+            $('gameInfoRight').title = 'Ping ' + this.$.ping + 'ms';
         }
     }
 };

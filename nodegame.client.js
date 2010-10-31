@@ -23,6 +23,7 @@
 (function() {
 
 var MSG_GAME_START = 1;
+var MSG_GAME_PING = 10;
 var MSG_GAME_FIELDS = 2;
 var MSG_GAME_SHUTDOWN = 3;
 
@@ -142,6 +143,9 @@ Client.prototype.reset = function() {
     this.lastState = '';
     this.time = new Date().getTime();
     this.messages = [];
+    this.pingTime = new Date().getTime();
+    this.ping = 0;
+    this.pings = [0, 0, 0, 0, 0];
     this.interval = 0;
     this.running = false;
     this.actors = {};
@@ -238,6 +242,19 @@ Client.prototype.handleMessage = function(data, time) {
     } else if (type === MSG_GAME_FIELDS) {
         this.$.onUpdate(data[0], false);
     
+    } else if (type === MSG_GAME_PING) {
+        var ping = time - this.pingTime;
+        this.pings.push(ping);
+        if (this.pings.length > 5) {
+            this.pings.shift();
+        }
+        
+        var median = 0;
+        for(var i = 0; i < 5; i++) {
+            median += this.pings[i];
+        }
+        this.ping = median / 10;
+    
     } else if (type === MSG_GAME_SHUTDOWN) {
         this.$.onShutdown(data);
     
@@ -329,6 +346,7 @@ Client.prototype.update = function() {
         if (this.$.playing) {
             var msg = BISON.encode(this.$.onInput());
             if (msg !== this.lastState) {
+                this.pingTime = new Date().getTime();
                 this.conn.send(msg);
                 this.lastState = msg;
             }
@@ -337,6 +355,7 @@ Client.prototype.update = function() {
 };
 
 Client.prototype.send = function(msg) {
+    this.pingTime = new Date().getTime();
     this.conn.send(BISON.encode(msg));
 };
 
