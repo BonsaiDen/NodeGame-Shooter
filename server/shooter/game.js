@@ -84,88 +84,18 @@ Game.onInit = function() {
     this.addPowerUpType('defense', 2, 30, 30, true);
     this.addPowerUpType('bomb',    1, 65, 35, true);
     this.addPowerUpType('camu',    1, 40, 20, true);
-    this.powerUpTimes = [2, 1.35, 1.12, 1.0, 1, 0.9, 0.8];
+    this.powerUpTimes = [1.8, 1.25, 1.12, 1.0, 1, 0.9, 0.8];
     
     // Asteroids
-    this.maxAsteroids = [8, 7, 7, 6, 6, 5, 4];
+    this.maxAsteroids = [9, 8, 7, 7, 6, 6, 5];
     
     // Start Game
     this.startRound();
 };
 
 
-// Rounds / Score / Achievments ------------------------------------------------
+// Achievments -----------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Game.startRound = function() {
-    this.roundID++;
-    this.roundStart = this.getTime();
-    this.roundTime = this.roundGame;
-    this.roundTimeUpdate = this.getTime();
-    this.nextAsteroid = this.getTime() + Math.random() * 5000;
-    this.nextBigAsteroid = this.getTime() + 40000 + Math.random() * 60000;
-    
-    this.fieldRoundID.update(this.roundID);
-    this.fieldRoundTime.update(this.roundGame);
-    this.fieldRoundGO.update(1);
-    this.fieldRoundStats.update([]);    
-    
-    // Reset powerup timers
-    for(var p in this.powerUps) {
-        this.powerUps[p][0] = 0;
-        this.createPowerUp(p, false, true);
-    }
-    this.powerUpCount = 0; 
-    
-    // Reset player stats
-    this.roundFinished = false;
-    for(var c in this.$.clients) {
-        this.$.clients[c].init(false);
-    }
-    
-    var that = this;
-    setTimeout(function(){that.endRound();}, this.roundGame);
-};
-
-Game.endRound = function() {
-    
-    // Reset
-    this.roundStart = this.getTime();
-    this.roundFinished = true;
-    this.roundStart = this.getTime();
-    this.roundTime = this.roundWait;
-    this.destroyActors();
-    
-    // Stats
-    var sorted = [];
-    for(var e in this.$.clients) {
-        var c = this.$.clients[e];
-        if (c.playerName != '') {
-            var hits = c.shots > 0 ? Math.round(100 / c.shots * c.hits) : -1;
-            sorted.push([c.score, c.kills, c.playerName, c.selfDestructs,
-                         c.playerColor, hits]);
-        }
-    }
-    
-    sorted.sort(function(a, b) {
-        var d = b[0] - a[0];
-        if (d === 0) {
-            d = b[1] - a[1];
-            if (d === 0) {
-                d = a[3] - b[3];
-            }
-        }
-        return d;
-    });
-    
-    this.fieldRoundTime.update(this.roundWait);
-    this.fieldRoundGO.update(0);
-    this.fieldRoundStats.update(sorted);
-    this.roundStats = {};
-    
-    var that = this;
-    setTimeout(function(){that.startRound();}, this.roundWait);
-};
-
 Game.achievement = function(id, type) {
     this.$.messageAll({'aie': [typeof id === 'object' ? id.cid : id,
                                this.achievements[type][0],
@@ -277,6 +207,79 @@ Game.achievements = {
     'miss':     ['MISS-iles',
                  'Shoot 5 missiles without hitting anyone.',
                  1]
+};
+
+
+// Rounds ----------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+Game.startRound = function() {
+    this.roundID++;
+    this.roundStart = this.getTime();
+    this.roundTime = this.roundGame;
+    this.roundTimeUpdate = this.getTime();
+    this.nextAsteroid = this.getTime() + Math.random() * 5000;
+    this.nextBigAsteroid = this.getTime() + 20000 + Math.random() * 80000;
+    
+    this.fieldRoundID.update(this.roundID);
+    this.fieldRoundTime.update(this.roundGame);
+    this.fieldRoundGO.update(1);
+    this.fieldRoundStats.update([]);    
+    
+    // Reset powerup timers
+    for(var p in this.powerUps) {
+        this.powerUps[p][0] = 0;
+        this.createPowerUp(p, false, true);
+    }
+    this.powerUpCount = 0; 
+    
+    // Reset player stats
+    this.roundFinished = false;
+    for(var c in this.$.clients) {
+        this.$.clients[c].init(false);
+    }
+    
+    var that = this;
+    setTimeout(function(){that.endRound();}, this.roundGame);
+};
+
+Game.endRound = function() {
+    
+    // Reset
+    this.roundStart = this.getTime();
+    this.roundFinished = true;
+    this.roundStart = this.getTime();
+    this.roundTime = this.roundWait;
+    this.destroyActors();
+    
+    // Stats
+    var sorted = [];
+    for(var e in this.$.clients) {
+        var c = this.$.clients[e];
+        if (c.playerName != '') {
+            var hits = c.shots > 0 ? Math.round(100 / c.shots * c.hits) : -1;
+            sorted.push([c.score, c.kills, c.playerName, c.selfDestructs,
+                         c.playerColor, hits]);
+        }
+    }
+    
+    sorted.sort(function(a, b) {
+        var d = b[0] - a[0];
+        if (d === 0) {
+            d = b[1] - a[1];
+            if (d === 0) {
+                d = a[3] - b[3];
+            }
+        }
+        return d;
+    });
+    
+    this.fieldRoundTime.update(this.roundWait);
+    this.fieldRoundGO.update(0);
+    this.fieldRoundStats.update(sorted);
+    this.roundStats = {};
+    
+    var that = this;
+    setTimeout(function(){that.startRound();}, this.roundWait);
 };
 
 
