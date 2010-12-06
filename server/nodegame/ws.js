@@ -161,7 +161,7 @@ function Connection($, req, socket, headers, upgradeHeader) {
 function Server(flash) {
     var that = this;
     var $ = new http.Server();
-    var connections = {};
+    this.connections = {};
     
     // WebSockets
     $.addListener('upgrade', function(req, socket, upgradeHeader) {
@@ -184,13 +184,13 @@ function Server(flash) {
     
     // Methods and Events
     this.add = function(conn) {
-        connections[conn.id] = conn;
+        that.connections[conn.id] = conn;
         that.onConnect(conn);
     };
     
     this.remove = function(conn) {
         that.onClose(conn);
-        delete connections[conn.id];
+        delete that.connections[conn.id];
     };
     
     this.onConnect = function(conn) {
@@ -204,8 +204,8 @@ function Server(flash) {
     
     this.broadcast = function(data) {
         var bytes = 0;
-        for(var c in connections) {
-            bytes += connections[c].send(data);
+        for(var c in that.connections) {
+            bytes += that.connections[c].send(data);
         }
         return bytes;
     };
