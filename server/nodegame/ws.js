@@ -54,7 +54,6 @@ function Connection($, req, socket, headers, upgradeHeader) {
             data += '\r\n\r\n';
             data += hash.digest('binary');
             socket.write(data, 'binary');
-            socket.flush();
         }
     
     } else {
@@ -66,7 +65,6 @@ function Connection($, req, socket, headers, upgradeHeader) {
          
         data += '\r\n\r\n';
         socket.write(data, 'ascii');
-        socket.flush();
     }  
     
     // Internal Stuff
@@ -118,7 +116,6 @@ function Connection($, req, socket, headers, upgradeHeader) {
                     bytes += Buffer.byteLength(data);
                 }
                 socket.write('\xff', 'binary'); 
-                socket.flush();
                 bytes += 2;
             
             } catch(e) {
