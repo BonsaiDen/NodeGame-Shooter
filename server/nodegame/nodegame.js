@@ -1,10 +1,10 @@
 /*
-  
+
   NodeGame: Shooter
   Copyright (c) 2010 Ivo Wetzel.
-  
+
   All rights reserved.
-  
+
   NodeGame: Shooter is free software: you can redistribute it and/or
   modify it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
@@ -17,14 +17,14 @@
 
   You should have received a copy of the GNU General Public License along with
   NodeGame: Shooter. If not, see <http://www.gnu.org/licenses/>.
-  
+
 */
 
 
 var sys = require('sys');
 var fs= require('fs');
 
-var ws = require('./ws');
+var WebSocket = require('./WebSocket');
 var BISON = require('./bison');
 
 // Message types
@@ -88,73 +88,73 @@ function Server(options, model) {
     this.port = options.port || 8000;
     this.showStatus = options.status === false ? false : true;
     this.flash = options.flash || false;
-    
+
     // Server
     this.model = model;
     this.fields = {};
     this.fieldsChanged = false;
-    this.logs = []; 
-    
+    this.logs = [];
+
     // Client
     this.clientCount = 0;
     this.clients = {};
     this.clientID = 0;
-    
+
     // Actors
     this.actorCount = 0;
     this.actorID = 0;
     this.actorTypes = model.actors;
     this.actors = {};
-    
+
     this.bytesSend = 0;
     this.bytesSendLast = 0;
-    
+
     // Recording
     this.record = options.record || false;
     this.recordFile = options.recordFile || './record[date].js';
     this.recordData = [];
-    
+
     // Socket
     var that = this;
-    this.$ = new ws.Server(this.flash);
-    this.$.onConnect = function(conn) {
+    this.$ = new WebSocket.Server();
+    this.$.on('connection', function(conn) {
         if (this.clientCount >= this.maxClients) {
             conn.close();
             return;
         }
-    };
-    
-    this.$.onMessage = function(conn, msg) {
+    });
+
+    this.$.on('data', function(conn, msg) {
         if (msg.length > that.maxChars) {
             that.log('!! Message longer than ' + that.maxChars + ' chars');
             conn.close();
-        
+
         } else {
             try {
                 var msg = BISON.decode(msg);
                 if (!conn.$clientID && msg instanceof Array && msg.length === 1
                     && msg[0] === 'init') {
-                    
+
                     conn.$clientID = that.addClient(conn);
-                
+
                 } else if (conn.$clientID) {
                     that.clients[conn.$clientID].send(MSG_GAME_PING, []);
                     that.clients[conn.$clientID].onMessage(msg);
                 }
-            
+
             } catch (e) {
                 that.log('!! Error: ' + e);
                 conn.close();
             }
         }
-    };
-    
-    this.$.onClose = function(conn) {
+    });
+
+    this.$.on('close', function(conn) {
         that.removeClient(conn.$clientID);
-    };
-    
+    });
+
     // Hey Listen!
-    this.flash = this.$.listen(this.port);
+    this.$.listen(this.port);
     this.run();
 }
 
@@ -171,7 +171,7 @@ Server.prototype.run = function() {
     this.$$ = new Game(this);
     this.$$.start();
     this.status();
-    
+
     if (this.record) {
         this.clientID++;
         this.clients[0] = new Client(this, null, true);
@@ -184,7 +184,7 @@ Server.prototype.shutdown = function() {
     this.$$.$running = false;
     this.emit(MSG_GAME_SHUTDOWN, this.$$.onShutdown());
     this.destroyActors();
-    
+
     var that = this;
     setTimeout(function() {
         for(var c in that.clients) {
@@ -209,10 +209,10 @@ Server.prototype.saveRecording = function() {
         this.log('## Saving recording...');
         var date = new Date().toString().replace(/(\s|:)/g, '-').substr(0, 24)
         var file = this.recordFile.replace('[date]', '.' + date);
-        var fd = fs.openSync(file, 'w+'); 
+        var fd = fs.openSync(file, 'w+');
         if (!fd) {
             this.log('!! Failed to save recording');
-        
+
         } else {
             var str = 'var RECORD = [\n';
             for(var i = 0, l = this.recordData.length; i < l; i++) {
@@ -268,7 +268,7 @@ Server.prototype.status = function(end) {
     if (!this.showStatus) {
         return;
     }
-    
+
     var stats = '    Running ' + this.toTime(this.time) + ' | '
                 + this.clientCount
                 + ' Client(s) | ' + this.actorCount + ' Actor(s) | '
@@ -276,7 +276,7 @@ Server.prototype.status = function(end) {
                 + ' send | '
                 + this.toSize((this.bytesSend - this.bytesSendLast) * 2)
                 + '/s\n';
-    
+
     this.bytesSendLast = this.bytesSend;
     for(var i = this.logs.length - 1; i >= 0; i--) {
         stats += '\n      ' + this.toTime(this.logs[i][0])
@@ -284,10 +284,10 @@ Server.prototype.status = function(end) {
     }
     sys.print('\x1b[H\x1b[J# NodeGame Server at port '
               + this.port + (this.flash ? ' / 843' : '') + '\n' + stats + '\n\x1b[s\x1b[H');
-    
+
     if (!end) {
         setTimeout(function() {that.status(false)}, 500);
-    
+
     } else {
         sys.print('\x1b[u\n');
     }
@@ -322,7 +322,7 @@ Server.prototype.send = function(conn, type, msg, record) {
     msg.unshift(type);
     if (!record) {
         this.bytesSend += conn.send(this.toBISON(msg));
-    
+
     } else {
         this.recordMessage(msg);
     }
@@ -379,11 +379,11 @@ Server.prototype.updateActors = function() {
                 if (a.$updated) {
                     a.$emit(MSG_ACTORS_UPDATE);
                     a.$updated = false;
-                
+
                 } else {
                     a.$emit(MSG_ACTORS_INIT);
                 }
-            
+
             } else {
                 this.actors[t].splice(i, 1);
                 i--;
@@ -398,15 +398,15 @@ Server.prototype.updateActors = function() {
 Server.prototype.sendActors = function(types) {
     types = types || [MSG_ACTORS_INIT, MSG_ACTORS_CREATE, MSG_ACTORS_UPDATE,
                       MSG_ACTORS_EVENT, MSG_ACTORS_REMOVE, MSG_ACTORS_DESTROY];
-    
+
     for(var i in this.clients) {
         var c = this.clients[i];
         if (!c.$initiated) {
             continue;
         }
-        
+
         for(var t = 0, l = types.length; t < l; t++) {
-            if (c.$messages[types[t]].length !== 0) { 
+            if (c.$messages[types[t]].length !== 0) {
                 c.send(types[t], c.$messages[types[t]]);
                 c.$messages[types[t]] = [];
             }
@@ -447,7 +447,7 @@ Server.prototype.updateFields = function() {
             }
         }
     }
-    
+
     for(var i in this.fields) {
         this.fields[i].updated = false;
     }
@@ -456,7 +456,7 @@ Server.prototype.updateFields = function() {
 Server.prototype.getFields = function(id, force) {
     var fieldData = {};
     var changed = false;
-    
+
     for(var i in this.fields) {
         var f = this.fields[i];
         if (f.clients.length === 0 || f.clients.indexOf(id) !== -1) {
@@ -547,23 +547,23 @@ Game.prototype.createField = function(id, value) {
 function Client(srv, conn, record) {
     this.$ = srv;
     this.$$ = srv.$$;
-    
+
     if (!record) {
         var e = conn.id.split(':');
         this.ip = e[0];
         this.port = Math.abs(e[1]);
-    
+
     } else {
         this.ip = '127.0.0.1';
-        this.port = 'RECORD';   
+        this.port = 'RECORD';
     }
-    
+
     this.$record = record;
     this.$conn = conn;
     this.$.time = srv.time;
     this.id = this.$.clientID;
     this.$actors = [];
-    
+
     this.$messages = {};
     this.$messages[MSG_ACTORS_INIT] = [];
     this.$messages[MSG_ACTORS_CREATE] = [];
@@ -571,7 +571,7 @@ function Client(srv, conn, record) {
     this.$messages[MSG_ACTORS_EVENT] = [];
     this.$messages[MSG_ACTORS_REMOVE] = [];
     this.$messages[MSG_ACTORS_DESTROY] = [];
-    
+
     this.$initiated = false;
     for(var t in this.$.actors) {
         for(var i = 0, l = this.$.actors[t].length; i < l; i++) {
@@ -588,7 +588,7 @@ Client.prototype.update = function() {
     if (!this.$initiated) {
         this.send(MSG_GAME_START, [this.id, this.$$.$interval,
                                    this.$.getFields(this.id, true)]);
-        
+
         this.$initiated = true;
     }
     this.onUpdate();
@@ -660,13 +660,13 @@ function Actor(srv, clas, data) {
     this.y = 0;
     this.mx = 0;
     this.my = 0;
-    
+
     this.$clients = [];
     this.$alive = true;
     this.$updated = false;
     this.$updateRate = this.$.actorTypes[this.$clas].updateRate;
     this.$updateCount = this.$updateRate;
-    
+
     // Extend
     for(var m in this.$.actorTypes[this.$clas]) {
         if (m !== 'destroy' && m !== 'update' && m !== 'alive') {
@@ -681,50 +681,50 @@ Actor.prototype.$emit = function(type, event) {
     for(var i in this.$.clients) {
         var c = this.$.clients[i];
         var index = c.$actors.indexOf(this.id);
-        
+
         // Should this actor be broadcasted to the client?
         if (this.$clients.length === 0 || this.$clients.indexOf(c.id) !== -1) {
-            
+
             // Create
             if (type === MSG_ACTORS_CREATE && index === -1) {
                 c.$actors.push(this.id);
                 c.$messages[MSG_ACTORS_CREATE].push(this.toMessage(true));
-            
+
             // Init
             } else if (type === MSG_ACTORS_INIT && index === -1) {
                 c.$actors.push(this.id);
                 c.$messages[MSG_ACTORS_INIT].push(this.toMessage(true));
-            
+
             } else {
-                
+
                 // Init in case the actor was removed previously
                 if (index === -1) {
                     c.$actors.push(this.id);
                     c.$messages[MSG_ACTORS_INIT].push(this.toMessage(true));
                 }
-                
+
                 // Destroy
                 if (type === MSG_ACTORS_DESTROY) {
                     c.$actors.splice(index, 1);
                     c.$messages[MSG_ACTORS_DESTROY].push([this.id,
                                                           Math.round(this.x),
                                                           Math.round(this.y)]);
-                
+
                 // Remove
                 } else if (type === MSG_ACTORS_REMOVE) {
                     c.$actors.splice(index, 1);
                     c.$messages[MSG_ACTORS_REMOVE].push([this.id]);
-                
+
                 // Update
                 } else if (type === MSG_ACTORS_UPDATE) {
                     c.$messages[MSG_ACTORS_UPDATE].push(this.toMessage(false));
-                
+
                 // Event
                 } else if (type === MSG_ACTORS_EVENT) {
                     c.$messages[MSG_ACTORS_EVENT].push(event);
                 }
             }
-        
+
         // Remove
         } else if (this.$clients.indexOf(c.id) === -1 && index !== -1) {
             c.$actors.splice(index, 1);
@@ -742,12 +742,12 @@ Actor.prototype.toMessage = function(once) {
     var y = Math.round(this.y * 100) / 100;
     var nx = Math.round((x + this.interleave(this.mx)) * 100) / 100;
     var ny = Math.round((y + this.interleave(this.my)) * 100) / 100;
-    
+
     var raw = [this.id, x, y, nx, ny];
     if (once) {
         raw.push(this.$clas);
     }
-    
+
     var msg = [raw];
     var d = this.onMessage(once);
     if (d.length > 0) {
