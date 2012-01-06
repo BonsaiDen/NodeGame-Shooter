@@ -1,245 +1,272 @@
-/*
-  
-  BiSON.js
-  Copyright (c) 2010 Ivo Wetzel.
-  
-  All rights reserved.
-  
-  BiSON.js is free software: you can redistribute it and/or
-  modify it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-
-  BiSON.js is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License along with
-  BiSON.js. If not, see <http://www.gnu.org/licenses/>.
-  
-*/
-
+/**
+  * Copyright (c) 2009-2011 Ivo Wetzel.
+  *
+  * Permission is hereby granted, free of charge, to any person obtaining a copy
+  * of this software and associated documentation files (the "Software"), to deal
+  * in the Software without restriction, including without limitation the rights
+  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  * copies of the Software, and to permit persons to whom the Software is
+  * furnished to do so, subject to the following conditions:
+  *
+  * The above copyright notice and this permission notice shall be included in
+  * all copies or substantial portions of the Software.
+  *
+  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  * THE SOFTWARE.
+  */
 (function(undefined) {
-var chr = String.fromCharCode;
-var tok = new Array(65536);
-for (var i = 0; i < 65536; i++) {
-    tok[i] = chr(i);
-}
 
-var enc = '';
-function _encode(data, top) {
-    if (typeof data === 'number') {
-        
-        // Floats
-        var m = data | 0;
-        if (m !== data) {
-            var add = 0, r = (data - m) * 100;
-            if (r < 0) {
-                add = (r + 1 | 0) - r;
-                r = (add >= 1.0 && add <= 1.5) ? r | 0 : r - 1 | 0;
-            
-            } else {
-                add = r | 0;
-                r = r - add >= 0.5 ? r + 1 | 0 : add;
-            }
-            
-            add = 0;
-            if (data < 0) {
-                m = 0 - m;
-                r = 0 - r;
-                add = 1;
-            }
-            
-            if (m < 65536) {
-                if (m === 0) {
-                    enc += tok[13 + add] + tok[r + 128];
-                
-                } else {
-                    enc += tok[13 + add] + tok[r] + tok[m];
-                }
-            
-            } else {
-                enc += tok[15 + add] + tok[m >> 16 & 0xffff]
-                                     + tok[m & 0xffff] + tok[r];
-            }
-        
-        // Fixed
-        } else {
-            var add = 0;
-            if (data <= 0) {
-                data = 0 - data;
-                add = 1;
-            
-            } else {
-                data--;
-            }
-            
-            if (data < 116) {
-                enc += tok[17 + data + add * 116];
-            
-            } else if (data < 65536) {
-                enc += tok[1 + add] + tok[data];
-            
-            } else {
-                enc += tok[3 + add] + tok[data >> 16 & 0xffff]
-                                    + tok[data & 0xffff];
-            }
-        }
-    
-    // Strings
-    } else if (typeof data === 'string') {
-        var l = data.length;
-        enc += tok[7];
-        while (l >= 65535) {
-            l -= 65535;
-            enc += tok[65535];
-        }
-        enc += tok[l] + data;
-    
-    // Booleans
-    } else if (typeof data === 'boolean') {
-        enc += tok[data ? 5 : 6];
-    
-    // Null
-    } else if (data === null) {
-        enc += tok[0];
-    
-    // Arrays
-    } else if (data instanceof Array) {
-        enc += tok[8];
-        for (var i = 0, l = data.length; i < l; i++) {
-            _encode(data[i], false);
-        }
-        if (!top) {
-            enc += tok[9];
-        }
-    
-    // Objects
-    } else if (typeof data === 'object') {
-        enc += tok[10];
-        for (var e in data) {
-            enc += tok[17 + e.length] + e;
-            _encode(data[e], false);
-        }
-        if (!top) {
-            enc += tok[11];
-        }
+    var array = Array,
+        chr = new array(32768);
+
+    for (var i = 0; i < 32768; i++) {
+        chr[i] = String.fromCharCode(i);
     }
-}
 
-function encode(data) {
-    enc = '';
-    _encode(data, true);
-    return enc;
-}
+    // Encoder ----------------------------------------------------------------
+    var encoded = '';
+    function __encode(value, top) {
 
-function decode(data) {
-    var p = 0, l = data.length;
-    var stack = [], dec = undefined, f = null, t = 0, i = -1;
-    var dict = false, set = false;
-    var key = '', e = null, r = 0;
-    while (p < l) {
-        t = data.charCodeAt(p++);
-        f = stack[i];
-        
-        // Keys
-        if (dict && set && t > 16) {
-            key = data.substring(p, p + t - 17);
-            p += t - 17;
-            set = false;
-        
-        // Array / Objects
-        } else if (t === 8 || t === 10) {
-            e = t === 8 ? new Array() : new Object();
-            set = dict = t === 10;
-            dec !== undefined ? f instanceof Array ? f.push(e) : f[key] = e : dec = e;
-            stack.push(e);
-            i++;
-        
-        } else if (t === 11 || t === 9) {
-            stack.pop();
-            set = dict = !(stack[--i] instanceof Array);
-        
-        // Fixed
-        } else if (t > 16) {
-            t = t - 17;
-            t = t > 115 ? (0 - t + 116) : t + 1;
-            f instanceof Array ? f.push(t) : f[key] = t;
-            set = true;
-        
-        } else if (t > 0 && t < 5) {
-            if (((t - 1) / 2 | 0) === 0) {
-                e = data.charCodeAt(p);
-                p++;
-            
-            } else {
-                e = (data.charCodeAt(p) << 16) + data.charCodeAt(p + 1);
-                p += 2;
+        // Numbers
+        if (typeof value === 'number') {
+
+            var type = value !== (value | 0), sign = 0;
+            if (value < 0) {
+                value = -value;
+                sign = 1;
             }
-            e = t % 2 ? e + 1 : 0 - e;
-            f instanceof Array ? f.push(e) : f[key] = e;
-            set = true;
-        
-        // Floats
-        } else if (t > 12 && t < 17) {
-            if (((t - 13) / 2 | 0) === 0) {
-                r = data.charCodeAt(p);
-                if (r > 127) {
-                    e = 0;
-                    r -= 128;
-                    p++;
-                
-                } else {
-                    e = data.charCodeAt(p + 1);
-                    p += 2;
+
+            // Float
+            if (type) {
+
+                var shift = 1,
+                    step = 10;
+
+                while(step <= value) {
+                    shift++;
+                    step *= 10;
                 }
-            
-            } else {
-                e = (data.charCodeAt(p) << 16) + data.charCodeAt(p + 1);
-                r = data.charCodeAt(p + 2);
-                p += 3;
+
+                // Ensure we don't lose precisiobn
+                shift = (8 - shift) + 1;
+                value = Math.round(value * (1000000000 / step));
+
+                // Figure out the smallest exp for value
+                while(value / 10 === ((value  / 10) | 0)) {
+                    value /= 10;
+                    shift--;
+                }
+
             }
-            
-            e = t % 2 ? e + r * 0.01 : 0 - (e + r * 0.01);
-            f instanceof Array ? f.push(e) : f[key] = e;
-            set = true;
-        
-        // Booleans
-        } else if (t > 4 && t < 7) {
-            f instanceof Array ? f.push(t === 5) : f[key] = t === 5;
-            set = true;
-        
-        // Null
-        } else if (t === 0) {
-            f instanceof Array ? f.push(null) : f[key] = null;
-            set = true;
-        
+
+            // 17 - 19 (236 left = 116 per sign)
+            if (value < 118 && type === false) {
+                encoded += chr[15 + sign * 118 + value];
+
+            // 7 - 10
+            } else if (value < 65536) {
+                encoded += chr[7 + type + sign * 2] + chr[value >> 8 & 0xff] + chr[value & 0xff];
+
+            // 11 - 14
+            } else {
+                encoded += chr[11 + type + sign * 2]
+                           + chr[value >> 24 & 0xff]
+                           + chr[value >> 16 & 0xff]
+                           + chr[value >> 8 & 0xff]
+                           + chr[value & 0xff];
+            }
+
+            if (type) {
+                encoded += chr[shift];
+            }
+
         // Strings
-        } else if (t === 7) {
-            e = 0;
-            while (data.charCodeAt(p) === 65535) {
-                e += 65535;
-                p++;
+        } else if (typeof value === 'string') {
+
+            var l = value.length;
+            encoded += chr[6];
+
+            while (l >= 32677) {
+                l -= 32767;
+                encoded += chr[32767];
             }
-            e += data.charCodeAt(p++);
-            f instanceof Array ? f.push(data.substr(p, e)) : f[key] = data.substr(p, e);
-            p += e;
-            set = true;
+
+            encoded += chr[l] + value;
+
+        // Booleans
+        } else if (typeof value === 'boolean') {
+            encoded += chr[value ? 1 : 2];
+
+        // Null
+        } else if (value === null) {
+            encoded += chr[0];
+
+        // Arrays
+        } else if (value instanceof array) {
+
+            encoded += chr[3];
+            for(var i = 0, l = value.length; i < l; i++) {
+                __encode(value[i]);
+            }
+
+            if (!top) {
+                encoded += chr[5];
+            }
+
+        // Object
+        } else {
+
+            encoded += chr[4];
+            for(var i in value) {
+                encoded += chr[16 + i.length] + i;
+                __encode(value[i]);
+            }
+
+            if (!top) {
+                encoded += chr[5];
+            }
+
         }
+
     }
-    return dec;
-}
 
-if (typeof window === 'undefined') {
-    exports.encode = encode;
-    exports.decode = decode;
 
-} else {
-    window['BISON'] = {
-        'encode': encode,
-        'decode': decode
-    };
-}
+    function encode(value) {
+        encoded = '';
+        __encode(value, true);
+        return encoded;
+    }
+
+
+    // Decoder ----------------------------------------------------------------
+    function decode(string) {
+
+        var pos = 0, l = string.length,
+            stack = [], i = -1, e,
+            type, top, value, obj,
+
+            // Objects
+            getKey = false, key = null, isObj, decoded;
+
+        while (pos < l) {
+
+            // Grab type from string and current top of stack
+            type = string.charCodeAt(pos++);
+            obj = top;
+
+            // Null
+            if (type === 0) {
+                value = null;
+
+            // Boolean
+            } else if (type < 3) {
+                value = type === 1;
+
+            // Open Array / Objects
+            } else if (type < 5) {
+
+                value = type === 3 ? [] : {};
+                getKey = isObj = key !== null || type === 4;
+                top = stack[++i] = value;
+
+                if (decoded === undefined) {
+                    decoded = value;
+                    continue;
+                }
+
+            // Close Array / Object
+            } else if (type === 5) {
+                top = stack[--i];
+                getKey = isObj = !(top instanceof array);
+                continue;
+
+            // Object Keys
+            } else if (type >= 16 && getKey) {
+                key = string.substring(pos, pos += type - 16);
+                getKey = false;
+                continue;
+
+            // String
+            } else if (type === 6) {
+
+                e = 0;
+                while (type = string.charCodeAt(pos++)) {
+
+                    e += type;
+                    if (type !== 32767) {
+                        break;
+                    }
+
+                }
+
+                value = string.substring(pos, pos + e);
+                pos += e;
+
+            // Number
+            } else if (type < 15) {
+
+                // 0-65535
+                if (type < 11) {
+                    type -= 7;
+                    value = (string.charCodeAt(pos++) << 8) + string.charCodeAt(pos++);
+
+                // >= 65536
+                } else {
+                    type -= 11;
+                    value = (string.charCodeAt(pos++) << 24) + (string.charCodeAt(pos++) << 16) + (string.charCodeAt(pos++) << 8) + string.charCodeAt(pos++);
+                }
+
+                // Sign
+                e = (type & 2) === 2 ? 1 : 0;
+                if (e) {
+                    value = -value;
+                }
+
+                // Floats
+                if (type - e * 2) {
+                    e = string.charCodeAt(pos++)
+                    value /= Math.pow(10, e);
+                }
+
+            // Integers < 116
+            } else {
+                type -= 15;
+                value = type > 117 ? (0 - type + 118) : type;
+            }
+
+            // Assign value to top of stack or return value
+            if (isObj && key !== null) {
+                obj[key] = value;
+                getKey = true;
+                key = null;
+
+            } else {
+                obj.push(value);
+            }
+
+        }
+
+        return decoded;
+
+    }
+
+    if (typeof window === 'undefined') {
+        exports.encode = encode;
+        exports.decode = decode;
+
+    } else {
+        window.BISON = {
+            encode: encode,
+            decode: decode
+        };
+    }
+
 })();
 
+
+exports.encode([1.16, 65533.01, 24.123123])
