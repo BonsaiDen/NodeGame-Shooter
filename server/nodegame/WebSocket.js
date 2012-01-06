@@ -354,7 +354,6 @@ Connection.protocol[8] = function() {
         }
 
         if (state === -1) {
-            console.log('ending');
             that.__end(true);
             return false;
         }
@@ -375,7 +374,6 @@ Connection.protocol[8] = function() {
                 result = parse(length);
 
             if (result === false || !that.connected) {
-                console.log('nothing to read, break');
                 break;
 
             } else if (result === true) {
@@ -395,12 +393,12 @@ Connection.protocol[8] = function() {
 
         var dataLength = Buffer.byteLength(data),
             dataBuffer,
-            rawBytesSend = dataLength + 2;
+            rawBytesSend = 2;
 
         // 64 Bit
         if (dataLength > 65535) {
 
-            dataBuffer = new Buffer(10);
+            dataBuffer = new Buffer(10 + dataLength);
             dataBuffer[1] = 127;
 
             // This... uh... should work I guess
@@ -422,14 +420,14 @@ Connection.protocol[8] = function() {
         // 16 Bit
         } else if (dataLength > 125) {
 
-            dataBuffer = new Buffer(4);
+            dataBuffer = new Buffer(4 + dataLength);
             dataBuffer[1] = 126;
             dataBuffer[2] = (dataLength >> 8) & 255;
             dataBuffer[3] = dataLength & 255;
             rawBytesSend += 2;
 
         } else {
-            dataBuffer = new Buffer(2);
+            dataBuffer = new Buffer(2 + dataLength);
             dataBuffer[1] = dataLength;
         }
 
@@ -441,10 +439,10 @@ Connection.protocol[8] = function() {
 
         if (that.socket.writable) {
 
-            this.socket.write(dataBuffer, 'binary');
-            this.socket.write(data, binary ? 'binary' : 'utf8');
+            dataBuffer.write(data, rawBytesSend);
+            this.socket.write(dataBuffer);
 
-            that.rawBytesSend += rawBytesSend;
+            that.rawBytesSend += rawBytesSend + dataLength;
             that.bytesSend += dataLength;
 
         } else {

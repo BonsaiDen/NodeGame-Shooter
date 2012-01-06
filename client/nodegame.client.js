@@ -1,10 +1,10 @@
 /*
-  
+
   NodeGame: Shooter
   Copyright (c) 2010 Ivo Wetzel.
-  
+
   All rights reserved.
-  
+
   NodeGame: Shooter is free software: you can redistribute it and/or
   modify it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
@@ -17,7 +17,7 @@
 
   You should have received a copy of the GNU General Public License along with
   NodeGame: Shooter. If not, see <http://www.gnu.org/licenses/>.
-  
+
 */
 
 (function() {
@@ -43,7 +43,7 @@ var MSG_CONNECTION_CLOSED = 255;
 // -----------------------------------------------------------------------------
 function Game(client) {
     this.$ = client;
-    this.id = -1; 
+    this.id = -1;
 };
 
 Game.prototype.onCreate = function(flash) {};
@@ -95,10 +95,10 @@ Game.prototype.send = function(msg) {
 // -----------------------------------------------------------------------------
 function Client() {
     this.reset();
-    
+
     this.created = false;
     this.actorTypes = {};
-    
+
     this.rec = null;
     this.recTime = null;
     this.recID = -1;
@@ -112,21 +112,21 @@ Client.prototype.connect = function(host, port) {
         this.$.onCreate(!!WebSocket.prototype.__createFlash);
         this.created = true;
     }
-    
+
     this.conn = new WebSocket('ws://' + host + ':' + port);
     this.conn.onopen = function() {
         that.connected = true;
         that.$.onConnect(true);
     };
-    
+
     this.conn.onmessage = function(msg) {
         that.onMessage(msg);
     };
-    
+
     this.conn.onerror = this.conn.onclose = function(e) {
         if (that.connected) {
             that.queueMessage([MSG_CONNECTION_CLOSED, e]);
-        
+
         } else {
             that.$.onConnect(false);
         }
@@ -170,7 +170,7 @@ Client.prototype.playRecording = function(record) {
         this.recID = 0;
         this.recLength = this.rec.length;
         this.playRecording();
-     
+
      } else if (this.rec) {
         var that = this;
         while(this.recID < this.recLength) {
@@ -178,13 +178,13 @@ Client.prototype.playRecording = function(record) {
             if (entry[0] > new Date().getTime() - this.recTime) {
                 break;
             }
-            
+
             this.queueMessage(entry[1]);
             this.recID++;
         }
         if (this.recID < this.recLength) {
             this.recTimer = setTimeout(function(){that.playRecording();}, 20);
-        
+
         } else {
             this.$.onRecordingEnd();
         }
@@ -216,7 +216,7 @@ Client.prototype.queueMessage = function(data) {
     var time = new Date().getTime();
     if (!this.running) {
         this.handleMessage(data, time);
-    
+
     } else {
         this.messages.push([data, time]);
     }
@@ -232,79 +232,79 @@ Client.prototype.processMessages = function() {
 Client.prototype.handleMessage = function(data, time) {
     var type = data.shift();
     if (type === MSG_GAME_START) {
-        var that = this; 
+        var that = this;
         this.$.id = data[0];
         this.interval = data[1];
         this.$.onUpdate(data[2], true);
         this.running = true;
         this.gameTimer = setTimeout(function() {that.update();}, 0);
-    
+
     } else if (type === MSG_GAME_FIELDS) {
         this.$.onUpdate(data[0], false);
-    
+
     } else if (type === MSG_GAME_PING) {
         var ping = time - this.pingTime;
         this.pings.push(ping);
         if (this.pings.length > 5) {
             this.pings.shift();
         }
-        
+
         var median = 0;
         for(var i = 0; i < 5; i++) {
             median += this.pings[i];
         }
         this.ping = median / 10;
-    
+
     } else if (type === MSG_GAME_SHUTDOWN) {
         this.$.onShutdown(data);
-    
+
     } else if (type === MSG_CLIENT_MESSAGE) {
         this.$.onMessage(data[0]);
-    
+
     } else if (type === MSG_ACTORS_INIT) {
         for(var i = 0, l = data.length; i < l; i++) {
             var a = data[i];
             this.actors[a[0][0]] = new Actor(this, a, false, time);
         }
-    
+
     } else if (type === MSG_ACTORS_CREATE) {
         for(var i = 0, l = data.length; i < l; i++) {
             var a = data[i];
             this.actors[a[0][0]] = new Actor(this, a, true, time);
         }
-    
+
     } else if (type === MSG_ACTORS_UPDATE) {
         for(var i = 0, l = data.length; i < l; i++) {
             var a = data[i];
             this.actors[a[0][0]].update(a, time);
         }
-    
+
     } else if (type === MSG_ACTORS_EVENT) {
         for(var i = 0, l = data.length; i < l; i++) {
             var a = data[i];
             this.actors[a[0]].onEvent(a[1]);
         }
-    
+
     } else if (type === MSG_ACTORS_REMOVE) {
         for(var i = 0, l = data.length; i < l; i++) {
             var a = data[i];
             this.actors[a[0]].remove();
             delete this.actors[a[0]];
         }
-    
+
     } else if (type === MSG_ACTORS_DESTROY) {
         for(var i = 0, l = data.length; i < l; i++) {
             var a = data[i];
             this.actors[a[0]].destroy(a[1], a[2]);
             delete this.actors[a[0]];
         }
-    
+
     } else if (type === MSG_CONNECTION_CLOSED) {
         var that = this;
         this.quit();
         setTimeout(function() {that.$.onClose(data[0]);}, 0);
     }
-    
+
     if (this.recID !== -1) {
         data.unshift(type);
     }
@@ -323,7 +323,7 @@ Client.prototype.update = function() {
     if (this.running) {
         this.processMessages();
         this.$.onDraw();
-        
+
         this.time = new Date().getTime();
         for(var c in this.actors) {
             var a = this.actors[c];
@@ -337,14 +337,15 @@ Client.prototype.update = function() {
             a.onDraw();
         }
     }
-    
+
     if (this.running) {
         var that = this;
         var next = this.fpsTime - (new Date().getTime() - frameTime);
         this.gameTimer = setTimeout(function() {that.update()}, next);
-        
+
         if (this.$.playing) {
-            var msg = BISON.encode(this.$.onInput());
+            var data = this.$.onInput();
+            var msg = BISON.encode(data);
             if (msg !== this.lastState) {
                 this.pingTime = new Date().getTime();
                 this.conn.send(msg);
@@ -369,12 +370,12 @@ Client.prototype.getTime = function() {
 function Actor(client, data, create, time) {
     this.$ = client.$;
     this.$interval = client.interval;
-    
+
     var d = data[0];
     this.id = d[0];
     this.$updateRate = client.actorTypes[d[5]].updateRate;
     this.move(d, time);
-    
+
     for(var m in client.actorTypes[d[5]]) {
         if (m !== 'update' && m !== 'destroy' && m !== 'remove') {
             this[m] = client.actorTypes[d[5]][m];

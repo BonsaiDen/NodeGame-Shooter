@@ -1,10 +1,10 @@
 /*
-  
+
   NodeGame: Shooter
   Copyright (c) 2010 Ivo Wetzel.
-  
+
   All rights reserved.
-  
+
   NodeGame: Shooter is free software: you can redistribute it and/or
   modify it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
@@ -17,7 +17,7 @@
 
   You should have received a copy of the GNU General Public License along with
   NodeGame: Shooter. If not, see <http://www.gnu.org/licenses/>.
-  
+
 */
 
 
@@ -27,14 +27,14 @@ Shooter.onCreate = function(flash) {
     if (document.cookie !== 'SET') {
         document.cookie = 'SET'; // FF fix for certain cookie settings
     }
-    
+
     // Sounds
     this.sound = new SoundPlayer(7, 'sounds', [
         'explosionBig',
         'explosionMedium',
         'explosionShip',
         'explosionSmall',
-        
+
         'fadeIn',
         'fadeOut',
         'launchBig',
@@ -45,30 +45,31 @@ Shooter.onCreate = function(flash) {
         'powerSound'
     ]);
     this.onSound(this.getItem('sound', false));
-    
+
     // Tutorial
     this.tutorialTimers = [null, null];
     this.tutorialFadeTimer = null;
     this.onTutorial(this.getItem('tutorial', true));
-    
+
     // Achievements
     this.achievementTimer = null;
     this.achievementFadeTimer = null;
     this.achievementPriority = 0;
-    
+
     // General
     var that = this;
     this.reset();
-    this.colorSelected = this.getItemInt('color'); 
-    
+    this.colorSelected = this.getItemInt('color');
+
     // Input
     this.keys = {};
     window.onkeydown = window.onkeyup = function(e) {
+
         var key = e.keyCode;
         if (key !== 116 && !e.shiftKey && !e.altKey && !e.ctrlKey) {
             if (e.type === "keydown") {
                 that.keys[key] = 1;
-            
+
             } else {
                 that.keys[key] = 2;
             }
@@ -77,34 +78,37 @@ Shooter.onCreate = function(flash) {
                 return false;
             }
         }
+
     };
+
     window.onblur = function(e) {
         that.keys = {};
     };
-    
+
     $('login').onkeypress = function(e) {
         that.onLogin(e);
     };
-    
+
     if (flash) {
         show('warning');
     }
-    
+
     // Firefox race condition with the colors div...
     window.setTimeout(function(){that.createColors();}, 0);
+
 };
 
-Shooter.onConnect = function(success) {    
+Shooter.onConnect = function(success) {
     if (!success) {
         this.watch();
-    
+
     } else {
         this.send(['init']);
     }
 };
 
 Shooter.onUpdate = function(data, init) {
-    
+
     // Fields
     if (data.s !== undefined) {
         this.width = data.s[0];
@@ -119,36 +123,36 @@ Shooter.onUpdate = function(data, init) {
     if (data.o !== undefined) {
         this.playerColors = data.o;
     }
-    if (data.p !== undefined) { 
+    if (data.p !== undefined) {
         this.playerNames = data.p;
         this.checkPlayers(data);
     }
     if (data.rg !== undefined) {
         this.checkRound(data);
     }
-    
+
     if (init) {
         this.initCanvas();
         if (!this.watching) {
             show('loginBox');
             $('login').focus();
         }
-        show('sub'); 
+        show('sub');
         show(this.canvas);
         $('gameInfo').style.width = this.width + 'px';
         $('gameInfoRight').style.width = 260 + 'px';
         $('gameInfoLeft').style.width = (this.width - 16 - 260)  + 'px';
-    
+
     } else {
         // Tutorial
         if (this.playing && !this.tutorialStarted && this.roundGO) {
             this.tutorial(this.tutorialNext);
             this.tutorialStarted = true;
-        
+
         } else if (!this.roundGO && $('tutorial').style.display !== 'none') {
             this.tutorialFadeOut();
         }
-        
+
         if (!this.roundGO) {
             this.achievementHide();
         }
@@ -176,7 +180,7 @@ Shooter.onMessage = function(msg) {
 Shooter.onClose = function(error) {
     if (this.kicked) {
         this.play();
-    
+
     } else {
         this.watch();
     }
@@ -194,7 +198,7 @@ Shooter.onInput = function() {
         this.keys[65] || this.keys[37] || 0,
         this.keys[32] || 0]
     };
-    
+
     for(var i in this.keys) {
         if (this.keys[i] === 2) {
             this.keys[i] = 0;
@@ -228,7 +232,7 @@ Shooter.onServerStatus = function(online) {
         $('serverStatus').innerHTML = 'SERVER ONLINE!';
         hide('watching');
         show('goplaying');
-    
+
     } else {
         $('serverStatus').innerHTML = 'SERVER OFFLINE';
         show('watching');
@@ -239,7 +243,7 @@ Shooter.onServerStatus = function(online) {
 Shooter.onSound = function(data) {
     if (data !== undefined) {
         this.sound.enabled = data;
-    
+
     } else {
         this.sound.enabled = !this.sound.enabled;
     }
@@ -251,7 +255,7 @@ Shooter.onSound = function(data) {
 Shooter.onTutorial = function(data) {
     if (data !== undefined) {
         this.tutorialEnabled = data;
-    
+
     } else {
         this.tutorialEnabled = !this.tutorialEnabled;
     }
@@ -263,11 +267,11 @@ Shooter.onTutorial = function(data) {
         this.tutorial(this.tutorialNext);
         this.tutorialStarted = true;
     }
-    
+
     this.setItem('tutorial', this.tutorialEnabled);
     $('tut').innerHTML = (this.tutorialEnabled ? 'DISABLE' : 'RE-ENABLE')
                                                   + ' TUTORIAL';
-                                                  
+
     if (!this.tutorialEnabled && $('tutorial').style.display !== 'none') {
         this.tutorialFadeOut();
     }

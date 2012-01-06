@@ -149,7 +149,7 @@ function Server(options, model) {
         }
     });
 
-    this.$.on('close', function(conn) {
+    this.$.on('end', function(conn) {
         that.removeClient(conn.$clientID);
     });
 
